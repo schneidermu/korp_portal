@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}
+  Лента новостей
+{% endblock %}
+{% block content %}
+    <div style="border:1px solid black">
+      <h1 align='center'>Лента новостей</h1>
+      <ul class="list-group list-group-horizontal">
+        {% for news in page_obj %}
+          <li class="list-group-item">
+            {% include "includes/news_card.html" %}
+          </li>
+        {% endfor %}
+      </ul>
+        {% include "includes/paginator.html" %}
+    </div>
+    <div style="border:1px solid black">
+        <h1 align='center'>Опрос</h1>
+        {% include "includes/poll_card.html" %}
+    </div>
+{% endblock %}

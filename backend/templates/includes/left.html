@@ -1,0 +1,29 @@
+{% load static %}
+<header>
+  <nav class="navbar navbar-light" style="background-color: lightskyblue">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'homepage:homepage' %}">
+        <img src="{% static 'img/logo.jpg' %}" width="140" height="60" class="d-inline-block align-top" alt="">
+      </a>
+      {% with request.resolver_match.view_name as view_name %}        
+        <ul class="nav  nav-pills">
+          <li class="nav-item">              
+            <a class="nav-link {% if view_name == 'homepage:homepage' %} active {% endif %}" href="{% url 'homepage:homepage' %}">
+              Рабочий стол
+            </a>
+          </li>
+          <li class="nav-item">              
+            <a class="nav-link {% if view_name == 'employees:me' %} active {% endif %}" href="{% url 'employees:me' %}">
+              Мой профиль
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if view_name == 'organization:organization' %} active {% endif %}" href="{% url 'organization:organization' %}">
+              Орг. структура
+            </a>
+          </li>
+        </ul>
+      {% endwith %}      
+    </div>
+  </nav> 
+</header>

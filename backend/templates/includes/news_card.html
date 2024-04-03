@@ -1,0 +1,22 @@
+<div class="col d-flex justify-content-center">
+    <div class="card" style="width: 40rem;">
+      <div class="card-body">
+        {% if news.image %}
+          <a href="{{ news.image.url }}" target="_blank">
+            <img class="border-3 rounded img-fluid img-thumbnail mb-2 mx-auto d-block" src="{{ news.image.url }}">
+          </a>
+        {% endif %}
+        <h5 class="card-title">{{ news.title }}</h5>
+        <h6 class="card-subtitle mb-2 text-muted">
+          <small>
+            {% if not news.is_published %}
+              <p class="text-danger">Новость снята с публикации админом</p>
+            {% endif %}
+            {{ news.pub_date|date:"d E Y, H:i" }} <br>
+          </small>
+        </h6>
+        <p class="card-text">{{ news.text|truncatewords:10 }}</p>
+        <a href="{% url 'homepage:news_detail' news.id %}" class="card-link">Читать полный текст</a>
+      </div>
+    </div>
+  </div>

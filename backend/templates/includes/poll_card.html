@@ -1,0 +1,15 @@
+<div class="col d-flex justify-content-center">
+    <div class="card" style="width: 40rem;">
+      <div class="card-body">
+        <h5 class="card-title">{{ poll.question_text }}</h5>
+        {% for choice in poll.choices.all %}
+          <form>
+            <label>
+              <input type="checkbox">
+              {{ choice.choice_text }}
+            </label>
+          </form>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
