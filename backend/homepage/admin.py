@@ -8,11 +8,13 @@ class NewsAdmin(admin.ModelAdmin):
     pass
 
 
+class ChoiceInline(admin.TabularInline):
+    model = Choice
+    extra = 1
+
+
 @admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Choice)
-class ChoiceAdmin(admin.ModelAdmin):
-    pass
+    inlines = (
+        ChoiceInline,
+    )

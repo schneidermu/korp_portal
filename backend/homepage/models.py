@@ -75,6 +75,13 @@ class Poll(Published):
         max_length=CHARFIELD_LENGTH
     )
 
+    pub_date = models.DateTimeField(
+        default=datetime.now(),
+        verbose_name='Дата и время публикации',
+        help_text=('Если установить дату и время в будущем'
+                   ' — можно делать отложенные публикации.'),
+    )
+
     def __str__(self):
         return self.question_text
 
@@ -102,8 +109,8 @@ class Choice(models.Model):
     )
 
     def __str__(self):
-        return self.choice_text
-    
+        return 'Вариант'
+
     class Meta:
         verbose_name = 'Вариант опроса'
         verbose_name_plural = 'Варианты опроса'

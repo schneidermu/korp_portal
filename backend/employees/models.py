@@ -9,11 +9,21 @@ from django.db.models import Avg
 
 User = get_user_model()
 
+CHOICES = (
+    ('В отпуске', 'В отпуске'),
+    ('В командировке', 'В командировке'),
+    ('На больничном', 'На больничном'),
+    ('На рабочем месте', 'На рабочем месте'),
+    ('Нет на месте', 'Нет на месте'),
+)
+
 
 class Employee(models.Model):
     """Модель сотрудника."""
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='information'
+    )
 
     fio = models.CharField(
         verbose_name='Фамилия Имя Отчество',
@@ -44,23 +54,21 @@ class Employee(models.Model):
         verbose_name='Классный чин',
         max_length=CHARFIELD_LENGTH,
     )
-#    characteristic = models.OneToOneField(
-#        'Characteristic',
-#        verbose_name='Характеристика сотрудника',
-#        related_name='employee',
-#        on_delete=models.CASCADE,
-#    )
+
+    status = models.CharField(
+        verbose_name='Статус',
+        max_length=16, choices=CHOICES, default='На рабочем месте'
+    )
 
     @property
     def average_rating(self):
-        print(self.rates.all())
         return self.rated.all().aggregate(Avg('rate'))['rate__avg']
 
     def __str__(self) -> str:
-        return f'Сотрудник {self.fio}'
+        return self.fio
 
     class Meta:
-        verbose_name = 'Сотрудник'
+        verbose_name = 'сотрудник'
         verbose_name_plural = 'Сотрудники'
 
 
@@ -72,18 +80,18 @@ class AbstractNameModel(models.Model):
         max_length=CHARFIELD_LENGTH,
     )
 
-    employee = models.ForeignKey(
-        Employee,
+    characteristic = models.ForeignKey(
+        "Characteristic",
         verbose_name="Сотрудник",
         related_name='%(class)s',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
 
     class Meta:
         abstract = True
 
     def __str__(self):
-        return f'{self.employee.fio} - {self.name}'
+        return self.name
 
 
 class AbstractWithPhotoNameModel(AbstractNameModel):
@@ -125,7 +133,7 @@ class Rating(models.Model):
             CheckConstraint(check=Q(rate__range=(0, 5)), name='valid_rate'),
             UniqueConstraint(fields=['user', 'employee'], name='rating_once')
         ]
-        verbose_name = 'Оценка'
+        verbose_name = 'оценка'
         verbose_name_plural = 'Оценки'
 
 
@@ -135,22 +143,29 @@ class Characteristic(models.Model):
     employee = models.OneToOneField(
         Employee,
         on_delete=models.CASCADE,
-        related_name='characteristic'
+        related_name='characteristic',
+        verbose_name='Сотрудник',
     )
 
     university = models.CharField(
         verbose_name='Университет',
         max_length=CHARFIELD_LENGTH,
+        blank=True,
+        null=True,
     )
     diploma = models.CharField(
         verbose_name='Диплом',
         max_length=CHARFIELD_LENGTH,
+        blank=True,
+        null=True,
     )
 
     # Курсы через class Course
 
     experience = models.PositiveSmallIntegerField(
-        verbose_name='Стаж',
+        verbose_name='Стаж работы (лет)',
+        blank=True,
+        null=True,
     )
 
     # Карьерный рост через class Career
@@ -173,76 +188,110 @@ class Characteristic(models.Model):
 
     # Волонтерская деятельность class Volunteer
 
+    about = models.TextField(
+        verbose_name='Обо мне',
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = "характеристика"
+        verbose_name_plural = "Характеристики"
+
+    def __str__(self):
+        return self.employee.fio
+
 
 class Course(AbstractNameModel):
     """Модель курса."""
 
-    date = models.DateTimeField(
+    date = models.DateField(
         verbose_name='Дата прохождения курса',
     )
 
+    class Meta:
+        verbose_name = 'курс'
+        verbose_name_plural = 'Курсы'
 
-class Career(models.Model):
+
+class Career(AbstractNameModel):
     """Модель карьерного роста."""
 
-    date = models.DateTimeField(
+    date = models.DateField(
         verbose_name='Дата вступления в должность',
     )
-    employee = models.ForeignKey(
-        Employee,
-        on_delete=models.CASCADE,
-        verbose_name='Сотрудник',
-        related_name='career'
-    )
-    title = models.CharField(
+
+    name = models.CharField(
         verbose_name='Должность',
         max_length=CHARFIELD_LENGTH,
     )
 
+    class Meta:
+        verbose_name = 'карьера'
+        verbose_name_plural = 'Карьера'
+
 
 class Competence(AbstractNameModel):
-    """Модель наыков и компетенций."""
-    pass
+    """Модель навыков и компетенций."""
+    class Meta:
+        verbose_name = 'компетенция'
+        verbose_name_plural = 'компетенции'
 
 
 class Training(AbstractWithPhotoNameModel):
     """Модель повышения квалификации."""
-    pass
+    class Meta:
+        verbose_name = 'повышение квалификации'
+        verbose_name_plural = 'повышения квалификации'
 
 
 class Hobby(AbstractWithPhotoNameModel):
     """Модель хобби."""
-    pass
+    class Meta:
+        verbose_name = 'хобби'
+        verbose_name_plural = 'хобби'
 
 
 class Reward(AbstractWithPhotoNameModel):
     """Модель награды."""
-    pass
+    class Meta:
+        verbose_name = 'награда'
+        verbose_name_plural = 'награды'
 
 
 class Conference(AbstractWithPhotoNameModel):
     """Модель конференции."""
-    pass
+    class Meta:
+        verbose_name = 'конференция'
+        verbose_name_plural = 'конференции'
 
 
 class Victory(AbstractWithPhotoNameModel):
     """Модель победы в конкурсе."""
-    pass
+    class Meta:
+        verbose_name = 'победа в конкурсе'
+        verbose_name_plural = 'победы в конкурсе'
 
 
 class Performance(AbstractWithPhotoNameModel):
     """Модель выступления."""
-    pass
+    class Meta:
+        verbose_name = 'выступление'
+        verbose_name_plural = 'выступления'
 
 
 class Sport(AbstractWithPhotoNameModel):
     """Модель спортивного мероприятия."""
-    pass
+    class Meta:
+        verbose_name = 'спортивное мероприятия'
+        verbose_name_plural = 'спортивные мероприятия'
 
 
 class Volunteer(AbstractWithPhotoNameModel):
     """Модель волонтерства."""
-    pass
+    class Meta:
+        verbose_name = 'волонтерство'
+        verbose_name_plural = 'волонтерства'
 
 
 class Organization(models.Model):
@@ -267,5 +316,5 @@ class Organization(models.Model):
         return f'{self.name}'
 
     class Meta:
-        verbose_name = 'Организация'
+        verbose_name = 'организация'
         verbose_name_plural = 'Организации'
