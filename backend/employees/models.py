@@ -1,13 +1,12 @@
+import uuid
 from django.db import models
-from django.contrib.auth import get_user_model
 from homepage.constants import CHARFIELD_LENGTH
 from django.core.validators import MaxValueValidator, MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import CheckConstraint, Q, UniqueConstraint
 from django.db.models import Avg
+from django.contrib.auth.models import AbstractUser
 
-
-User = get_user_model()
 
 CHOICES = (
     ('В отпуске', 'В отпуске'),
@@ -18,46 +17,64 @@ CHOICES = (
 )
 
 
-class Employee(models.Model):
-    """Модель сотрудника."""
+class Employee(AbstractUser):
+    """Модель страницы сотрудника."""
 
-    user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='information'
+    id = models.UUIDField( 
+        primary_key = True, 
+        default = uuid.uuid4, 
+        editable = False
     )
 
     fio = models.CharField(
         verbose_name='Фамилия Имя Отчество',
         max_length=CHARFIELD_LENGTH,
+        blank=True,
+        null=True,
     )
 
     birth_date = models.DateField(
         verbose_name='Дата рождения',
+        blank=True,
+        null=True,
     )
     email = models.EmailField(
         verbose_name='Почта',
+        blank=True,
+        null=True,
     )
     telephone_number = PhoneNumberField(
         verbose_name='Номер телефона',
-        null=False, blank=False, unique=True
+        blank=True,
+        null=True,
+        unique=True
     )
     organization = models.ForeignKey(
         'Organization',
         related_name='employees',
         verbose_name='Организация',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
     )
     job_title = models.CharField(
         verbose_name='Должность',
         max_length=CHARFIELD_LENGTH,
+        blank=True,
+        null=True,
     )
     class_rank = models.CharField(
         verbose_name='Классный чин',
         max_length=CHARFIELD_LENGTH,
+        blank=True,
+        null=True,
     )
 
     status = models.CharField(
         verbose_name='Статус',
-        max_length=16, choices=CHOICES, default='На рабочем месте'
+        max_length=16, choices=CHOICES, default='На рабочем месте',
+        blank=True,
+        null=True,
     )
 
     @property
@@ -65,7 +82,7 @@ class Employee(models.Model):
         return self.rated.all().aggregate(Avg('rate'))['rate__avg']
 
     def __str__(self) -> str:
-        return self.fio
+        return self.fio or self.username
 
     class Meta:
         verbose_name = 'сотрудник'

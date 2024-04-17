@@ -3,6 +3,7 @@ from django.core.validators import FileExtensionValidator
 from datetime import datetime
 
 from .constants import CHARFIELD_LENGTH
+from employees.models import Employee
 
 
 class Published(models.Model):
@@ -36,7 +37,7 @@ class News(Published):
 
     image = models.ImageField(
         verbose_name='Картинка',
-        upload_to='news/images/',
+        upload_to='news/',
         null=True,
         default=None
     )
@@ -103,13 +104,15 @@ class Choice(models.Model):
         verbose_name="Текст вопроса",
         max_length=CHARFIELD_LENGTH
     )
-    votes = models.IntegerField(
-        verbose_name="Число голосов",
-        default=0
+    voted = models.ManyToManyField(
+        Employee,
+        verbose_name="Выбрали этот вариант",
+        blank=True,
+        related_name="chose",
     )
 
     def __str__(self):
-        return 'Вариант'
+        return f'Вариант {self.choice_text}'
 
     class Meta:
         verbose_name = 'Вариант опроса'

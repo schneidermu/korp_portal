@@ -1,14 +1,13 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.utils.safestring import mark_safe
 
 from .models import Employee, Organization, Rating, Characteristic, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer
 
 
-class EmployeeInline(admin.StackedInline):
-    model = Employee
-    can_delete = False
+admin.site.register(Employee, UserAdmin)
+
 
 # Инлайны для характеристики сотрудника
 class CourseInline(admin.TabularInline):
@@ -99,36 +98,6 @@ class CharacteristicAdmin(admin.ModelAdmin):
 class CharacteristicLinkInline(admin.TabularInline):
     model = Characteristic
     show_change_link = True
-
-
-class UserAdmin(BaseUserAdmin):
-    def get_fieldsets(self, request, obj=None):
-        fieldsets = super().get_fieldsets(request, obj)
-        new = []
-        for name, fields_dict in fieldsets:
-            if fields_dict['fields'] == ('first_name', 'last_name', 'email'):
-                fields_dict['fields'] = ('email',)
-            new.append((name, fields_dict))
-        return new
-    inlines = (
-        EmployeeInline,
-    )
-    list_display = ('information', 'email', 'is_staff', 'status', 'characteristic_link')
-
-    def characteristic_link(self, obj):
-        if obj.information.characteristic:
-            return mark_safe(
-                '<a href="../../employees/characteristic/%s">Ссылка</a>' % obj.information.id
-            )
-    def status(self, obj):
-        return obj.information.status
-
-    characteristic_link.short_description = "Характеристика"
-    status.short_description = "Статус"
-
-
-admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
 
 
 @admin.register(Organization)
