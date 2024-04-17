@@ -54,7 +54,6 @@ class News(Published):
     )
 
     pub_date = models.DateTimeField(
-        default=datetime.now(),
         verbose_name='Дата и время публикации',
         help_text=('Если установить дату и время в будущем'
                    ' — можно делать отложенные публикации.'),

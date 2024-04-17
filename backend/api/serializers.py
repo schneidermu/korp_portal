@@ -120,7 +120,12 @@ class NewsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = News
-        fields = '__all__'
+        fields = (
+            'title',
+            'text',
+            'image',
+            'video'
+        )
 
 
 

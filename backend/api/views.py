@@ -5,8 +5,8 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 
-from homepage.models import Poll, Choice
-from .serializers import VoteCreateSerializer, VoteDeleteSerializer, PollSerializer
+from homepage.models import Poll, News
+from .serializers import VoteCreateSerializer, VoteDeleteSerializer, PollSerializer, NewsSerializer
 
 
 class PollViewset(viewsets.ModelViewSet):
@@ -67,6 +67,14 @@ class PollViewset(viewsets.ModelViewSet):
             status=status.HTTP_204_NO_CONTENT
         )
 
+class NewsViewSet(viewsets.ModelViewSet):
+    '''Вьюсет для новостей'''
+
+    queryset = News.objects.filter(
+        is_published=True,
+        pub_date__lte=datetime.now()
+    )
+    serializer_class = NewsSerializer
 
 
     
