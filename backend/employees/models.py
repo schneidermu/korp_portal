@@ -21,9 +21,9 @@ class Employee(AbstractUser):
     """Модель страницы сотрудника."""
 
     id = models.UUIDField( 
-        primary_key = True, 
-        default = uuid.uuid4, 
-        editable = False
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
     )
 
     fio = models.CharField(
@@ -81,8 +81,10 @@ class Employee(AbstractUser):
     def average_rating(self):
         return self.rated.all().aggregate(Avg('rate'))['rate__avg']
 
-    def __str__(self) -> str:
-        return self.fio or self.username
+    def __str__(self):
+        if self.fio:
+            return self.fio
+        return self.username
 
     class Meta:
         verbose_name = 'сотрудник'
@@ -102,6 +104,8 @@ class AbstractNameModel(models.Model):
         verbose_name="Сотрудник",
         related_name='%(class)s',
         on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
 
     class Meta:
@@ -111,15 +115,35 @@ class AbstractNameModel(models.Model):
         return self.name
 
 
-class AbstractWithPhotoNameModel(AbstractNameModel):
+class AbstractWithPhotoNameModel(models.Model):
     """Абстрактный класс для событий с фото."""
+
+    name = models.CharField(
+        verbose_name='Название',
+        max_length=CHARFIELD_LENGTH,
+    )
+
+    characteristic = models.ForeignKey(
+        "Characteristic",
+        verbose_name="Сотрудник",
+        related_name='%(class)s',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
     image = models.ImageField(
         verbose_name='Картинка',
-        upload_to='employees/%(class)s/',
+    #    upload_to='employees/%(class)s/',
         null=True,
         default=None
     )
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.name
 
 
 class Rating(models.Model):
@@ -148,7 +172,6 @@ class Rating(models.Model):
     class Meta:
         constraints = [
             CheckConstraint(check=Q(rate__range=(0, 5)), name='valid_rate'),
-            UniqueConstraint(fields=['user', 'employee'], name='rating_once')
         ]
         verbose_name = 'оценка'
         verbose_name_plural = 'Оценки'
@@ -330,7 +353,7 @@ class Organization(models.Model):
     )
 
     def __str__(self):
-        return f'{self.name}'
+        return self.name
 
     class Meta:
         verbose_name = 'организация'

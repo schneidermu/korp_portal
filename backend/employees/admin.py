@@ -6,8 +6,22 @@ from django.utils.safestring import mark_safe
 from .models import Employee, Organization, Rating, Characteristic, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer
 
 
-admin.site.register(Employee, UserAdmin)
-
+@admin.register(Employee)
+class EmployeeAdmin(UserAdmin):
+    # everything else
+    fieldsets = UserAdmin.fieldsets + (
+        ('Общая информация', {
+            'fields': (
+                'fio',
+                'organization',
+                'birth_date',
+                'telephone_number',
+                'job_title',
+                'class_rank',
+                'status',
+            )
+        }),
+    )
 
 # Инлайны для характеристики сотрудника
 class CourseInline(admin.TabularInline):
@@ -80,19 +94,19 @@ class CharacteristicAdmin(admin.ModelAdmin):
         VolunteerInline,
     )
 
-    list_display = ('fio', 'average_rating')
+#    list_display = ('fio', 'average_rating')
 
-    def average_rating(self, obj):
-        return obj.employee.average_rating
+#    def average_rating(self, obj):
+#        return obj.employee.average_rating
 
-    def fio(self, obj):
-        return obj.employee.fio
+#    def fio(self, obj):
+#        return obj.employee.fio
 
-    def organization(self, obj):
-        return obj.employee.organization
+#    def organization(self, obj):
+#        return obj.employee.organization
 
-    fio.short_description = "ФИО"
-    average_rating.short_description = "Рейтинг"
+#    fio.short_description = "ФИО"
+#    average_rating.short_description = "Рейтинг"
 
 
 class CharacteristicLinkInline(admin.TabularInline):
