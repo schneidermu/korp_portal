@@ -8,7 +8,7 @@ class IsUserOrReadOnly(permissions.IsAuthenticatedOrReadOnly):
 
         return (
             request.method in permissions.SAFE_METHODS
-            or obj.user == request.user
+            or obj == request.user
         )
 
 

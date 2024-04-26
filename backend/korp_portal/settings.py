@@ -146,3 +146,14 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ]
 }
+
+DJOSER = {
+    'HIDE_USERS': False,
+    'SERIALIZERS': {
+        'user': 'api.serializers.ProfileSerializer',
+        'user_list': 'api.serializers.ProfileSerializer',
+        'current_user': 'api.serializers.ProfileSerializer',
+        'user_create': 'api.serializers.ProfileCreateSerializer',
+    },
+    'HIDE_USERS': False,
+}

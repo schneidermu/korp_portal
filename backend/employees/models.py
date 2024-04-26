@@ -16,9 +16,16 @@ CHOICES = (
     ('Нет на месте', 'Нет на месте'),
 )
 
+POSITIONS = (
+    ('Разработчик', 'Разработчик'),
+    ('Руководитель', 'Руководитель'),
+)
+
 
 class Employee(AbstractUser):
     """Модель страницы сотрудника."""
+
+    REQUIRED_FIELDS = ["email", "password", "structural_division"]
 
     id = models.UUIDField( 
         primary_key=True,
@@ -49,19 +56,20 @@ class Employee(AbstractUser):
         null=True,
         unique=True
     )
-    organization = models.ForeignKey(
-        'Organization',
-        related_name='employees',
-        verbose_name='Организация',
-        on_delete=models.CASCADE,
-        blank=True,
-        null=True,
-    )
+#    organization = models.ForeignKey(
+#        'Organization',
+#        related_name='employees',
+#        verbose_name='Организация',
+#        on_delete=models.CASCADE,
+#        blank=True,
+#        null=True,
+#    )
     job_title = models.CharField(
         verbose_name='Должность',
         max_length=CHARFIELD_LENGTH,
         blank=True,
         null=True,
+        choices=POSITIONS
     )
     class_rank = models.CharField(
         verbose_name='Классный чин',
@@ -77,9 +85,22 @@ class Employee(AbstractUser):
         null=True,
     )
 
+    structural_division = models.ForeignKey(
+        'StructuralSubdivision',
+        verbose_name='Структурное подразделение',
+        on_delete=models.CASCADE,
+        related_name='positions',
+        blank=True,
+        null=True,
+    )
+
     @property
     def average_rating(self):
         return self.rated.all().aggregate(Avg('rate'))['rate__avg']
+    
+    @property
+    def organization(self):
+        return self.structural_division.organization
 
     def __str__(self):
         if self.fio:
@@ -102,7 +123,7 @@ class AbstractNameModel(models.Model):
     characteristic = models.ForeignKey(
         "Characteristic",
         verbose_name="Сотрудник",
-        related_name='%(class)s',
+        related_name='%(class)ss',
         on_delete=models.CASCADE,
         null=True,
         blank=True
@@ -126,7 +147,7 @@ class AbstractWithPhotoNameModel(models.Model):
     characteristic = models.ForeignKey(
         "Characteristic",
         verbose_name="Сотрудник",
-        related_name='%(class)s',
+        related_name='%(class)ss',
         on_delete=models.CASCADE,
         null=True,
         blank=True
@@ -198,6 +219,13 @@ class Characteristic(models.Model):
         max_length=CHARFIELD_LENGTH,
         blank=True,
         null=True,
+    )
+
+    avatar = models.ImageField(
+        verbose_name='Аватар',
+    #    upload_to='employees/%(class)s/',
+        null=True,
+        default=None
     )
 
     # Курсы через class Course
@@ -347,14 +375,32 @@ class Organization(models.Model):
         max_length=CHARFIELD_LENGTH,
     )
 
-    structural_division = models.CharField(
-        verbose_name='Структурное подразделение',
-        max_length=CHARFIELD_LENGTH,
-    )
-
     def __str__(self):
         return self.name
 
     class Meta:
         verbose_name = 'организация'
         verbose_name_plural = 'Организации'
+
+
+class StructuralSubdivision(models.Model):
+    '''Модель структурного подразделения'''
+    name = models.CharField(
+        verbose_name='Название',
+        max_length=CHARFIELD_LENGTH,
+    )
+
+    organization = models.ForeignKey(
+        Organization,
+        verbose_name='Организация',
+        on_delete=models.CASCADE,
+        related_name='structural_subdivisions'
+    )
+
+    class Meta:
+        verbose_name = 'структурное подразделение'
+        verbose_name_plural = 'структурные подразделения'
+    
+    def __str__(self):
+        return f'{self.name} ({self.organization})'
+

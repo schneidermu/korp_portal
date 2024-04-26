@@ -1,8 +1,24 @@
 from rest_framework import serializers
+from django.db import transaction
+from djoser.serializers import UserSerializer, UserCreateSerializer
+from rest_framework.validators import UniqueValidator
 
 from homepage.models import Poll, News, Choice
+from homepage.constants import CHARFIELD_LENGTH
 from employees.models import Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating
 
+ATTRIBUTE_MODEL = (
+    ("courses", Course),
+    ("competences", Competence),
+    ("trainings", Training),
+    ("hobbys", Hobby),
+    ("rewards", Reward),
+    ("conferences", Conference),
+    ("victorys", Victory),
+    ("performances", Performance),
+    ("sports", Sport),
+    ("volunteers", Volunteer),
+)
 
 class ChoiceSerializer(serializers.ModelSerializer):
     '''Сериализатор варианта ответа'''
@@ -76,7 +92,8 @@ class VoteCreateSerializer(serializers.Serializer):
             )
         
         return data
-    
+
+    @transaction.atomic
     def create(self, validated_data):
 
         choice = Choice.objects.get(id=validated_data.get("choice_id"))
@@ -211,17 +228,17 @@ class VolunteerSerializer(serializers.ModelSerializer):
 class CharacteristicSerializer(serializers.ModelSerializer):
     '''Сериализатор характеристики сотрудника'''
 
-    course = CourseSerializer(many=True)
-    career = CareerSerializer(many=True)
-    competence = CompetenceSerializer(many=True)
-    training = TrainingSerializer(many=True)
-    hobby = HobbySerializer(many=True)
-    reward = RewardSerializer(many=True)
-    conference = ConferenceSerializer(many=True)
-    victory = VictorySerializer(many=True)
-    performance = PerformanceSerializer(many=True)
-    sport = SportSerializer(many=True)
-    volunteer = VolunteerSerializer(many=True)
+    courses = CourseSerializer(many=True, required=False)
+    careers = CareerSerializer(many=True, required=False)
+    competences = CompetenceSerializer(many=True, required=False)
+    trainings = TrainingSerializer(many=True, required=False)
+    hobbys = HobbySerializer(many=True, required=False)
+    rewards = RewardSerializer(many=True, required=False)
+    conferences = ConferenceSerializer(many=True, required=False)
+    victorys = VictorySerializer(many=True, required=False)
+    performances = PerformanceSerializer(many=True, required=False)
+    sports = SportSerializer(many=True, required=False)
+    volunteers = VolunteerSerializer(many=True, required=False)
 
     class Meta:
         model = Characteristic
@@ -230,29 +247,38 @@ class CharacteristicSerializer(serializers.ModelSerializer):
         )
 
 
-class MyProfileSerializer(serializers.ModelSerializer):
-    '''Сериализатор для личной страницы'''
+#class MyProfileSerializer(serializers.ModelSerializer):
+#    '''Сериализатор для личной страницы'''
+#
+#    characteristic = CharacteristicSerializer(partial=True)
+#
+#    class Meta:
+#        model = Employee
+#        fields = '__all__'
 
-    characteristic = CharacteristicSerializer()
 
-    class Meta:
-        model = Employee
-        fields = '__all__'
-
-
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(UserSerializer):
     '''Сериализатор для просмотра чужих страниц'''
 
-    characteristic = CharacteristicSerializer()
+    characteristic = CharacteristicSerializer(required=False)
     organization = serializers.SlugRelatedField(
         read_only=True,
         slug_field='name'
     )
+    supervizor = serializers.SerializerMethodField(
+        read_only=True
+    )
+    team = serializers.SerializerMethodField(
+        read_only=True
+    )
+    structural_division = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='name'
+    )
 
-    class Meta:
+    class Meta(UserSerializer.Meta):
         model = Employee
-        fields = (
-            "id",
+        fields = UserSerializer.Meta.fields + (
             "fio",
             "birth_date",
             "email",
@@ -262,11 +288,94 @@ class ProfileSerializer(serializers.ModelSerializer):
             "class_rank",
             "status",
             "average_rating",
-            "characteristic"
+            "characteristic",
+            "supervizor",
+            "team",
         )
+        extra_kwargs = {
+            "password": {
+                "write_only":True
+            }
+        }
+
+    def get_supervizor(self, object):
+        supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+
+        if not supervizor:
+            return None
+        return {
+            "id":supervizor.id,
+        }
+    
+    def get_team(self, object):
+        ids = object.structural_division.positions.values('id')
+        return ids
+
+    @staticmethod
+    def add_related_fields(characteristic_update, characteristic, name, model_class):
+        objects = characteristic_update.pop(name, None)
+
+        if not objects:
+            return
+
+        new_objects = []
+
+        for obj in objects:
+            new_objects.append(model_class(**obj))
+
+        created_objects = model_class.objects.bulk_create(new_objects)
+
+        for created_object in created_objects:
+            getattr(characteristic, name).add(created_object)
+
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        characteristic_update = validated_data.pop("characteristic", None)
+
+        characteristic, created = Characteristic.objects.get_or_create(employee=instance)
+
+        for attribute, model in ATTRIBUTE_MODEL:
+            self.add_related_fields(characteristic_update, characteristic, attribute, model)
+
+        super().update(instance, validated_data)
+        instance.save()
+
+        return instance
+    
+
+class ProfileCreateSerializer(UserCreateSerializer):
+
+    email = serializers.EmailField(
+        max_length=CHARFIELD_LENGTH,
+        required=True,
+        validators=[
+            UniqueValidator(queryset=Employee.objects.all()),
+        ],
+    )
+
+    username = serializers.CharField(
+        max_length=CHARFIELD_LENGTH,
+        required=True,
+        validators=[
+            UniqueValidator(queryset=Employee.objects.all()),
+        ],
+    )
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = Employee(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
+
+    class Meta(UserCreateSerializer.Meta):
+        model = Employee
+
 
 
 class RatingPOSTSerializer(serializers.ModelSerializer):
+    '''Сериализатор для оценивания.'''
 
     def validate(self, data):
         employee = data.get('employee')
@@ -290,6 +399,7 @@ class RatingPOSTSerializer(serializers.ModelSerializer):
 
         return data
 
+    @transaction.atomic
     def create(self, validated_data):
         rating = Rating.objects.create(**validated_data)
         return rating
@@ -300,6 +410,7 @@ class RatingPOSTSerializer(serializers.ModelSerializer):
 
 
 class RatingDELETESerializer(serializers.ModelSerializer):
+    '''Сериализатор для удаления оценки.'''
 
     def validate(self, data):
         employee = data.get('employee')

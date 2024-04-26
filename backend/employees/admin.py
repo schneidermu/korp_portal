@@ -1,19 +1,17 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
-from django.utils.safestring import mark_safe
 
-from .models import Employee, Organization, Rating, Characteristic, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer
+from .models import Employee, Organization, Rating, Characteristic, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, StructuralSubdivision
 
 
 @admin.register(Employee)
 class EmployeeAdmin(UserAdmin):
-    # everything else
+
     fieldsets = UserAdmin.fieldsets + (
         ('Общая информация', {
             'fields': (
                 'fio',
-                'organization',
+                'structural_division',
                 'birth_date',
                 'telephone_number',
                 'job_title',
@@ -123,3 +121,10 @@ class OrganizationAdmin(admin.ModelAdmin):
 class RatingAdmin(admin.ModelAdmin):
     pass
 
+
+@admin.register(StructuralSubdivision)
+class StructuralSubdivisionAdmin(admin.ModelAdmin):
+    pass
+
+
+#TODO: админка 

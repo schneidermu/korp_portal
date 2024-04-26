@@ -4,11 +4,13 @@ from rest_framework.decorators import action
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
+from django.db import transaction
+from djoser.views import UserViewSet
 
 from homepage.models import Poll, News
 from employees.models import Employee, Rating
 from .serializers import VoteCreateSerializer, VoteDeleteSerializer, PollSerializer, NewsSerializer, ProfileSerializer, RatingPOSTSerializer, RatingDELETESerializer
-from .permissions import IsAdminUserOrReadOnly
+from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 
 
 class PollViewset(viewsets.ModelViewSet):
@@ -33,6 +35,7 @@ class PollViewset(viewsets.ModelViewSet):
 
         return serializer
 
+    @transaction.atomic
     @action(
         detail=False, methods=["post",],
         permission_classes=(IsAuthenticated,),
@@ -51,6 +54,7 @@ class PollViewset(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED
             )
 
+    @transaction.atomic
     @vote.mapping.delete
     def unvote(self, request):
 
@@ -80,9 +84,13 @@ class NewsViewSet(viewsets.ModelViewSet):
     serializer_class = NewsSerializer
 
 
-class ColleagueProfileViewset(viewsets.ModelViewSet):
+class ColleagueProfileViewset(UserViewSet):
+    """Вьюсет для профиля"""
+    # TODO: логика создания профиля (выплевавыть нужный сериализатор)
 
-    permission_classes = (IsAdminUserOrReadOnly,)
+    lookup_field = 'username'
+
+    permission_classes = (IsUserOrReadOnly,)
     queryset = Employee.objects.all()
     serializer_class = ProfileSerializer
 
@@ -100,6 +108,7 @@ class ColleagueProfileViewset(viewsets.ModelViewSet):
 
         return serializer
 
+    @transaction.atomic
     @action(
         detail=True,
         methods=["post",],
@@ -118,6 +127,7 @@ class ColleagueProfileViewset(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
         )
 
+    @transaction.atomic
     @rate.mapping.delete
     def unrate(self, request, pk):
 
@@ -133,3 +143,14 @@ class ColleagueProfileViewset(viewsets.ModelViewSet):
             },
             status=status.HTTP_204_NO_CONTENT
         )
+
+    @action(
+        detail=False,
+        methods=["get",],
+        permission_classes=(IsAuthenticated,),
+    )
+    def me(self, request):
+        serializer = self.serializer_class(
+            request.user, context={"user": request.user}
+        )
+        return Response(serializer.data)
