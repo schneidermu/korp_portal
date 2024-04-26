@@ -268,7 +268,11 @@ class ProfileSerializer(UserSerializer):
 
     class Meta(UserSerializer.Meta):
         model = Employee
-        fields = UserSerializer.Meta.fields + (
+        fields = (
+            "email",
+            "structural_division",
+            "id",
+            "username",
             "fio",
             "birth_date",
             "email",
@@ -282,11 +286,6 @@ class ProfileSerializer(UserSerializer):
             "supervizor",
             "team",
         )
-        extra_kwargs = {
-            "password": {
-                "write_only":True
-            }
-        }
 
     def get_supervizor(self, object):
         supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
@@ -327,6 +326,8 @@ class ProfileSerializer(UserSerializer):
 
         for attribute, model in ATTRIBUTE_MODEL:
             self.add_related_fields(characteristic_update, characteristic, attribute, model)
+
+        Characteristic.objects.filter(employee=instance).update(**characteristic_update)
 
         super().update(instance, validated_data)
         instance.save()
