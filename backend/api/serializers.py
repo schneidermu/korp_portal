@@ -247,16 +247,6 @@ class CharacteristicSerializer(serializers.ModelSerializer):
         )
 
 
-#class MyProfileSerializer(serializers.ModelSerializer):
-#    '''Сериализатор для личной страницы'''
-#
-#    characteristic = CharacteristicSerializer(partial=True)
-#
-#    class Meta:
-#        model = Employee
-#        fields = '__all__'
-
-
 class ProfileSerializer(UserSerializer):
     '''Сериализатор для просмотра чужих страниц'''
 

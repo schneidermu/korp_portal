@@ -86,7 +86,6 @@ class NewsViewSet(viewsets.ModelViewSet):
 
 class ColleagueProfileViewset(UserViewSet):
     """Вьюсет для профиля"""
-    # TODO: логика создания профиля (выплевавыть нужный сериализатор)
 
     lookup_field = 'username'
 
@@ -143,14 +142,3 @@ class ColleagueProfileViewset(UserViewSet):
             },
             status=status.HTTP_204_NO_CONTENT
         )
-
-    @action(
-        detail=False,
-        methods=["get",],
-        permission_classes=(IsAuthenticated,),
-    )
-    def me(self, request):
-        serializer = self.serializer_class(
-            request.user, context={"user": request.user}
-        )
-        return Response(serializer.data)
