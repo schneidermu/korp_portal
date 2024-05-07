@@ -424,3 +424,42 @@ class RatingDELETESerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         exclude = ("rate",)
+
+
+class OrgStructureSerializer(serializers.ModelSerializer):
+    '''Сериализатор для орг. структуры'''
+
+    supervizor = serializers.SerializerMethodField(
+        read_only=True
+    )
+
+    structural_division = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='name'
+    )
+
+    class Meta:
+        model = Employee
+        fields = (
+            "id",
+            "username",
+            "job_title",
+            "fio",
+            "email",
+            "telephone_number",
+            "supervizor",
+            "structural_division",
+        )
+
+    def get_supervizor(self, object):
+        supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+
+        if not supervizor:
+            return None
+        return {
+            "id": supervizor.id,
+            "fio": supervizor.fio,
+        }
+
+
+        
