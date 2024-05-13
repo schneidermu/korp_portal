@@ -3,7 +3,7 @@ from django.db import models
 from homepage.constants import CHARFIELD_LENGTH
 from django.core.validators import MaxValueValidator, MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
-from django.db.models import CheckConstraint, Q, UniqueConstraint
+from django.db.models import CheckConstraint, Q
 from django.db.models import Avg
 from django.contrib.auth.models import AbstractUser
 

@@ -5,7 +5,7 @@ from rest_framework.validators import UniqueValidator
 
 from homepage.models import Poll, News, Choice
 from homepage.constants import CHARFIELD_LENGTH
-from employees.models import Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating
+from employees.models import Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating, Organization, StructuralSubdivision
 
 ATTRIBUTE_MODEL = (
     ("courses", Course),
@@ -461,5 +461,46 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             "fio": supervizor.fio,
         }
 
+
+class ProfileInStrucureSerializer(serializers.ModelSerializer):
+    '''Сериализатор для профиля в Орг. структуре'''
+
+    class Meta:
+        model = Employee
+        fields = (
+            "id",
+            "fio",
+            "job_title",
+            "class_rank",
+            "status",
+        )
+
+
+class StructuralSubdivisionSerializer(serializers.ModelSerializer):
+    '''Сериализатор структурного подразделения'''
+
+    positions = ProfileInStrucureSerializer(many=True)
+
+    class Meta:
+        model = StructuralSubdivision
+        fields = (
+            "id",
+            "name",
+            "positions",
+        )
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    '''Сериализатор организаций для страницы Орг. структуры'''
+
+    structural_subdivisions = StructuralSubdivisionSerializer(many=True)
+
+    class Meta:
+        model = Organization
+        fields = (
+            "id",
+            "name",
+            "address",
+            "structural_subdivisions"
+        )
 
         

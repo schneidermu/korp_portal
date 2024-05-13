@@ -2,7 +2,6 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
-from rest_framework.generics import GenericAPIView
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -10,8 +9,8 @@ from django.db import transaction
 from djoser.views import UserViewSet
 
 from homepage.models import Poll, News
-from employees.models import Employee, Rating
-from .serializers import VoteCreateSerializer, VoteDeleteSerializer, PollSerializer, NewsSerializer, ProfileSerializer, RatingPOSTSerializer, RatingDELETESerializer, OrgStructureSerializer
+from employees.models import Employee, Rating, Organization
+from .serializers import VoteCreateSerializer, VoteDeleteSerializer, PollSerializer, NewsSerializer, ProfileSerializer, RatingPOSTSerializer, RatingDELETESerializer, OrgStructureSerializer, OrganizationSerializer
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 
 
@@ -156,3 +155,10 @@ class OrgStructureViewset(
     serializer_class = OrgStructureSerializer
     permission_classes = (IsAuthenticated,)
     queryset = Employee.objects.all()
+
+class OrganizationViewSet(viewsets.ModelViewSet):
+    '''Вьюсет для организаций для страницы Орг. структуры'''
+
+    serializer_class = OrganizationSerializer
+    permission_classes = (IsAdminUserOrReadOnly,)
+    queryset = Organization.objects.all()
