@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_bootstrap5",
     "rest_framework",
+    "django_filters",
     "rest_framework.authtoken",
     "djoser",
     "phonenumber_field",

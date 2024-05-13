@@ -7,6 +7,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from django.db import transaction
 from djoser.views import UserViewSet
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 
 from homepage.models import Poll, News
 from employees.models import Employee, Rating, Organization
@@ -162,3 +164,12 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizationSerializer
     permission_classes = (IsAdminUserOrReadOnly,)
     queryset = Organization.objects.all()
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = (
+        'name',
+        'structural_subdivisions',
+        'structural_subdivisions__positions__job_title',
+        'structural_subdivisions__positions__class_rank',
+        'structural_subdivisions__positions__status'
+    )
+    search_fields = ('structural_subdivisions__positions__fio',) 
