@@ -293,9 +293,9 @@ class ProfileSerializer(UserSerializer):
         if not supervizor:
             return None
         return {
-            "id":supervizor.id,
+            "id": supervizor.id,
         }
-    
+
     def get_team(self, object):
         ids = object.structural_division.positions.values('id')
         return ids
@@ -316,7 +316,6 @@ class ProfileSerializer(UserSerializer):
 
         for created_object in created_objects:
             getattr(characteristic, name).add(created_object)
-
 
     @transaction.atomic
     def update(self, instance, validated_data):
@@ -503,4 +502,24 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "structural_subdivisions"
         )
 
-        
+class ProfileInOrganizationSerializer(UserSerializer):
+    '''Сериализатор для изменения орг. структуры'''
+
+    organization = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=Organization.objects.all()
+    )
+    structural_division = serializers.SlugRelatedField(
+        slug_field='name',
+        queryset=StructuralSubdivision.objects.all()
+    )
+
+    class Meta(UserSerializer.Meta):
+        model = Employee
+        fields = (
+            "id",
+            "structural_division",
+            "organization",
+            "job_title",
+            "class_rank",
+        )

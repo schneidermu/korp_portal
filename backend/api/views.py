@@ -12,7 +12,7 @@ from rest_framework import filters
 
 from homepage.models import Poll, News
 from employees.models import Employee, Rating, Organization
-from .serializers import VoteCreateSerializer, VoteDeleteSerializer, PollSerializer, NewsSerializer, ProfileSerializer, RatingPOSTSerializer, RatingDELETESerializer, OrgStructureSerializer, OrganizationSerializer
+from .serializers import VoteCreateSerializer, VoteDeleteSerializer, PollSerializer, NewsSerializer, ProfileSerializer, RatingPOSTSerializer, RatingDELETESerializer, OrgStructureSerializer, OrganizationSerializer, ProfileInOrganizationSerializer
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 
 
@@ -94,7 +94,16 @@ class ColleagueProfileViewset(UserViewSet):
 
     permission_classes = (IsUserOrReadOnly,)
     queryset = Employee.objects.all()
-    serializer_class = ProfileSerializer
+
+    def get_serializer_class(self):
+
+        print(self.kwargs)
+        if self.request.method != 'GET':
+            if self.request.user.is_staff and self.kwargs["username"] != self.request.user.username:
+                return ProfileInOrganizationSerializer
+
+        return ProfileSerializer
+
 
     @staticmethod
     def validate_rating(serializer_class, request, pk):
@@ -155,8 +164,9 @@ class OrgStructureViewset(
     '''Вьюсет для орг. структуры'''
 
     serializer_class = OrgStructureSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAdminUserOrReadOnly,)
     queryset = Employee.objects.all()
+
 
 class OrganizationViewSet(viewsets.ModelViewSet):
     '''Вьюсет для организаций для страницы Орг. структуры'''
@@ -172,4 +182,4 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         'structural_subdivisions__positions__class_rank',
         'structural_subdivisions__positions__status'
     )
-    search_fields = ('structural_subdivisions__positions__fio',) 
+    search_fields = ('structural_subdivisions__positions__fio',)
