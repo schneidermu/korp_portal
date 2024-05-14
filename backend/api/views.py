@@ -97,8 +97,7 @@ class ColleagueProfileViewset(UserViewSet):
 
     def get_serializer_class(self):
 
-        print(self.kwargs)
-        if self.request.method != 'GET':
+        if self.action not in ('list', 'retrieve', 'create'):
             if self.request.user.is_staff and self.kwargs["username"] != self.request.user.username:
                 return ProfileInOrganizationSerializer
 

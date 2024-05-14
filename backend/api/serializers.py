@@ -502,6 +502,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "structural_subdivisions"
         )
 
+
 class ProfileInOrganizationSerializer(UserSerializer):
     '''Сериализатор для изменения орг. структуры'''
 
@@ -523,3 +524,17 @@ class ProfileInOrganizationSerializer(UserSerializer):
             "job_title",
             "class_rank",
         )
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+
+        print(instance.username)
+        structural_division = validated_data.pop('structural_division')
+        validated_data.pop('organization')
+
+        if structural_division:
+            structural_division.positions.add(instance)
+
+        super().update(instance=instance, validated_data=validated_data)
+
+        return instance
