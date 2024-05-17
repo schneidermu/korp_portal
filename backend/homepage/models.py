@@ -70,6 +70,16 @@ class News(Published):
 class Poll(Published):
     """Модель для вопроса."""
 
+    is_anonymous = models.BooleanField(
+        'Анонимный опрос',
+        default=False
+    )
+
+    is_multiple_choice = models.BooleanField(
+        'Несколько вариантов ответа',
+        default=False
+    )
+
     question_text = models.CharField(
         verbose_name='Текст опроса',
         max_length=CHARFIELD_LENGTH

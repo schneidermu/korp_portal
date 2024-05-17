@@ -63,9 +63,10 @@ class PollViewset(viewsets.ModelViewSet):
 
         serializer = self.validate_poll(VoteDeleteSerializer, request)
 
-        choice = serializer.validated_data
+        choices = serializer.validated_data
 
-        choice.voted.remove(request.user)
+        for choice in choices:
+            choice.voted.remove(request.user)
 
         return Response(
             {
@@ -102,7 +103,6 @@ class ColleagueProfileViewset(UserViewSet):
                 return ProfileInOrganizationSerializer
 
         return ProfileSerializer
-
 
     @staticmethod
     def validate_rating(serializer_class, request, pk):

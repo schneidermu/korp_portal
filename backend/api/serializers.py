@@ -24,12 +24,14 @@ class ChoiceSerializer(serializers.ModelSerializer):
     '''Сериализатор варианта ответа'''
 
     voted = serializers.SerializerMethodField()
+    who_voted = serializers.SerializerMethodField()
 
     class Meta:
         model = Choice
         fields = (
             "choice_text",
             "voted",
+            "who_voted",
         )
 
     def get_voted(self, obj):
@@ -37,6 +39,11 @@ class ChoiceSerializer(serializers.ModelSerializer):
             return obj.voted.count()
         else:
             return 0
+
+    def get_who_voted(self, obj):
+        if obj.poll.is_anonymous:
+            return 'Hidden'
+        return [user.fio for user in obj.voted.all()]
 
 
 class PollSerializer(serializers.ModelSerializer):
@@ -62,15 +69,15 @@ class VoteCreateSerializer(serializers.Serializer):
         poll_id = data.get("poll_id")
         choice_id = data.get("choice_id")
 
-        poll_exists = Poll.objects.filter(
+        poll = Poll.objects.filter(
             id=poll_id
-        ).exists()
+        ).first()
 
-        if not poll_exists:
+        if not poll:
             raise serializers.ValidationError(
                 {"error": "Опроса не существует"}
             )
-        
+
         choice_exists = Choice.objects.filter(
             id=choice_id,
             poll_id=poll_id
@@ -83,14 +90,14 @@ class VoteCreateSerializer(serializers.Serializer):
 
         already_voted = Choice.objects.filter(
             poll_id=poll_id,
-            voted = user
+            voted=user
         ).exists()
 
-        if already_voted:
+        if already_voted and not poll.is_multiple_choice:
             raise serializers.ValidationError(
-                {"error": "Нельзя проголосовать дважды"}
+                {"error": "Нельзя выбрать несколько вариантов ответа"}
             )
-        
+
         return data
 
     @transaction.atomic
@@ -120,17 +127,17 @@ class VoteDeleteSerializer(serializers.Serializer):
                 {"error": "Опроса не существует"}
             )
 
-        choice = Choice.objects.filter(
+        choices = Choice.objects.filter(
             poll_id=poll_id,
-            voted = user
-        ).first()
+            voted=user
+        )
 
-        if not choice:
+        if not choices:
             raise serializers.ValidationError(
                 {"error": "Вы не голосовали в данном опросе"}
             )
 
-        return choice
+        return choices
 
 
 class NewsSerializer(serializers.ModelSerializer):
