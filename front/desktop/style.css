@@ -16,6 +16,22 @@ body {
     color: #333;
 }
 
+.all-news-btn {
+    margin-top: 370px!important;
+    margin-left: 30px;
+    display: block;
+    margin-top: 20px; 
+    padding: 10px 20px; 
+    background-color: #007bff; 
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+
+
 .square p {
     margin-top: 5px;
     font-size: 16px;
@@ -25,6 +41,7 @@ body {
 .left-panel {
     margin-top: 20px;
     width: 30%;
+    flex: 1 0 80px;
     background-color: #f0f0f0;
     padding: 10px;
     text-align: center;
@@ -45,6 +62,32 @@ body {
 .img2 {
     width: 500px;
 }
+
+.news-title {
+    position: relative;
+    font-size: 20;
+}
+
+.poll-section {
+    position: relative;
+}
+
+.survey {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    margin-bottom: 20px;
+}
+
+.survey label {
+    margin-bottom: 5px;
+}
+
+.survey input[type="radio"] {
+    margin-right: 5px;
+    margin-top: 15px;
+}
+
 
 .left-panel button {
     margin-top: 20px;
@@ -74,18 +117,13 @@ body {
     margin-bottom: 50px;
 }
 
-.news{
-    margin-left: 30px;
-    margin-bottom: -50px;
-}
-
 .panel {
-    margin-top: 20px;
     min-width: 100%;
-    height: auto;
+    height: 450px;
     background-color: #e0e0e0;
     display: flex;
     flex-wrap: wrap;
+    margin-bottom: 20px;
     align-items: center;
     justify-content: center;
     border-radius: 5px;
@@ -103,6 +141,7 @@ body {
     margin: 20px;
     background-color: #c0c0c0;
     border: 5px solid #aca3a3;
+    overflow: auto;
 }
 
 .square2 {
@@ -111,28 +150,16 @@ body {
     justify-content: center;
     align-items: center;
     display: flex;
-    margin-left: 570px!important;
+    margin-left: 170px!important;
     margin: 20px;
     background-color: #c0c0c0;
     border: 5px solid #aca3a3;
 }
 
-.panel-header {
-    position: absolute; 
-    top: 0; 
-    left: 0;
-    width: 100%; 
-    height: auto;
-}
-
-.panel-header img {
-    width: 100%; 
-    height: auto; 
-}
-
 input[type=image] {
-    width: 262px; 
-    height: 56px;
+    width: 262px;
+    max-width: 100%;
+    height: auto;
     border: none;
 }
 
@@ -141,12 +168,14 @@ input[type=image] {
     flex-direction: column;
     margin-left: 20px;
     margin-top: 20px;
-    flex-grow: 1;
+    flex-grow: 0.9;
     border-radius: 5px;
     flex-shrink: 0;
     margin-right: 20px;
     border: 1px solid #aca3a3;
+    width: 70%;
 }
+
 
 .now-button {
     background-color: #003e80!important;
@@ -155,15 +184,15 @@ input[type=image] {
 .more-info-btn {
     margin-left: 300px;
     display: inline-block;
-    margin-top: 5px; /* Расстояние от текста до кнопки */
-    padding: 8px 16px; /* Уменьшенный внутренний отступ */
+    margin-top: 5px;
+    padding: 8px 16px;
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 14px; /* Уменьшенный размер шрифта */
-    width: 150px; /* Заданная ширина */
-    max-width: 90%; /* Максимальная ширина, чтобы не выходить за рамки родительского элемента */
-    box-sizing: border-box; /* Включает внутренние отступы в общую ширину и высоту */
+    font-size: 14px; 
+    width: 150px; 
+    max-width: 90%;
+    box-sizing: border-box;
 }
