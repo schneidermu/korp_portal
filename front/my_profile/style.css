@@ -16,6 +16,12 @@ body {
     color: #333;
 }
 
+.buttons {
+    margin-left: auto;
+    height: 30px;
+    width: 150px;
+}
+
 .all-news-btn {
     margin-top: 370px!important;
     margin-left: 30px;
@@ -117,26 +123,6 @@ body {
     margin-bottom: 50px;
 }
 
-.profile-picture img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%; /* Круглая форма */
-    object-fit: cover; /* Убедитесь, что изображение заполняет круг */
-    margin: 20px 0; /* Отступы вокруг изображения */
-}
-
-.panel ul {
-    list-style-type: none; /* Убираем маркеры списка */
-    padding: 0; /* Убираем внутренние отступы списка */
-    margin: 0; /* Убираем внешние отступы списка */
-}
-
-.panel li {
-    padding: 10px 0; /* Добавляем внутренний отступ для каждого элемента списка */
-    border-bottom: 1px solid #aca3a3; /* Обводка под каждым элементом списка */
-}
-
-
 .panel {
     min-width: 100%;
     height: 450px;
@@ -144,11 +130,52 @@ body {
     display: flex;
     flex-wrap: wrap;
     margin-bottom: 20px;
-    align-items: center;
-    justify-content: center;
     border-radius: 5px;
     border: 1px solid #aca3a3;
 }
+
+.panel2 {
+    min-width: 100%;
+    height: 350px;
+    background-color: #e0e0e0;
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #aca3a3;
+}
+
+
+.panel2 ul {
+    display: flex;;
+    justify-content: space-around; 
+    list-style-type: none; 
+ }
+
+.panel2 ul li {
+    border-width: 150px;
+    border: 3px solid #8f8f8f;
+    margin: 150px; 
+}
+
+
+.circle-image-container img {
+    margin-top: 100px;
+    margin-right: 100px;
+    margin-left: -100px;
+    width: 200px; 
+    height: 200px; 
+    border-radius: 50%; 
+    object-fit: cover;
+}
+
+
+.name-panel {
+    margin-left: 35px;
+    margin-top: 35px;
+    font-size: 20px;
+}
+
 
 .square {
     display: flex;
@@ -195,6 +222,10 @@ input[type=image] {
     width: 70%;
 }
 
+li{
+    margin-top: 50px;
+    margin-right: 175px;
+}
 
 .now-button {
     background-color: #003e80!important;
