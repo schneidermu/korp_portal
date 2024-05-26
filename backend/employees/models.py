@@ -56,14 +56,6 @@ class Employee(AbstractUser):
         null=True,
         unique=True
     )
-#    organization = models.ForeignKey(
-#        'Organization',
-#        related_name='employees',
-#        verbose_name='Организация',
-#        on_delete=models.CASCADE,
-#        blank=True,
-#        null=True,
-#    )
     job_title = models.CharField(
         verbose_name='Должность',
         max_length=CHARFIELD_LENGTH,
@@ -88,7 +80,7 @@ class Employee(AbstractUser):
     structural_division = models.ForeignKey(
         'StructuralSubdivision',
         verbose_name='Структурное подразделение',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='positions',
         blank=True,
         null=True,
@@ -225,6 +217,7 @@ class Characteristic(models.Model):
         verbose_name='Аватар',
     #    upload_to='employees/%(class)s/',
         null=True,
+        blank=True,
         default=None
     )
 
