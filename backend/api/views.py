@@ -103,7 +103,7 @@ class ColleagueProfileViewset(UserViewSet):
             if self.request.user.is_staff and self.kwargs["username"] != self.request.user.username:
                 return ProfileInOrganizationSerializer
 
-        return ProfileSerializer
+        return super().get_serializer_class()
 
     @staticmethod
     def validate_rating(serializer_class, request, username):

@@ -29,10 +29,16 @@ class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
         fields = (
+            "id",
             "choice_text",
             "voted",
             "who_voted",
         )
+        extra_kwargs = {
+            "id": {
+                "read_only": True
+            }
+        }
 
     def get_voted(self, obj):
         if hasattr(obj, 'voted'):
@@ -55,7 +61,12 @@ class PollSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Poll
-        fields = ("question_text", "choices",)
+        fields = ("id", "question_text", "choices",)
+        extra_kwargs = {
+            "id": {
+                "read_only": True
+            }
+        }
 
 
 class VoteCreateSerializer(serializers.Serializer):
@@ -359,6 +370,11 @@ class ProfileCreateSerializer(UserCreateSerializer):
         ],
     )
 
+    structural_division = serializers.PrimaryKeyRelatedField(
+        required=True,
+        queryset=StructuralSubdivision.objects.all()
+    )
+
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = Employee(**validated_data)
@@ -368,6 +384,17 @@ class ProfileCreateSerializer(UserCreateSerializer):
 
     class Meta(UserCreateSerializer.Meta):
         model = Employee
+        fields = (
+            "username",
+            "email",
+            "password",
+            "structural_division",
+        )
+        extra_kwars = {
+            "password": {
+                "write_only": True
+            },
+        }
 
 
 
@@ -458,7 +485,8 @@ class OrgStructureSerializer(serializers.ModelSerializer):
         )
 
     def get_supervizor(self, object):
-        supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+        if object:
+            supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
 
         if not supervizor:
             return None
