@@ -148,7 +148,7 @@ class AbstractWithPhotoNameModel(models.Model):
 
     image = models.ImageField(
         verbose_name='Картинка',
-    #    upload_to='employees/%(class)s/',
+        upload_to='employees/%(class)s/',
         null=True,
         default=None
     )
@@ -216,7 +216,7 @@ class Characteristic(models.Model):
 
     avatar = models.ImageField(
         verbose_name='Аватар',
-    #    upload_to='employees/%(class)s/',
+        upload_to='employees/avatars/',
         null=True,
         blank=True,
         default=None

@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
-from datetime import datetime
+from django.utils import timezone
 
 from .constants import CHARFIELD_LENGTH
 from employees.models import Employee
@@ -54,7 +54,7 @@ class News(Published):
     )
 
     pub_date = models.DateTimeField(
-        default=datetime.now(),
+        default=timezone.now,
         verbose_name='Дата и время публикации',
         help_text=('Если установить дату и время в будущем'
                    ' — можно делать отложенные публикации.'),
@@ -87,7 +87,7 @@ class Poll(Published):
     )
 
     pub_date = models.DateTimeField(
-        default=datetime.now(),
+        default=timezone.now,
         verbose_name='Дата и время публикации',
         help_text=('Если установить дату и время в будущем'
                    ' — можно делать отложенные публикации.'),
