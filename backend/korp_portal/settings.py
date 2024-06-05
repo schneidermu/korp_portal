@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_bootstrap5",
+    "drf_yasg",
     "rest_framework",
     "django_filters",
     "rest_framework.authtoken",

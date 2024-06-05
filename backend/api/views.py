@@ -42,6 +42,7 @@ class PollViewset(viewsets.ModelViewSet):
     @action(
         detail=False, methods=["post",],
         permission_classes=(IsAuthenticated,),
+        serializer_class=VoteCreateSerializer,
     )
     def vote(self, request):
 
@@ -102,12 +103,12 @@ class ColleagueProfileViewset(UserViewSet):
             if self.request.user.is_staff and self.kwargs["username"] != self.request.user.username:
                 return ProfileInOrganizationSerializer
 
-        return ProfileSerializer
+        return super().get_serializer_class()
 
     @staticmethod
-    def validate_rating(serializer_class, request, pk):
+    def validate_rating(serializer_class, request, username):
         user = request.user
-        employee = get_object_or_404(Employee, id=pk)
+        employee = get_object_or_404(Employee, username=username)
         request.data['user'] = user.id
         request.data['employee'] = employee.id
 
@@ -124,10 +125,11 @@ class ColleagueProfileViewset(UserViewSet):
         methods=["post",],
         http_method_names=["post", "delete"],
         permission_classes=(IsAuthenticated,),
+        serializer_class=RatingPOSTSerializer
     )
-    def rate(self, request, pk):
+    def rate(self, request, username):
 
-        serializer = self.validate_rating(RatingPOSTSerializer, request, pk)
+        serializer = self.validate_rating(RatingPOSTSerializer, request, username)
         serializer.save()
 
         return Response(
@@ -139,9 +141,9 @@ class ColleagueProfileViewset(UserViewSet):
 
     @transaction.atomic
     @rate.mapping.delete
-    def unrate(self, request, pk):
+    def unrate(self, request, username):
 
-        serializer = self.validate_rating(RatingDELETESerializer, request, pk)
+        serializer = self.validate_rating(RatingDELETESerializer, request, username)
 
         employee = serializer.validated_data.get("employee")
 

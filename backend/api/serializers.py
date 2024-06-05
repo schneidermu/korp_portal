@@ -29,10 +29,16 @@ class ChoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Choice
         fields = (
+            "id",
             "choice_text",
             "voted",
             "who_voted",
         )
+        extra_kwargs = {
+            "id": {
+                "read_only": True
+            }
+        }
 
     def get_voted(self, obj):
         if hasattr(obj, 'voted'):
@@ -50,12 +56,33 @@ class PollSerializer(serializers.ModelSerializer):
     '''Сериализатор для опросов'''
 
     choices = ChoiceSerializer(
-        many=True
+        many=True,
+        required=True
     )
 
     class Meta:
         model = Poll
-        fields = ("question_text", "choices",)
+        fields = ("id", "question_text", "choices", "is_anonymous", "is_multiple_choice")
+        extra_kwargs = {
+            "id": {
+                "read_only": True
+            },
+            "question_text": {
+                "required": True
+            },
+        }
+
+    @transaction.atomic
+    def create(self, validated_data):
+        question_text = validated_data.pop("question_text")
+        choices = validated_data.pop("choices")
+        poll = Poll.objects.create(question_text=question_text)
+        for choice in choices:
+            Choice.objects.create(poll=poll, choice_text=choice["choice_text"])
+
+        super().update(instance=poll, validated_data=validated_data)
+
+        return poll
 
 
 class VoteCreateSerializer(serializers.Serializer):
@@ -146,6 +173,7 @@ class NewsSerializer(serializers.ModelSerializer):
     class Meta:
         model = News
         fields = (
+            'id',
             'title',
             'text',
             'image',
@@ -329,11 +357,15 @@ class ProfileSerializer(UserSerializer):
         characteristic_update = validated_data.pop("characteristic", None)
 
         characteristic, created = Characteristic.objects.get_or_create(employee=instance)
+        if not created:
+            characteristic.delete()
+            characteristic = Characteristic.objects.create(employee=instance)
 
         for attribute, model in ATTRIBUTE_MODEL:
             self.add_related_fields(characteristic_update, characteristic, attribute, model)
 
-        Characteristic.objects.filter(employee=instance).update(**characteristic_update)
+        for key in characteristic_update:
+            setattr(characteristic, key, characteristic_update[key])
 
         super().update(instance, validated_data)
         instance.save()
@@ -359,6 +391,11 @@ class ProfileCreateSerializer(UserCreateSerializer):
         ],
     )
 
+    structural_division = serializers.PrimaryKeyRelatedField(
+        required=True,
+        queryset=StructuralSubdivision.objects.all()
+    )
+
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = Employee(**validated_data)
@@ -368,6 +405,17 @@ class ProfileCreateSerializer(UserCreateSerializer):
 
     class Meta(UserCreateSerializer.Meta):
         model = Employee
+        fields = (
+            "username",
+            "email",
+            "password",
+            "structural_division",
+        )
+        extra_kwars = {
+            "password": {
+                "write_only": True
+            },
+        }
 
 
 
@@ -458,7 +506,8 @@ class OrgStructureSerializer(serializers.ModelSerializer):
         )
 
     def get_supervizor(self, object):
-        supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+        if object:
+            supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
 
         if not supervizor:
             return None
@@ -515,7 +564,8 @@ class ProfileInOrganizationSerializer(UserSerializer):
 
     organization = serializers.SlugRelatedField(
         slug_field='name',
-        queryset=Organization.objects.all()
+        queryset=Organization.objects.all(),
+        required=False
     )
     structural_division = serializers.SlugRelatedField(
         slug_field='name',
@@ -535,9 +585,8 @@ class ProfileInOrganizationSerializer(UserSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
 
-        print(instance.username)
         structural_division = validated_data.pop('structural_division')
-        validated_data.pop('organization')
+        validated_data.pop('organization', None)
 
         if structural_division:
             structural_division.positions.add(instance)

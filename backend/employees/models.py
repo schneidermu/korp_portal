@@ -19,6 +19,7 @@ CHOICES = (
 POSITIONS = (
     ('Разработчик', 'Разработчик'),
     ('Руководитель', 'Руководитель'),
+    ('Тестировщик', 'Тестировщик')
 )
 
 
@@ -56,14 +57,6 @@ class Employee(AbstractUser):
         null=True,
         unique=True
     )
-#    organization = models.ForeignKey(
-#        'Organization',
-#        related_name='employees',
-#        verbose_name='Организация',
-#        on_delete=models.CASCADE,
-#        blank=True,
-#        null=True,
-#    )
     job_title = models.CharField(
         verbose_name='Должность',
         max_length=CHARFIELD_LENGTH,
@@ -88,7 +81,7 @@ class Employee(AbstractUser):
     structural_division = models.ForeignKey(
         'StructuralSubdivision',
         verbose_name='Структурное подразделение',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='positions',
         blank=True,
         null=True,
@@ -155,7 +148,7 @@ class AbstractWithPhotoNameModel(models.Model):
 
     image = models.ImageField(
         verbose_name='Картинка',
-    #    upload_to='employees/%(class)s/',
+        upload_to='employees/%(class)s/',
         null=True,
         default=None
     )
@@ -223,8 +216,9 @@ class Characteristic(models.Model):
 
     avatar = models.ImageField(
         verbose_name='Аватар',
-    #    upload_to='employees/%(class)s/',
+        upload_to='employees/avatars/',
         null=True,
+        blank=True,
         default=None
     )
 
