@@ -371,7 +371,7 @@ class ProfileSerializer(UserSerializer):
         instance.save()
 
         return instance
-    
+
 
 class ProfileCreateSerializer(UserCreateSerializer):
 
@@ -418,7 +418,6 @@ class ProfileCreateSerializer(UserCreateSerializer):
         }
 
 
-
 class RatingPOSTSerializer(serializers.ModelSerializer):
     '''Сериализатор для оценивания.'''
 
@@ -431,7 +430,7 @@ class RatingPOSTSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"error": "Вы не можете оценить самого себя."}
             )
-        if rate < 0 or rate > 5:
+        if rate < 1 or rate > 5:
             raise serializers.ValidationError(
                 {"error": "Недопустимая оценка."}
             )

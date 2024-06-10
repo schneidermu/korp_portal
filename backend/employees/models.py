@@ -90,7 +90,7 @@ class Employee(AbstractUser):
     @property
     def average_rating(self):
         return self.rated.all().aggregate(Avg('rate'))['rate__avg']
-    
+
     @property
     def organization(self):
         return self.structural_division.organization
@@ -150,6 +150,7 @@ class AbstractWithPhotoNameModel(models.Model):
         verbose_name='Картинка',
         upload_to='employees/%(class)s/',
         null=True,
+        blank=True,
         default=None
     )
 
@@ -163,11 +164,14 @@ class AbstractWithPhotoNameModel(models.Model):
 class Rating(models.Model):
     """Модель рейтинга."""
 
-    rate = models.IntegerField(
-        validators=[
-            MinValueValidator(0),
-            MaxValueValidator(5)
-        ]
+    rate = models.PositiveSmallIntegerField(
+        choices=(
+            (1, '1 звезда'),
+            (2, '2 звезды'),
+            (3, '3 звезды'),
+            (4, '4 звезды'),
+            (5, '5 звезд')
+        ),
     )
     employee = models.ForeignKey(
         Employee, on_delete=models.CASCADE,
@@ -181,12 +185,9 @@ class Rating(models.Model):
     )
 
     def __str__(self):
-        return f"Оценка кого: {self.employee.fio}\n Кем: {self.user.fio}"
+        return f"{self.employee.fio}\nОценивает {self.user.fio}\nНа {self.rate}"
 
     class Meta:
-        constraints = [
-            CheckConstraint(check=Q(rate__range=(0, 5)), name='valid_rate'),
-        ]
         verbose_name = 'оценка'
         verbose_name_plural = 'Оценки'
 
