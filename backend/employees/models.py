@@ -166,26 +166,26 @@ class Rating(models.Model):
 
     rate = models.PositiveSmallIntegerField(
         choices=(
-            (1, '1 звезда'),
-            (2, '2 звезды'),
-            (3, '3 звезды'),
-            (4, '4 звезды'),
-            (5, '5 звезд')
+            (1, '1'),
+            (2, '2'),
+            (3, '3'),
+            (4, '4'),
+            (5, '5')
         ),
     )
     employee = models.ForeignKey(
         Employee, on_delete=models.CASCADE,
         related_name='rated',
-        verbose_name='Оцениваемый сотрудник'
+        verbose_name='Кого оценивают'
     )
     user = models.ForeignKey(
         Employee, on_delete=models.CASCADE,
         related_name='rates',
-        verbose_name='Оценивающий сотрудник'
+        verbose_name='Кто оценивает'
     )
 
     def __str__(self):
-        return f"{self.employee.fio}\nОценивает {self.user.fio}\nНа {self.rate}"
+        return f"{self.employee.fio} оценил {self.user.fio} на {self.rate}"
 
     class Meta:
         verbose_name = 'оценка'
