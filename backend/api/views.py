@@ -9,6 +9,7 @@ from django.db import transaction
 from djoser.views import UserViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from rest_framework.pagination import PageNumberPagination
 
 from homepage.models import Poll, News
 from employees.models import Employee, Rating, Organization
@@ -25,6 +26,7 @@ class PollViewset(viewsets.ModelViewSet):
     )
     serializer_class = PollSerializer
     permission_classes = (IsAdminUserOrReadOnly,)
+    pagination_class = PageNumberPagination
 
     @staticmethod
     def validate_poll(serializer_class, request):
@@ -87,6 +89,7 @@ class NewsViewSet(viewsets.ModelViewSet):
         pub_date__lte=datetime.now()
     )
     serializer_class = NewsSerializer
+    pagination_class = PageNumberPagination
 
 
 class ColleagueProfileViewset(UserViewSet):
