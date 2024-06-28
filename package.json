@@ -1,0 +1,25 @@
+{
+  "name": "korp_portal",
+  "version": "1.0.0",
+  "description": "## Разворачивание бэка ``` cd backend ``` ``` python -m venv venv ``` ``` source venv/Scripts/activate ``` ``` pip install -r requirements.txt ``` ``` python manage.py runserver ```",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/schneidermu/korp_portal.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/schneidermu/korp_portal/issues"
+  },
+  "homepage": "https://github.com/schneidermu/korp_portal#readme",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
