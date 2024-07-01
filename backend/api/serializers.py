@@ -354,16 +354,17 @@ class ProfileSerializer(UserSerializer):
     def update(self, instance, validated_data):
         characteristic_update = validated_data.pop("characteristic", None)
 
-        characteristic, created = Characteristic.objects.get_or_create(employee=instance)
-        if not created:
-            characteristic.delete()
-            characteristic = Characteristic.objects.create(employee=instance)
+        if characteristic_update:
+            characteristic, created = Characteristic.objects.get_or_create(employee=instance)
+            if not created:
+                characteristic.delete()
+                characteristic = Characteristic.objects.create(employee=instance)
 
-        for attribute, model in ATTRIBUTE_MODEL:
-            self.add_related_fields(characteristic_update, characteristic, attribute, model)
+            for attribute, model in ATTRIBUTE_MODEL:
+                self.add_related_fields(characteristic_update, characteristic, attribute, model)
 
-        for key in characteristic_update:
-            setattr(characteristic, key, characteristic_update[key])
+            for key in characteristic_update:
+                setattr(characteristic, key, characteristic_update[key])
 
         super().update(instance, validated_data)
         instance.save()
