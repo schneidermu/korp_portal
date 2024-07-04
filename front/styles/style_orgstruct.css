@@ -1,0 +1,123 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #FAFCFF;
+}
+
+header {
+    background-color: #003d7e;
+    padding: 10px 20px;
+    color: white;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    height: 40px;
+}
+
+.search-icon {
+    height: 24px;
+    cursor: pointer;
+}
+
+.nav-bar-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px auto;
+    max-width: 840px;
+    width: 100%;
+    background-color: #003d7e;
+    padding: 10px 0;
+    border-radius: 5px;
+}
+
+.nav-bar-container nav {
+    display: flex;
+    gap: 150px;
+    justify-content: center;
+}
+
+.nav-button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 10px 20px;
+    display: inline-block;
+}
+
+.nav-button:hover {
+    text-decoration: underline;
+}
+
+.search-bar-container {
+    display: flex;
+    justify-content: center;
+    padding: 10px 20px;
+}
+
+.search-bar {
+    width: 100%;
+    max-width: 840px;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.org-structure {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    max-width: 800px;
+    width: 100%;
+}
+
+.org-structure h2 {
+    margin-top: 0;
+}
+
+.employee-card {
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.employee-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-right: 20px;
+}
+
+.employee-details {
+    flex: 1;
+}
+
+.employee-details h3 {
+    margin-top: 0;
+}
+
