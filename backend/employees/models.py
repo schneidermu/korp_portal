@@ -1,11 +1,10 @@
 import uuid
 from django.db import models
 from homepage.constants import CHARFIELD_LENGTH
-from django.core.validators import MaxValueValidator, MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
-from django.db.models import CheckConstraint, Q
 from django.db.models import Avg
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import FileExtensionValidator
 
 
 CHOICES = (
@@ -146,12 +145,19 @@ class AbstractWithPhotoNameModel(models.Model):
         blank=True
     )
 
-    image = models.ImageField(
-        verbose_name='Картинка',
+    file = models.FileField(
+        verbose_name='Документ',
         upload_to='employees/%(class)s/',
-        null=True,
         blank=True,
-        default=None
+        null=True,
+        default=None,
+        validators=[FileExtensionValidator(
+            allowed_extensions=[
+                'doc', 'docx',
+                'xlsx', 'xls', 'csv', 'pdf',
+                'jpg', 'png', 'jpeg'
+            ]
+        )]
     )
 
     class Meta:
@@ -208,12 +214,12 @@ class Characteristic(models.Model):
         blank=True,
         null=True,
     )
-    diploma = models.CharField(
-        verbose_name='Диплом',
-        max_length=CHARFIELD_LENGTH,
-        blank=True,
-        null=True,
-    )
+#    diploma = models.CharField(
+#        verbose_name='Диплом',
+#        max_length=CHARFIELD_LENGTH,
+#        blank=True,
+#        null=True,
+#    )
 
     avatar = models.ImageField(
         verbose_name='Аватар',
@@ -251,6 +257,8 @@ class Characteristic(models.Model):
 
     # Волонтерская деятельность class Volunteer
 
+    # Диплом через class Diploma
+
     about = models.TextField(
         verbose_name='Обо мне',
         blank=True,
@@ -265,7 +273,7 @@ class Characteristic(models.Model):
         return self.employee.fio
 
 
-class Course(AbstractNameModel):
+class Course(AbstractWithPhotoNameModel):
     """Модель курса."""
 
     date = models.DateField(
@@ -280,9 +288,17 @@ class Course(AbstractNameModel):
 class Career(AbstractNameModel):
     """Модель карьерного роста."""
 
-    date = models.DateField(
+    date_start = models.DateField(
         verbose_name='Дата вступления в должность',
     )
+
+    date_finish = models.DateField(
+        verbose_name='Дата ухода из должности',
+        blank=True,
+        default=None,
+        null=True
+    )
+
 
     name = models.CharField(
         verbose_name='Должность',
@@ -299,6 +315,18 @@ class Competence(AbstractNameModel):
     class Meta:
         verbose_name = 'компетенция'
         verbose_name_plural = 'компетенции'
+
+
+class Diploma(AbstractWithPhotoNameModel):
+    """Модель диплома."""
+
+    date = models.DateField(
+        verbose_name='Дата получения диплома',
+    )
+
+    class Meta:
+        verbose_name = 'диплом'
+        verbose_name_plural = 'дипломы'
 
 
 class Training(AbstractWithPhotoNameModel):

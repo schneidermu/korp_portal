@@ -5,7 +5,7 @@ from rest_framework.validators import UniqueValidator
 
 from homepage.models import Poll, News, Choice
 from homepage.constants import CHARFIELD_LENGTH
-from employees.models import Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating, Organization, StructuralSubdivision
+from employees.models import Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating, Organization, StructuralSubdivision, Diploma
 
 ATTRIBUTE_MODEL = (
     ("courses", Course),
@@ -187,6 +187,14 @@ class CourseSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
 
+class DiplomaSerializer(serializers.ModelSerializer):
+    '''Сериализатор для курса'''
+
+    class Meta:
+        model = Diploma
+        exclude = ("characteristic",)
+
+
 class CareerSerializer(serializers.ModelSerializer):
     '''Сериализатор для карьерного роста'''
 
@@ -263,6 +271,7 @@ class CharacteristicSerializer(serializers.ModelSerializer):
 
     courses = CourseSerializer(many=True, required=False)
     careers = CareerSerializer(many=True, required=False)
+    diplomas = DiplomaSerializer(many=True, required=False)
     competences = CompetenceSerializer(many=True, required=False)
     trainings = TrainingSerializer(many=True, required=False)
     hobbys = HobbySerializer(many=True, required=False)
