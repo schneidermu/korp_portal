@@ -33,6 +33,8 @@ CORS_URLS_REGEX = r'^/api/.*$'
 
 CORS_ALLOWED_ORIGINS = [
     'http://25.21.178.79:3000',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
 ]
 
 # Application definition
@@ -127,7 +129,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = '/media/'
 
 
 # Internationalization

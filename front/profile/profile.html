@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Росводресурсы - Профиль</title>
+    <link rel="stylesheet" href="/front/styles/style_prof.css">
+<body>
+    <header>
+        <div class="header-content">
+            <img src="/front/src/rosvodres.png" alt="Росводресурсы Logo" class="logo">
+            <img src="/front/src/search_icon.png" alt="Search Icon" class="search-icon">
+        </div>
+    </header>
+    <div class="nav-bar-container">
+        <nav>
+            <button onclick="location.href='/desktop'"> Рабочий стол </button>
+            <button onclick="location.href='/profile'"> Мой профиль </button>
+            <button onclick="location.href='/orgstruct'">Орг. структура</button>
+        </nav>
+    </div>
+    <div class="search-bar-container">
+        <div class="search-bar">
+            <input type="text" placeholder="Поиск...">
+        </div>
+    </div>
+<main>
+    <section class="profile-container">
+        <div class="profile-panel">
+            <div class="profile-header section">
+                <img src="/front/src/avatar.png" alt="Avatar">
+                <button type="button" class="edit-profile-button" id="editButton" onclick="editProfile()"></button>
+                <div class="profile-info">
+                    <div>ФИО: <span id="fullName">Не указано</span></div>
+                    <div>Статус: <span id="status">Не указано</span></div>
+                    <div>
+                        Дата рождения:
+                        <span id="birthDate">Не указана</span>
+                        <input type="date" id="birthDatePicker" style="display:none;" min="1950-01-01" max="2010-12-31">
+                        <button type="button" class="calendar-button" id="openDatePickerButton" style="display:none;" onclick="openDatePicker()"></button>
+                    </div>
+                    <div>Телефон: <span id="telephone">Не указан</span></div>
+                    <div>Почта: <span id="email">Не указана</span></div>
+                    <div>Должность: <span id="jobTitle">Не указана</span></div>
+                    <div>Классный чин: <span id="classRank">Не указан</span></div>
+                    <div>Структурное подразделение: <span id="structuralDivision">Не указано</span></div>
+                    <div>Тер. орган: <span id="organization">Не указано</span></div>
+                </div>
+            </div>
+            <hr class="divider">
+
+            <!-- Образование -->
+            <div class="education section">
+                <h2>Образование</h2>
+                <button type="button" class="edit-profile-button" id="editEducationButton" style="display:none;"onclick="editEducation()"></button>
+                <div class="education-info">
+                    <div>Университет: <span id="university">Не указан</span></div>
+                    <div>Диплом: <a id="diplomaLink" href="#">Не указан</a></div>
+                    <div>Курсы:
+                        <ul id="coursesList">
+                            <!-- Список курсов будет динамически заполняться -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <hr class="divider">
+
+            <!-- Карьера и развитие -->
+            <div class="career section">
+                <h2>Карьера и развитие</h2>
+                <button type="button" class="edit-profile-button" id="editCareerButton" onclick="editCareer()"></button>
+                <div class="career-info">
+                    <div>Стаж: <span id="experience">Не указан</span></div>
+                    <div>Карьерный рост:
+                        <table id="careerTable">
+                            <!-- Таблица карьерного роста будет динамически заполняться -->
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <hr class="divider">
+        </div>
+    </section>
+</main>
+
+    <script src="/front/profile/edit.js"></script>
+</body>
+</html>
+

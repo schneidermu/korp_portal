@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Росводресурсы</title>
-    <link rel="stylesheet" href="./style_auth.css">
+    <link rel="stylesheet" href="/front/styles/style_auth.css">
 </head>
 <body>
     <header>
         <div class="header-content">
-            <img src="../src/rosvodres.png" alt="Росводресурсы Logo" class="logo">
-            <img src="../src/serach icon.png" alt="Search Icon" class="search-icon">
+            <img src="/front/src/rosvodres.png" alt="Росводресурсы Logo" class="logo">
+            <img src="/front/src/serach icon.png" alt="Search Icon" class="search-icon">
         </div>
     </header>
     <main>
@@ -19,9 +19,44 @@
                 <h2>Авторизация</h2>
                 <input type="text" id="username" name="username" placeholder="Логин" required>
                 <input type="password" id="password" name="password" placeholder="Пароль" required>
-                <button type="submit">Вход</button>
+                <button type="submit" id="login-btn">Вход</button>
             </form>
         </div>
     </main>
+    <script>
+        document.getElementById('login-btn').addEventListener('click', function(event) {
+            event.preventDefault(); // Предотвращаем стандартное поведение кнопки
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            fetch('http://25.21.178.79:8000/api/auth/token/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                localStorage.setItem('authToken', data.auth_token); // Storing the token
+                window.location.href = '/desktop'; // Redirect to the main page after login
+            })
+            .catch((error) => {
+                console.error('Error:', error.message);
+                // Обработка ошибки запроса
+            });
+        });
+    </script>
 </body>
 </html>
+
