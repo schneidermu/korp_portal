@@ -378,6 +378,8 @@ class ProfileSerializer(UserSerializer):
         for key in characteristic_update:
             setattr(characteristic, key, characteristic_update[key])
 
+        characteristic.save()
+
         return instance
 
 
