@@ -272,6 +272,8 @@ class Course(AbstractWithPhotoNameModel):
 
     date = models.DateField(
         verbose_name='Дата прохождения курса',
+        blank=True,
+        null=True
     )
 
     class Meta:

@@ -18,6 +18,7 @@ ATTRIBUTE_MODEL = (
     ("performances", Performance),
     ("sports", Sport),
     ("volunteers", Volunteer),
+    ("diplomas", Diploma)
 )
 
 class ChoiceSerializer(serializers.ModelSerializer):
