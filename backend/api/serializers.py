@@ -18,6 +18,7 @@ ATTRIBUTE_MODEL = (
     ("performances", Performance),
     ("sports", Sport),
     ("volunteers", Volunteer),
+    ("diplomas", Diploma)
 )
 
 class ChoiceSerializer(serializers.ModelSerializer):
@@ -367,18 +368,20 @@ class ProfileSerializer(UserSerializer):
         super().update(instance, validated_data)
         instance.save()
 
-        characteristic, created = Characteristic.objects.get_or_create(employee=instance)
-        if not created:
-            characteristic.delete()
-            characteristic = Characteristic.objects.create(employee=instance)
+        if characteristic_update:
 
-        for attribute, model in ATTRIBUTE_MODEL:
-            self.add_related_fields(characteristic_update, characteristic, attribute, model)
+            characteristic, created = Characteristic.objects.get_or_create(employee=instance)
+            if not created:
+                characteristic.delete()
+                characteristic = Characteristic.objects.create(employee=instance)
 
-        for key in characteristic_update:
-            setattr(characteristic, key, characteristic_update[key])
+            for attribute, model in ATTRIBUTE_MODEL:
+                self.add_related_fields(characteristic_update, characteristic, attribute, model)
 
-        characteristic.save()
+            for key in characteristic_update:
+                setattr(characteristic, key, characteristic_update[key])
+
+            characteristic.save()
 
         return instance
 

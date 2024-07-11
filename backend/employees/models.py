@@ -214,12 +214,6 @@ class Characteristic(models.Model):
         blank=True,
         null=True,
     )
-#    diploma = models.CharField(
-#        verbose_name='Диплом',
-#        max_length=CHARFIELD_LENGTH,
-#        blank=True,
-#        null=True,
-#    )
 
     avatar = models.ImageField(
         verbose_name='Аватар',
@@ -278,6 +272,8 @@ class Course(AbstractWithPhotoNameModel):
 
     date = models.DateField(
         verbose_name='Дата прохождения курса',
+        blank=True,
+        null=True
     )
 
     class Meta:
@@ -322,6 +318,8 @@ class Diploma(AbstractWithPhotoNameModel):
 
     date = models.DateField(
         verbose_name='Дата получения диплома',
+        blank=True,
+        null=True
     )
 
     class Meta:
