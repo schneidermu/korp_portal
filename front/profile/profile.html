@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Росводресурсы - Профиль</title>
     <link rel="stylesheet" href="/front/styles/style_prof.css">
+</head>
 <body>
     <header>
         <div class="header-content">
             <img src="/front/src/rosvodres.png" alt="Росводресурсы Logo" class="logo">
-            <img src="/front/src/search_icon.png" alt="Search Icon" class="search-icon">
+            <img src="/front/src/serach icon.png" alt="Search Icon" class="search-icon">
         </div>
     </header>
     <div class="nav-bar-container">
@@ -31,59 +32,160 @@
                 <img src="/front/src/avatar.png" alt="Avatar">
                 <button type="button" class="edit-profile-button" id="editButton" onclick="editProfile()"></button>
                 <div class="profile-info">
-                    <div>ФИО: <span id="fullName">Не указано</span></div>
-                    <div>Статус: <span id="status">Не указано</span></div>
+                    <div><span id="fullName" style="font-weight: bold; font-size: 22px;">Не указано</span></div>
+                    <div>Статус:&nbsp;
+                        <span id="status">Не указано</span>
+                        <select id="statusSelect" style="display:none;">
+                            <option value="На рабочем месте">На рабочем месте</option>
+                            <option value="В отпуске">В отпуске</option>
+                            <option value="В командировке">В командировке</option>
+                            <option value="На больничном">На больничном</option>
+                            <option value="Нет на месте">Нет на месте</option>
+                        </select>
+                    </div>                    
                     <div>
-                        Дата рождения:
+                        Дата рождения:&nbsp;
                         <span id="birthDate">Не указана</span>
                         <input type="date" id="birthDatePicker" style="display:none;" min="1950-01-01" max="2010-12-31">
                         <button type="button" class="calendar-button" id="openDatePickerButton" style="display:none;" onclick="openDatePicker()"></button>
                     </div>
-                    <div>Телефон: <span id="telephone">Не указан</span></div>
-                    <div>Почта: <span id="email">Не указана</span></div>
-                    <div>Должность: <span id="jobTitle">Не указана</span></div>
-                    <div>Классный чин: <span id="classRank">Не указан</span></div>
-                    <div>Структурное подразделение: <span id="structuralDivision">Не указано</span></div>
-                    <div>Тер. орган: <span id="organization">Не указано</span></div>
+                    <div>Телефон:&nbsp;<span id="telephone">Не указан</span></div>
+                    <div>Почта:&nbsp;<span id="email">Не указана</span></div>
+                    <div>Должность:&nbsp;
+                        <span id="jobTitle">Не указана</span>
+                        <select id="jobTitleSelect" style="display:none;">
+                            <option value="Разработчик">Разработчик</option>
+                            <option value="Руководитель">Руководитель</option>
+                            <option value="Тестировщик">Тестировщик</option>
+                        </select>
+                    </div>                    
+                    <div>Классный чин:&nbsp;<span id="classRank">Не указан</span></div>
+                    <div>Структурное подразделение:&nbsp;<span id="structuralDivision">Не указано</span></div>
+                    <div>Тер. орган:&nbsp;<span id="organization">Не указано</span></div>
                 </div>
             </div>
             <hr class="divider">
-
             <!-- Образование -->
-            <div class="education section">
+            <div class="profile-education section">
                 <h2>Образование</h2>
-                <button type="button" class="edit-profile-button" id="editEducationButton" style="display:none;"onclick="editEducation()"></button>
+                <button type="button" class="edit-profile-button" id="editButtonEducation" onclick="editEducation()"></button>
                 <div class="education-info">
-                    <div>Университет: <span id="university">Не указан</span></div>
-                    <div>Диплом: <a id="diplomaLink" href="#">Не указан</a></div>
-                    <div>Курсы:
-                        <ul id="coursesList">
-                            <!-- Список курсов будет динамически заполняться -->
-                        </ul>
-                    </div>
+                    <div>Университет:&nbsp;<span id="university">Не указан</span></div>
+                    <div>Диплом:&nbsp;<span id="diploma">Не указан</span></div>
+                    <div>Курсы:&nbsp;<span id="courses">Не указаны</span></div>
                 </div>
             </div>
             <hr class="divider">
-
             <!-- Карьера и развитие -->
             <div class="career section">
                 <h2>Карьера и развитие</h2>
                 <button type="button" class="edit-profile-button" id="editCareerButton" onclick="editCareer()"></button>
                 <div class="career-info">
-                    <div>Стаж: <span id="experience">Не указан</span></div>
-                    <div>Карьерный рост:
+                    <div>Стаж:&nbsp;<span id="experience">Не указан</span></div>
+                    <div>Карьерный рост:&nbsp;
                         <table id="careerTable">
                             <!-- Таблица карьерного роста будет динамически заполняться -->
                         </table>
                     </div>
+                    <div>Навыки и компетенции:&nbsp;<span id="skills">Не указан</span></div>
+                    <div>Повышение квалификации:&nbsp;<span id="training">Не указано</span></div>
                 </div>
             </div>
             <hr class="divider">
+            <!-- Команда -->
+            <div class="team section">
+                <h2>Команда</h2>
+                <div class="team-info">
+                    <div>
+                        <button id="myDepartmentButton" class="team-category-button">Мой отдел</button>
+                        <button id="myManagersButton" class="team-category-button">Мои руководители</button>
+                    </div>
+                    <div class="team-members">
+                        <div class="team-member">
+                            <img src="/front/src/avatar.png" alt="Смирнов Е.П.">
+                            <span>Смирнов Е.П.</span>
+                        </div>
+                        <div class="team-member">
+                            <img src="/front/src/avatar.png" alt="Васильева А.Г.">
+                            <span>Васильева А.Г.</span>
+                        </div>
+                        <div class="team-member">
+                            <img src="/front/src/avatar.png" alt="Микалян М.А.">
+                            <span>Микалян М.А.</span>
+                        </div>
+                        <div class="team-member">
+                            <img src="/front/src/avatar.png" alt="Глазкова С.С.">
+                            <span>Глазкова С.С.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr class="divider">
+            <!-- Общественная деятельность -->
+            <div class="social-activity section">
+                <h2>Общественная деятельность</h2>
+                <button type="button" class="edit-profile-button" id="editSocialActivityButton" onclick="editSocialActivity()"></button>
+                <div class="social-activity-info">
+                    <div class="activity-item">
+                        <img src="/front/src/baikalmb.jpeg" alt="Помогаю спасать природу">
+                        <span>Помогаю спасать природу</span>
+                    </div>
+                    <div class="activity-item">
+                        <img src="/front/src/run2.jpeg" alt="Выступал на мероприятии">
+                        <span>Выступал на мероприятии</span>
+                    </div>
+                    <div class="activity-item">
+                        <img src="/front/src/run.jpeg" alt="Участвовал в забеге 'Беги Форест, беги'">
+                        <span>Участвовал в забеге 'Беги Форест, беги'</span>
+                    </div>
+                    <div class="activity-item">
+                        <img src="/front/src/baimalmb2.png" alt="Победа в конкурсе рисунков">
+                        <span>Победа в конкурсе рисунков</span>
+                    </div>
+                </div>
+            </div>
+            <hr class="divider">
+            <!-- Мои награды -->
+            <div class="awards section">
+                <h2>Мои награды</h2>
+                <button type="button" class="edit-profile-button" id="editAwardsButton" onclick="editAwards()"></button>
+                <div class="awards-info">
+                    <div class="award-item">
+                        <img src="/front/src/certif.png" alt="Сертификат по стрельбе">
+                        <span>Сертификат по стрельбе</span>
+                    </div>
+                    <div class="award-item">
+                        <img src="/front/src/certif2.png" alt="Сертификат лучшему сотруднику">
+                        <span>Сертификат лучшему сотруднику</span>
+                    </div>
+                </div>
+            </div>
+            <hr class="divider">
+             <!-- Обо мне -->
+            <div class="about-me section">
+                <h2>Обо мне</h2>
+                <button type="button" class="edit-profile-button" id="editAboutMeButton" onclick="editAboutMe()"></button>
+                <div class="about-me-info">
+                    <p id="aboutMeText">Я люблю спорт, не люблю когда сотрудники опаздывают. В обед хожу в магазин, потому что у нас нет столовой. По выходным я хожу в спорт зал "Фитнес". Мои любимые пирожки: с картошкой и капустой.</p>
+                </div>
+            </div>
+            <hr class="divider">
+            <!-- Обратная связь -->
+            <div class="feedback section">
+                <h2>Обратная связь</h2>
+                <div class="feedback-info">
+                    <div class="stars">
+                        <span class="star" onclick="rateStar(1)">&#9733;</span>
+                        <span class="star" onclick="rateStar(2)">&#9733;</span>
+                        <span class="star" onclick="rateStar(3)">&#9733;</span>
+                        <span class="star" onclick="rateStar(4)">&#9733;</span>
+                        <span class="star" onclick="rateStar(5)">&#9733;</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 </main>
-
     <script src="/front/profile/edit.js"></script>
 </body>
 </html>
-

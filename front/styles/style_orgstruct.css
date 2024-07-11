@@ -43,18 +43,15 @@ header {
     justify-content: center;
 }
 
-.nav-button {
+nav button {
     background: none;
     border: none;
     color: white;
     font-size: 16px;
     cursor: pointer;
-    text-decoration: none;
-    padding: 10px 20px;
-    display: inline-block;
 }
 
-.nav-button:hover {
+nav button:hover {
     text-decoration: underline;
 }
 
@@ -120,4 +117,3 @@ main {
 .employee-details h3 {
     margin-top: 0;
 }
-

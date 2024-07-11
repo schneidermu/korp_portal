@@ -142,6 +142,7 @@ function editEducation() {
     const editButton = document.getElementById('editButtonEducation');
     editButton.classList.remove('edit-profile-button');
     editButton.classList.add('save-profile-button');
+    editButton.textContent = '';
     editButton.onclick = saveEducation;
 }
 
@@ -166,7 +167,7 @@ function saveEducation() {
 
     if (coursesInput) {
         // Разбиваем введенные данные на массивы по запятой
-        const courses = coursesInput.split(',').map(name => ({ name: name.trim()}));
+        const courses = coursesInput.split(',').map(name => ({ name: name.trim() }));
         updatedEducation.courses = courses;
     }
 
@@ -191,17 +192,6 @@ function saveEducation() {
     })
     .catch(error => {
         console.error('Ошибка при обновлении образования:', error);
-    });
-}
-
-function rateStar(rating) {
-    const stars = document.querySelectorAll('.star');
-    stars.forEach((star, index) => {
-        if (index < rating) {
-            star.classList.add('selected');
-        } else {
-            star.classList.remove('selected');
-        }
     });
 }
 
