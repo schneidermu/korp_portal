@@ -32,7 +32,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '0').split(',')
 CORS_URLS_REGEX = r'^/api/.*$'
 
 CORS_ALLOWED_ORIGINS = [
-    'http://25.21.178.79:3000',
+    'http://46.38.96.230:3000',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
