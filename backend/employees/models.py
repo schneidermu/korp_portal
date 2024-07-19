@@ -208,12 +208,12 @@ class Characteristic(models.Model):
         verbose_name='Сотрудник',
     )
 
-    university = models.CharField(
-        verbose_name='Университет',
-        max_length=CHARFIELD_LENGTH,
-        blank=True,
-        null=True,
-    )
+#    university = models.CharField(
+#        verbose_name='Университет',
+#        max_length=CHARFIELD_LENGTH,
+#        blank=True,
+#        null=True,
+#    )
 
     avatar = models.ImageField(
         verbose_name='Аватар',
@@ -295,7 +295,6 @@ class Career(AbstractNameModel):
         null=True
     )
 
-
     name = models.CharField(
         verbose_name='Должность',
         max_length=CHARFIELD_LENGTH,
@@ -325,6 +324,20 @@ class Diploma(AbstractWithPhotoNameModel):
     class Meta:
         verbose_name = 'диплом'
         verbose_name_plural = 'дипломы'
+
+
+class University(AbstractWithPhotoNameModel):
+    """Модель университета."""
+
+    date = models.DateField(
+        verbose_name='Дата окончания университета',
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        verbose_name = 'университет'
+        verbose_name_plural = 'университеты'
 
 
 class Training(AbstractWithPhotoNameModel):

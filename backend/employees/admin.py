@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Employee, Organization, Rating, Characteristic, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, StructuralSubdivision, Diploma
+from .models import University, Employee, Organization, Rating, Characteristic, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, StructuralSubdivision, Diploma
 
 
 @admin.register(Employee)
@@ -29,6 +29,11 @@ class CourseInline(admin.TabularInline):
 
 class DiplomaInline(admin.TabularInline):
     model = Diploma
+    extra = 1
+
+
+class UniversityInline(admin.TabularInline):
+    model = University
     extra = 1
 
 
@@ -95,7 +100,8 @@ class CharacteristicAdmin(admin.ModelAdmin):
         PerformanceInline,
         SportInline,
         VolunteerInline,
-        DiplomaInline
+        DiplomaInline,
+        UniversityInline
     )
 
 #    list_display = ('fio', 'average_rating')

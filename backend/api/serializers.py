@@ -5,7 +5,7 @@ from rest_framework.validators import UniqueValidator
 
 from homepage.models import Poll, News, Choice
 from homepage.constants import CHARFIELD_LENGTH
-from employees.models import Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating, Organization, StructuralSubdivision, Diploma
+from employees.models import University, Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating, Organization, StructuralSubdivision, Diploma
 
 ATTRIBUTE_MODEL = (
     ("courses", Course),
@@ -18,8 +18,10 @@ ATTRIBUTE_MODEL = (
     ("performances", Performance),
     ("sports", Sport),
     ("volunteers", Volunteer),
-    ("diplomas", Diploma)
+    ("diplomas", Diploma),
+    ("universitys", University)
 )
+
 
 class ChoiceSerializer(serializers.ModelSerializer):
     '''Сериализатор варианта ответа'''
@@ -189,10 +191,18 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class DiplomaSerializer(serializers.ModelSerializer):
-    '''Сериализатор для курса'''
+    '''Сериализатор для диплома'''
 
     class Meta:
         model = Diploma
+        exclude = ("characteristic",)
+
+
+class UniversitySerializer(serializers.ModelSerializer):
+    '''Сериализатор для университета'''
+
+    class Meta:
+        model = University
         exclude = ("characteristic",)
 
 
@@ -273,6 +283,7 @@ class CharacteristicSerializer(serializers.ModelSerializer):
     courses = CourseSerializer(many=True, required=False)
     careers = CareerSerializer(many=True, required=False)
     diplomas = DiplomaSerializer(many=True, required=False)
+    universitys = UniversitySerializer(many=True, required=False)
     competences = CompetenceSerializer(many=True, required=False)
     trainings = TrainingSerializer(many=True, required=False)
     hobbys = HobbySerializer(many=True, required=False)
