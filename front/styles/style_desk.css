@@ -17,6 +17,11 @@ header {
     justify-content: space-between;
 }
 
+.highlight {
+    background-color: yellow;
+}
+
+
 .logo {
     height: 40px;
 }
