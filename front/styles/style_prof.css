@@ -330,3 +330,188 @@ main {
 .star.selected {
     color: gold;
 }
+
+
+/* Стили для кнопки "Добавить" */
+#addCareerRow {
+    background-color: #0050a0; /* Цвет кнопки */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    margin: 10px 0;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+#addCareerRow:hover {
+    background-color: #1E90FF; /* Цвет при наведении */
+}
+
+/* Стили для таблицы карьерного роста */
+#careerTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+#careerTable th, #careerTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#careerTable th {
+    background-color: #f2f2f2;
+}
+
+#careerTable select, #careerTable input[type="text"] {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Стили для строк таблицы */
+#careerTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#careerTable tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Основной стиль для выпадающих списков */
+.year-select, #statusSelect {
+    appearance: none;
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+    box-sizing: border-box;
+    position: relative; /* Для позиционирования стрелочки */
+}
+
+.year-select {
+    width: 150px;
+}
+
+#statusSelect {
+    width: 200px;
+    font-size: 14px;
+}
+
+.year-select:focus, #statusSelect:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.year-select::after, #statusSelect::after {
+    content: '▼'; /* Стрелка вниз */
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: #999;
+}
+
+/* Стили для контейнера статуса */
+.status-container {
+    display: flex;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+.status-container svg {
+    fill: #979797;
+    stroke: #979797;
+    transition: fill 0.3s;
+}
+
+.status-container svg:hover {
+    fill: #0e070b;
+}
+
+.status-container .status-label {
+    color: gray;
+    font-size: 16px;
+    margin-left: 8px;
+}
+
+/* Стили для полей ввода */
+.styled-input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.styled-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    outline: none;
+}
+
+/* Стили для раздела "Образование" и "Карьера" */
+.profile-education .education-info, .career .career-info {
+    margin-top: 10px;
+}
+
+.profile-education .education-info div, .career .career-info div {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.career .career-info table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.career .career-info th, .career .career-info td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.career .career-info th {
+    background-color: #f4f4f4;
+    text-align: left;
+}
+.styled-select {
+    appearance: none; /* Убираем стандартный стиль браузера */
+    -webkit-appearance: none; /* Для WebKit-браузеров */
+    background-color: #f5f5f5; /* Цвет фона */
+    border: 1px solid #ccc; /* Цвет границы */
+    border-radius: 4px; /* Скругление углов */
+    padding: 8px 12px; /* Отступы внутри элемента */
+    font-size: 16px; /* Размер шрифта */
+    color: #333; /* Цвет текста */
+    cursor: pointer; /* Курсор при наведении */
+    box-sizing: border-box; /* Учитывать границы и отступы в размере */
+    width: 200px; /* Ширина элемента */
+    position: relative; /* Для позиционирования стрелочки */
+}
+.styled-select:focus {
+    outline: none;
+    border-color: #007bff; /* Цвет рамки при фокусе */
+    box-shadow: 0 0 0 2px rgba(38, 143, 255, 0.2); /* Легкое свечение при фокусе */
+}
+/* Дополнительное оформление для выпадающего списка */
+.styled-select option {
+    padding: 10px;
+    font-size: 16px;
+}
+
+
+

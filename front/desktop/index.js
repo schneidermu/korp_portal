@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Получение текущего пользователя
-    fetch('http://25.21.178.79:8000/api/colleagues/me', { headers })
+    fetch('http://46.38.96.230:8000/api/colleagues/me', { headers })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Unauthorized');
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function fetchPolls(username, headers) {
-    fetch('http://25.21.178.79:8000/api/polls/', { headers })
+    fetch('http://46.38.96.230:8000/api/polls/', { headers })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Unauthorized');
@@ -101,7 +101,7 @@ function submitPollChoice(pollId, choiceId, headers) {
         choice_id: choiceId
     };
 
-    fetch('http://25.21.178.79:8000/api/polls/vote/', {
+    fetch('http://46.38.96.230:8000/api/polls/vote/', {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(data)

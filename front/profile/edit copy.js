@@ -10,7 +10,7 @@ let originalBirthDate;
 
 // Функция для загрузки данных пользователя и отображения в форме
 function loadUserProfile() {
-    fetch('http://25.21.178.79:8000/api/colleagues/me', { headers })
+    fetch('http://46.38.96.230:8000/api/colleagues/me', { headers })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Unauthorized');
@@ -111,7 +111,7 @@ function saveUserProfile() {
         updatedUser.birth_date = originalBirthDate;
     }
 
-    fetch('http://25.21.178.79:8000/api/colleagues/me/', {
+    fetch('http://46.38.96.230:8000/api/colleagues/me/', {
         method: 'PUT',
         headers,
         body: JSON.stringify(updatedUser)
@@ -172,11 +172,11 @@ function saveEducation() {
     }
 
     console.log('Sending request with:');
-    console.log('URL:', 'http://25.21.178.79:8000/api/colleagues/me/');
+    console.log('URL:', 'http://46.38.96.230:8000/api/colleagues/me/');
     console.log('Headers:', headers);
     console.log('Body:', JSON.stringify({ characteristic: updatedEducation }));
 
-    fetch('http://25.21.178.79:8000/api/colleagues/me/', {
+    fetch('http://46.38.96.230:8000/api/colleagues/me/', {
         method: 'PUT',
         headers,
         body: JSON.stringify({ characteristic: updatedEducation })

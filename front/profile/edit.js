@@ -10,7 +10,7 @@ let originalBirthDate;
 
 // Функция для загрузки данных пользователя и отображения в форме
 function loadUserProfile() {
-    fetch('http://25.21.178.79:8000/api/colleagues/me', { headers })
+    fetch('http://46.38.96.230:8000/api/colleagues/me', { headers })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Unauthorized');
@@ -64,32 +64,46 @@ document.addEventListener('DOMContentLoaded', function() {
 // Функция для переключения в режим редактирования
 function editProfile() {
     document.getElementById('jobTitle').style.display = 'none';
-    document.getElementById('status').style.display = 'none'; // Добавляем эту строку для скрытия статуса
+    document.getElementById('status').style.display = 'none';
+    document.getElementById('birthDate').style.display = 'none';
+    document.getElementById('telephone').style.display = 'none';
 
     const profileInfo = document.querySelectorAll('.profile-info div span');
     profileInfo.forEach(span => {
         if (span.id === 'status') {
             document.getElementById('statusSelect').style.display = 'inline';    
             document.getElementById('statusSelect').value = span.textContent.trim();
+        } else if (span.id === 'birthDate') {
+            document.getElementById('birthDatePicker').style.display = 'inline';
+            document.getElementById('birthDatePicker').value = span.textContent.trim() === 'Не указана' ? '' : span.textContent.trim();
+            document.getElementById('openDatePickerButton').style.display = 'inline';
+        } else if (span.id === 'telephone') {
+            document.getElementById('telephoneInput').style.display = 'inline';
+            document.getElementById('telephoneInput').value = span.textContent.trim() === 'Не указан' ? '' : span.textContent.trim();
         } else if (span.id === 'jobTitle') {
             document.getElementById('jobTitleSelect').style.display = 'inline';
-            document.getElementById('jobTitleSelect').value = span.textContent.trim();
-        } else if (span.id !== 'birthDate') {
+            document.getElementById('jobTitleSelect').value = span.textContent.trim() === 'Не указана' ? '' : span.textContent.trim();
+        } else {
             const input = document.createElement('input');
             input.type = 'text';
             input.value = span.textContent === 'Не указано' || span.textContent === 'Не указана' ? '' : span.textContent;
             input.id = span.id;
+            input.className = 'styled-input'; // Присвоим класс для стиля
             span.replaceWith(input);
         }
     });
 
     document.getElementById('birthDatePicker').removeAttribute('readonly');
-    document.getElementById('openDatePickerButton').style.display = 'inline'; // Показать кнопку выбора даты
     const editButton = document.getElementById('editButton');
     editButton.classList.remove('edit-profile-button');
     editButton.classList.add('save-profile-button');
     editButton.onclick = saveUserProfile;
 }
+
+function saveUserProfile() {
+    // Логика сохранения данных
+}
+
 
 // Функция для сохранения отредактированных данных
 function saveUserProfile() {
@@ -111,7 +125,7 @@ function saveUserProfile() {
         updatedUser.birth_date = originalBirthDate;
     }
 
-    fetch('http://25.21.178.79:8000/api/colleagues/me/', {
+    fetch('http://46.38.96.230:8000/api/colleagues/me/', {
         method: 'PUT',
         headers,
         body: JSON.stringify(updatedUser)
@@ -128,6 +142,7 @@ function saveUserProfile() {
     });
 }
 
+
 // Функция для переключения в режим редактирования образования
 function editEducation() {
     const educationInfo = document.querySelectorAll('.education-info div span');
@@ -135,7 +150,8 @@ function editEducation() {
         const input = document.createElement('input');
         input.type = 'text';
         input.value = span.textContent === 'Не указан' || span.textContent === 'Не указаны' ? '' : span.textContent;
-        input.id = span.id; // Сохраняем тот же ID
+        input.id = span.id;
+        input.className = 'styled-input'; // Добавляем класс для стилизации
         span.replaceWith(input);
     });
 
@@ -169,13 +185,12 @@ function saveEducation() {
         const courses = coursesInput.split(',').map(name => ({ name: name.trim()}));
         updatedEducation.courses = courses;
     }
-
     console.log('Sending request with:');
-    console.log('URL:', 'http://25.21.178.79:8000/api/colleagues/me/');
+    console.log('URL:', 'http://46.38.96.230:8000/api/colleagues/me/');
     console.log('Headers:', headers);
     console.log('Body:', JSON.stringify({ characteristic: updatedEducation }));
 
-    fetch('http://25.21.178.79:8000/api/colleagues/me/', {
+    fetch('http://46.38.96.230:8000/api/colleagues/me/', {
         method: 'PUT',
         headers,
         body: JSON.stringify({ characteristic: updatedEducation })
@@ -193,6 +208,150 @@ function saveEducation() {
         console.error('Ошибка при обновлении образования:', error);
     });
 }
+                // Функция для переключения в режим редактирования карьеры
+                function editCareer() {
+                    const careerInfo = document.querySelectorAll('.career-info div span');
+                    careerInfo.forEach(span => {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = span.textContent === 'Не указан' || span.textContent === 'Не указано' ? '' : span.textContent;
+                        input.id = span.id; // Сохраняем тот же ID
+                        input.className = 'styled-input'; // Добавляем класс для стилизации
+                        span.replaceWith(input);
+                    });
+                
+                    // Показываем кнопку "Добавить" и таблицу
+                    document.getElementById('careerTable').hidden = false;
+                    document.getElementById('addCareerRow').style.display = 'inline-block';
+                
+                    // Меняем текст на "Сохранить"
+                    const editButton = document.getElementById('editCareerButton');
+                    editButton.classList.remove('edit-profile-button');
+                    editButton.classList.add('save-profile-button');
+                    editButton.onclick = saveCareer;
+                }
+                
+
+                function saveCareer() {
+                    const experienceInput = document.getElementById('experience').value.trim();
+                    const skillsInput = document.getElementById('skills').value.trim();
+                    const trainingInput = document.getElementById('training').value.trim();
+                
+                    const updatedCareer = {};
+                
+                    // Преобразование значения experience в число
+                    if (experienceInput) {
+                        const experienceNumber = Number(experienceInput);
+                        if (!isNaN(experienceNumber)) {
+                            updatedCareer.experience = experienceNumber;
+                        } else {
+                            console.error('Invalid experience value:', experienceInput);
+                            alert('Введите правильное число для опыта.');
+                            return; // Прекращаем выполнение, если значение некорректное
+                        }
+                    }
+                
+                    if (skillsInput) {
+                        const skills = skillsInput.split(',').map(name => ({ name: name.trim() }));
+                        updatedCareer.skills = skills;
+                    }
+                
+                    if (trainingInput) {
+                        const training = trainingInput.split(',').map(name => ({ name: name.trim() }));
+                        updatedCareer.training = training;
+                    }
+                
+                    console.log('Sending request with:');
+                    console.log('URL:', 'http://46.38.96.230:8000/api/colleagues/me/');
+                    console.log('Headers:', headers);
+                    console.log('Body:', JSON.stringify({ characteristic: updatedCareer }));
+                
+                    fetch('http://46.38.96.230:8000/api/colleagues/me/', {
+                        method: 'PUT',
+                        headers: {
+                            ...headers,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ characteristic: updatedCareer })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                console.error('Error response:', text); // Логируем текст ошибки
+                                throw new Error(text || 'Failed to update career');
+                            });
+                        }
+                        alert('Карьера успешно обновлено');
+                        location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при обновлении карьеры:', error);
+                        alert('Произошла ошибка при обновлении карьеры. Проверьте консоль для деталей.');
+                    });
+                }
+                
+                
+                
+                
+
+                function addCareerRow() {
+                    const tableBody = document.querySelector('#careerTable tbody');
+                    
+                    // Создаем новую строку таблицы
+                    const row = tableBody.insertRow();
+                    
+                    // Создаем ячейки для года начала и окончания, а также должности
+                    const cell1 = row.insertCell(0);
+                    const cell2 = row.insertCell(1);
+                    
+                    cell1.innerHTML = `
+                        <select class="year-select" onchange="updateEndYearOptions(this)">
+                            <option value="">С</option>
+                            ${generateYearOptions()}
+                        </select>
+                        <select class="year-select">
+                            <option value="">По</option>
+                            <option value="current">н. вр.</option>
+                            ${generateYearOptions()}
+                        </select>
+                    `;
+                    
+                    cell2.innerHTML = `<input type="text" placeholder="Должность">`;
+                }
+
+                function generateYearOptions() {
+                    const currentYear = new Date().getFullYear();
+                    const maxYear = 2024;
+                    let options = '';
+                    for (let year = currentYear - 50; year <= maxYear; year++) {
+                        options += `<option value="${year}">${year}</option>`;
+                    }
+                    return options;
+                }
+
+                function updateEndYearOptions(selectElement) {
+                    const startYear = parseInt(selectElement.value, 10);
+                    const endSelect = selectElement.nextElementSibling;
+                    
+                    const options = generateYearOptions()
+                        .split('</option>')
+                        .map(option => option + '</option>')
+                        .filter(option => {
+                            const yearMatch = option.match(/value="(\d+)"/);
+                            if (yearMatch) {
+                                const year = parseInt(yearMatch[1], 10);
+                                return year >= startYear || isNaN(startYear);
+                            }
+                            return false;
+                        })
+                        .join('');
+
+                    endSelect.innerHTML = `
+                        <option value="">По</option>
+                        <option value="current">н. вр.</option>
+                        ${options}
+                    `;
+                }
 
 function rateStar(rating) {
     const stars = document.querySelectorAll('.star');

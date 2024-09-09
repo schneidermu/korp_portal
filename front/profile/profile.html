@@ -32,8 +32,29 @@
                 <img src="/front/src/avatar.png" alt="Avatar">
                 <button type="button" class="edit-profile-button" id="editButton" onclick="editProfile()"></button>
                 <div class="profile-info">
-                    <div><span id="fullName" style="font-weight: bold; font-size: 22px;">Не указано</span></div>
-                    <div>Статус:&nbsp;
+                        <div>
+                        <!--SVG Пользователь-->
+                        <div style="margin-right: 6px;">&nbsp;</div>
+                            <svg class="feather feather-user" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            <div id="fullName" style="font-weight: bold; font-size: 22px;">Не указано</div>
+                        </div>
+                    <div>
+                        <div style="margin-right: 4px;">&nbsp;</div>
+                        <!-- SVG Статус -->
+                        <svg height="24px" version="1.1" viewBox="0 0 32 32" width="24px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                            <title/><desc/><defs/>
+                            <g fill="none" fill-rule="evenodd" id="Sunny" stroke="none" stroke-width="1">
+                                <g stroke="#979797" stroke-width="2" transform="translate(2.000000, 2.000000)">
+                                    <circle cx="14" cy="14" id="Oval-4" r="8"/>
+                                    <path d="M14,0 L14,3 M23.8994949,4.10050506 L21.7781746,6.22182541 M28,14 L25,14 M23.8994949,23.8994949 L21.7781746,21.7781746 M14,28 L14,25 M4.10050506,23.8994949 L6.22182541,21.7781746 M3.83475851e-17,14 L3,14 M4.10050506,4.10050506 L6.22182541,6.22182541" id="Path-7" stroke-linecap="round"/>
+                                </g>
+                            </g>
+                        </svg>
+                        <div style="margin-left: 8px;">&nbsp;</div>
+                        <div style="color: gray;">Статус:</div>&nbsp;
                         <span id="status">Не указано</span>
                         <select id="statusSelect" style="display:none;">
                             <option value="На рабочем месте">На рабочем месте</option>
@@ -41,29 +62,118 @@
                             <option value="В командировке">В командировке</option>
                             <option value="На больничном">На больничном</option>
                             <option value="Нет на месте">Нет на месте</option>
-                        </select>
-                    </div>                    
+                        </select>  
+                    </div>                   
                     <div>
-                        Дата рождения:&nbsp;
+                        <!-- SVG Дата рождения -->
+                        <div style="margin-right: 8px;">&nbsp;</div>
+                        <svg height="16" width="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;">
+                            <g stroke="#9E9E9E" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="21.5,7.5 21.5,22.5 2.5,22.5 2.5,7.5"/>
+                                <line x1="10.18" x2="13.94" y1="3.5" y2="3.5"/>
+                                <circle cx="12" cy="5" r="1.5"/>
+                                <path d="M10.81,4.08C9.34,2.61,7.22,1.5,6,1.5s-0.5,2.16-0.5,3s-0.19,3,1,3S10.86,6,10.86,6"/>
+                                <path d="M13.22,4.16C14.69,2.69,16.78,1.5,18,1.5s0.5,2.16,0.5,3s0.19,3-1,3s-4.27-1.59-4.27-1.59"/>
+                                <polyline points="9.67,6.5 8.5,9.5 10,9 10.5,10.5 12,6.5"/>
+                                <polyline points="14.38,6.45 15.5,9.5 14,9 13.5,10.5 12,6.5"/>
+                                <line x1="13.5" x2="13.5" y1="22.5" y2="10.5"/>
+                                <line x1="10.5" x2="10.5" y1="10.5" y2="22.5"/>
+                                <polygon points="11.63,7.5 12.38,7.5 12,6.5"/>
+                                <polyline points="14.75,7.5 22.5,7.5 22.5,3.5 18.62,3.5"/>
+                                <polyline points="5.38,3.5 1.5,3.5 1.5,7.5 9.25,7.5"/>
+                            </g>
+                        </svg>
+                        <div style="margin-left: 4px;">&nbsp;</div>
+                        <div style="color: gray;">Дата рождения:</div>&nbsp;
                         <span id="birthDate">Не указана</span>
                         <input type="date" id="birthDatePicker" style="display:none;" min="1950-01-01" max="2010-12-31">
                         <button type="button" class="calendar-button" id="openDatePickerButton" style="display:none;" onclick="openDatePicker()"></button>
                     </div>
-                    <div>Телефон:&nbsp;<span id="telephone">Не указан</span></div>
-                    <div>Почта:&nbsp;<span id="email">Не указана</span></div>
-                    <div>Должность:&nbsp;
+                    <div>
+                        <!-- SVG Телефон -->
+                        <div style="margin-right: 7px;">&nbsp;</div>
+                        <svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" height="20" width="20" style="vertical-align: middle; margin-right: 8px;">
+                            <rect fill="none" height="256" width="256"/>
+                            <path d="M92.5,124.8a83.6,83.6,0,0,0,39,38.9,8,8,0,0,0,7.9-.6l25-16.7a7.9,7.9,0,0,1,7.6-.7l46.8,20.1a7.9,7.9,0,0,1,4.8,8.3A48,48,0,0,1,176,216,136,136,0,0,1,40,80,48,48,0,0,1,81.9,32.4a7.9,7.9,0,0,1,8.3,4.8l20.1,46.9a8,8,0,0,1-.6,7.5L93,117A8,8,0,0,0,92.5,124.8Z" fill="none" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+                        </svg>
+                        <div style="margin-left: 2px;">&nbsp;</div>
+                        <div style="color: gray;">Телефон:</div>&nbsp;
+                        <span id="telephone">Не указан</span>
+                        <input type="text" id="telephoneInput" class="styled-input" style="display:none;" placeholder="Введите телефон">
+                    </div>
+                    
+                    <div>
+                        <!-- SVG Почта -->
+                        <div style="margin-right: 6px;">&nbsp;</div>
+                        <svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px;">
+                            <path d="M16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12ZM16 12V13.5C16 14.8807 17.1193 16 18.5 16C19.8807 16 21 14.8807 21 13.5V12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21M16.5 19.7942C15.0801 20.614 13.5296 21.0029 12 21.0015" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                        <div style="margin-left: 2px;">&nbsp;</div>
+                        <div style="color: gray;">Почта:</div>&nbsp;
+                        <span id="email">Не указана</span>
+                    </div>  
+                    <div>
+                        <!-- SVG Должность -->
+                        <div style="margin-right: 8px;">&nbsp;</div>
+                        <svg class="feather feather-users" fill="none" height="16" width="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 6px;">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+                            <circle cx="9" cy="7" r="4" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+                        </svg>
+                        <div style="margin-left: 5px;">&nbsp;</div>
+                        <div style="color: gray;">Должность:</div>&nbsp;
                         <span id="jobTitle">Не указана</span>
-                        <select id="jobTitleSelect" style="display:none;">
+                        <select id="jobTitleSelect" class="styled-select" style="display:none;">
                             <option value="Разработчик">Разработчик</option>
                             <option value="Руководитель">Руководитель</option>
                             <option value="Тестировщик">Тестировщик</option>
                         </select>
                     </div>                    
-                    <div>Классный чин:&nbsp;<span id="classRank">Не указан</span></div>
-                    <div>Структурное подразделение:&nbsp;<span id="structuralDivision">Не указано</span></div>
-                    <div>Тер. орган:&nbsp;<span id="organization">Не указано</span></div>
+                    <div>
+                        <!-- SVG Классный чин -->
+                        <div style="margin-right: 7px;">&nbsp;</div>
+                        <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 8px; stroke: gray; fill: none;">
+                            <path d="M5,9c0,1.8,0.7,3.6,2,4.9V21c0,0.4,0.2,0.7,0.5,0.9c0.3,0.2,0.7,0.2,1,0l3.5-2l3.5,2C15.7,22,15.8,22,16,22 c0.2,0,0.4,0,0.5-0.1c0.3-0.2,0.5-0.5,0.5-0.9v-7.1c1.3-1.3,2-3,2-4.9c0-3.9-3.1-7-7-7S5,5.1,5,9z M15,19.3l-2.5-1.4 c-0.2-0.1-0.3-0.1-0.5-0.1s-0.3,0-0.5,0.1L9,19.3v-4c0,0,0.1,0,0.1,0c0.2,0.1,0.4,0.2,0.5,0.2c0,0,0.1,0,0.1,0 c0.7,0.2,1.4,0.4,2.2,0.4c0.8,0,1.5-0.1,2.2-0.4c0,0,0.1,0,0.1,0c0.2-0.1,0.4-0.1,0.6-0.2c0,0,0.1,0,0.1,0V19.3z M12,4 c2.8,0,5,2.2,5,5c0,1.4-0.6,2.8-1.7,3.7c-1.4,1.3-3.5,1.6-5.2,0.9c-0.5-0.2-1-0.5-1.4-0.9C7.6,11.8,7,10.4,7,9C7,6.2,9.2,4,12,4z"/>
+                        </svg>
+                        <div style="margin-left: 1px;">&nbsp;</div>
+                        <div style="color: gray;">Классный чин:</div>&nbsp;
+                        <span id="classRank">Не указан</span>
+                    </div>
+                    <div>
+                        <!-- SVG  Структурное подразделение -->
+                        <div style="margin-right: 8px;">&nbsp;</div>
+                        <svg class="feather feather-users" fill="none" height="16" width="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 6px;">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+                            <circle cx="9" cy="7" r="4" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
+                        </svg>
+                        <div style="margin-left: 5px;">&nbsp;</div>
+                        <div style="color: gray;">Структурное подразделение:</div>&nbsp;
+                        <span id="structuralDivision">Не указано</span>
+                    </div>
+                    <div>
+                        <!-- SVG Иконка перед тер. орган -->
+                        <div style="margin-right: 8px;">&nbsp;</div>
+                        <svg enable-background="new 0 0 32 32" version="1.1" viewBox="0 0 32 32" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="height: 16px; width: 16px; vertical-align: middle; margin-right: 6px;">
+                            <desc></desc>
+                            <g>
+                                <path d="M27,12 c0-6.075-4.925-11-11-11S5,5.925,5,12c0,8,11,19,11,19S27,20,27,12z" fill="none" stroke="#9E9E9E" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/>
+                                <circle cx="16" cy="12" fill="none" r="4" stroke="#9E9E9E" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/>
+                            </g>
+                        </svg>
+                        <div style="margin-left: 5px;">&nbsp;</div>
+                        <div style="color: gray;">Тер. орган:</div>&nbsp;
+                        <span id="organization">Не указано</span>
+                    </div>  
                 </div>
             </div>
+
+
+
+
+
             <hr class="divider">
             <!-- Образование -->
             <div class="profile-education section">
@@ -76,6 +186,8 @@
                 </div>
             </div>
             <hr class="divider">
+
+
             <!-- Карьера и развитие -->
             <div class="career section">
                 <h2>Карьера и развитие</h2>
@@ -83,15 +195,25 @@
                 <div class="career-info">
                     <div>Стаж:&nbsp;<span id="experience">Не указан</span></div>
                     <div>Карьерный рост:&nbsp;
-                        <table id="careerTable">
-                            <!-- Таблица карьерного роста будет динамически заполняться -->
+                        <table id="careerTable" hidden>
+                            <thead>
+                                <tr>
+                                    <th>Год</th>
+                                    <th>Должность</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Таблица карьерного роста будет динамически заполняться -->
+                            </tbody>
                         </table>
+                        <button type="button" id="addCareerRow" style="display: none;" onclick="addCareerRow()">Добавить</button>
                     </div>
                     <div>Навыки и компетенции:&nbsp;<span id="skills">Не указан</span></div>
                     <div>Повышение квалификации:&nbsp;<span id="training">Не указано</span></div>
                 </div>
             </div>
             <hr class="divider">
+            
             <!-- Команда -->
             <div class="team section">
                 <h2>Команда</h2>
