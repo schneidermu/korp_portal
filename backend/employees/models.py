@@ -208,12 +208,12 @@ class Characteristic(models.Model):
         verbose_name='Сотрудник',
     )
 
-#    university = models.CharField(
-#        verbose_name='Университет',
-#        max_length=CHARFIELD_LENGTH,
-#        blank=True,
-#        null=True,
-#    )
+      university = models.CharField(
+       verbose_name='Университет',
+       max_length=CHARFIELD_LENGTH,
+       blank=True,
+       null=True,
+   )
 
     avatar = models.ImageField(
         verbose_name='Аватар',

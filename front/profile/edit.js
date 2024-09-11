@@ -143,6 +143,60 @@ function saveUserProfile() {
 }
 
 
+// Открыть диалог для выбора нового аватара
+function openAvatarUpload() {
+    document.getElementById('uploadAvatar').click(); // Открывает окно выбора файла
+}
+
+// Предварительный просмотр выбранного аватара
+function previewAvatar(event) {
+    const input = event.target;
+    const file = input.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            document.getElementById('profileAvatar').src = e.target.result; // Показать превью
+        }
+
+        reader.readAsDataURL(file); // Прочитать файл и преобразовать в URL
+    }
+}
+
+// Логика для сохранения изображения на сервере
+function saveProfile() {
+    const uploadAvatarInput = document.getElementById('uploadAvatar');
+    const file = uploadAvatarInput.files[0];
+
+    const formData = new FormData();
+
+    if (file) {
+        formData.append('avatar', file); // Добавляем файл в форму данных
+    }
+
+    fetch('http://46.38.96.230:8000/api/colleagues/me/', {
+        method: 'PUT',
+        headers: {
+            'Authorization': 'Bearer <your-token>', // Укажите ваш токен, если требуется
+        },
+        body: formData // Отправляем данные
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(text || 'Failed to update profile');
+            });
+        }
+        alert('Изображение успешно обновлено');
+        location.reload(); // Перезагружаем страницу
+    })
+    .catch(error => {
+        console.error('Ошибка при обновлении профиля:', error);
+    });
+}
+
+
 // Функция для переключения в режим редактирования образования
 function editEducation() {
     const educationInfo = document.querySelectorAll('.education-info div span');
@@ -289,11 +343,6 @@ function saveEducation() {
                         alert('Произошла ошибка при обновлении карьеры. Проверьте консоль для деталей.');
                     });
                 }
-                
-                
-                
-                
-
                 function addCareerRow() {
                     const tableBody = document.querySelector('#careerTable tbody');
                     
@@ -315,10 +364,8 @@ function saveEducation() {
                             ${generateYearOptions()}
                         </select>
                     `;
-                    
                     cell2.innerHTML = `<input type="text" placeholder="Должность">`;
                 }
-
                 function generateYearOptions() {
                     const currentYear = new Date().getFullYear();
                     const maxYear = 2024;
@@ -328,7 +375,6 @@ function saveEducation() {
                     }
                     return options;
                 }
-
                 function updateEndYearOptions(selectElement) {
                     const startYear = parseInt(selectElement.value, 10);
                     const endSelect = selectElement.nextElementSibling;
@@ -352,7 +398,59 @@ function saveEducation() {
                         ${options}
                     `;
                 }
+                // Функция для редактирования поля "Обо мне"
+function editAboutMe() {
+    const aboutMeText = document.getElementById('aboutMeText');
+    const textContent = aboutMeText.textContent.trim();
 
+    // Создаём текстовое поле для редактирования
+    const input = document.createElement('textarea');
+    input.value = textContent === 'Не указано' ? '' : textContent;
+    input.id = 'aboutMeInput';
+    input.className = 'styled-input'; // Используем предоставленный класс для стилизации
+    aboutMeText.replaceWith(input);
+
+    const editButton = document.getElementById('editAboutMeButton');
+    editButton.classList.remove('edit-profile-button');
+    editButton.classList.add('save-profile-button');
+    editButton.onclick = saveAboutMe;
+}
+
+// Функция для сохранения изменений
+function saveAboutMe() {
+    const input = document.getElementById('aboutMeInput');
+    const updatedAboutMe = input.value.trim();
+
+    // Обновляем интерфейс с новым значением
+    const p = document.createElement('p');
+    p.id = 'aboutMeText';
+    p.textContent = updatedAboutMe ? updatedAboutMe : 'Не указано';
+    input.replaceWith(p);
+
+    const editButton = document.getElementById('editAboutMeButton');
+    editButton.classList.remove('save-profile-button');
+    editButton.classList.add('edit-profile-button');
+    editButton.onclick = editAboutMe;
+
+    // Отправляем данные на сервер
+    fetch('http://46.38.96.230:8000/api/colleagues/me/', {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ aboutMe: updatedAboutMe })
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.text().then(text => {
+                throw new Error(text || 'Failed to update profile');
+            });
+        }
+        alert('Информация "Обо мне" успешно обновлена');
+        location.reload();
+    })
+    .catch(error => {
+        console.error('Ошибка при обновлении информации "Обо мне":', error);
+    });
+}
 function rateStar(rating) {
     const stars = document.querySelectorAll('.star');
     stars.forEach((star, index) => {
