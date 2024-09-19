@@ -3,7 +3,7 @@ from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 
 from .constants import CHARFIELD_LENGTH
-from employees.models import Employee
+from employees.models import Employee, Organization
 
 
 class Published(models.Model):
@@ -31,6 +31,15 @@ class News(Published):
     title = models.CharField(
         max_length=CHARFIELD_LENGTH,
         verbose_name='Заголовок'
+    )
+
+    organization = models.ForeignKey(
+        Organization,
+        verbose_name='Организация',
+        on_delete=models.CASCADE,
+        related_name='organization',
+        null=True,
+        default=None
     )
 
     text = models.TextField(verbose_name='Текст')

@@ -178,7 +178,8 @@ class NewsSerializer(serializers.ModelSerializer):
             'title',
             'text',
             'image',
-            'video'
+            'video',
+            'organization'
         )
 
 

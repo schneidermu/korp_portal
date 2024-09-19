@@ -83,6 +83,13 @@ class PollViewset(viewsets.ModelViewSet):
 class NewsViewSet(viewsets.ModelViewSet):
     '''Вьюсет для новостей'''
 
+
+    filter_backends = (DjangoFilterBackend,)
+
+    filterset_fields = (
+        'organization__name',
+    )
+
     permission_classes = (IsAdminUserOrReadOnly,)
     queryset = News.objects.filter(
         is_published=True,
