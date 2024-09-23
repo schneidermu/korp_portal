@@ -1,14 +1,14 @@
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User
+from employees.models import Employee
 
 
 class TestApi(TestCase):
 
     def setUp(self):
         self.factory = APIRequestFactory()
-        self.user = User.objects.create_user(
+        self.user = Employee.objects.create_user(
             username='testuser', password='testpassword')
         Token.objects.create(user=self.user)
 
