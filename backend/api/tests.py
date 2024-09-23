@@ -1,7 +1,9 @@
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 from rest_framework.authtoken.models import Token
+from rest_framework import status
 from employees.models import Employee
+from django.urls import reverse
 
 
 class TestApi(TestCase):
@@ -13,26 +15,26 @@ class TestApi(TestCase):
         Token.objects.create(user=self.user)
 
     def test_polls_api(self):
-        request = self.factory.get('api/polls/')
-        response = self.client.get(request)
-        self.assertEqual(response.status_code, 200)
+        url = reverse('poll-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_news_api(self):
-        request = self.factory.get('api/news/')
-        response = self.client.get(request)
-        self.assertEqual(response.status_code, 200)
+        url = reverse('news-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_colleagues_api(self):
-        request = self.factory.get('api/colleagues/')
-        response = self.client.get(request)
-        self.assertEqual(response.status_code, 200)
+        url = reverse('colleagues-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_org_structure_api(self):
-        request = self.factory.get('api/org-structure/')
-        response = self.client.get(request)
-        self.assertEqual(response.status_code, 200)
+        url = reverse('org-structure-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_organization_api(self):
-        request = self.factory.get('api/organization/')
-        response = self.client.get(request)
-        self.assertEqual(response.status_code, 200)
+        url = reverse('organization-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
