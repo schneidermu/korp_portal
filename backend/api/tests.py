@@ -2,7 +2,7 @@ from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 from rest_framework.authtoken.models import Token
 from rest_framework import status
-from employees.models import Employee
+from employees.models import Employee, StructuralSubdivision
 from django.urls import reverse
 
 
@@ -10,8 +10,9 @@ class TestApi(TestCase):
 
     def setUp(self):
         self.factory = APIRequestFactory()
+        division = StructuralSubdivision.objects.get(pk=1)
         self.user = Employee.objects.create_user(
-            username='testuser', password='testpassword')
+            username='testuser', password='testpassword', structural_division=division)
         Token.objects.create(user=self.user)
 
     def test_polls_api(self):
