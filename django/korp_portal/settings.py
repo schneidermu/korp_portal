@@ -11,8 +11,47 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
 import os
+
+import ldap
+from django_auth_ldap.config import LDAPSearch, PosixGroupType
+
+
+AUTH_LDAP_SERVER_URI = 'ldap://46.38.96.230:389'
+
+AUTH_LDAP_BIND_DN = 'cn=django-agent,dc=nodomain'
+AUTH_LDAP_BIND_PASSWORD = 'phlebotinum'
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    'ou=users,dc=nodomain',
+    ldap.SCOPE_SUBTREE,
+    '(uid=%(user)s)',
+)
+
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    'ou=groups,dc=nodomain',
+    ldap.SCOPE_SUBTREE,
+    '(objectClass=posixGroup)',
+)
+
+AUTH_LDAP_GROUP_TYPE = PosixGroupType()
+
+AUTH_LDAP_USER_ATTR_MAP = {
+    'first_name': 'givenName',
+    'last_name': 'sn',
+    'email': 'mail',
+}
+
+AUTH_LDAP_USER_FLAGS_BY_GROUP = {
+    'is_active': 'cn=active,ou=groups,dc=nodomain',
+    'is_staff': 'cn=staff,ou=groups,dc=nodomain',
+    'is_superuser': 'cn=superuser,ou=groups,dc=nodomain',
+}
+
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
