@@ -11,18 +11,18 @@ services:
     env_file: ./backend/.env
     volumes:
       - pg_data:/var/lib/postgresql/data
-  backend:
+  backend_test:
     build: ./backend/
     env_file: ./backend/.env
     volumes:
       - static:/backend_static
       - media:/media
 
-  gateway:
+  gateway_test:
     build: ./gateway/
     env_file: ./backend/.env
     volumes:
       - static:/staticfiles
       - media:/media
     ports:
-      - 8000:80
+      - 8082:80
