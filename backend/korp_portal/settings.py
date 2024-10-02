@@ -19,8 +19,8 @@ from django_auth_ldap.config import LDAPSearch, PosixGroupType
 
 AUTH_LDAP_SERVER_URI = 'ldap://46.38.96.230:389'
 
-AUTH_LDAP_BIND_DN = 'cn=django-agent,dc=nodomain'
-AUTH_LDAP_BIND_PASSWORD = 'phlebotinum'
+AUTH_LDAP_BIND_DN = 'cn=admin,dc=nodomain'
+AUTH_LDAP_BIND_PASSWORD = os.getenv('LDAP_PASSWORD', '0')
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
     'ou=users,dc=nodomain',
     ldap.SCOPE_SUBTREE,
