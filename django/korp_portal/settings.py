@@ -17,12 +17,12 @@ import ldap
 from django_auth_ldap.config import LDAPSearch, PosixGroupType
 
 
-AUTH_LDAP_SERVER_URI = 'ldap://46.38.96.230:389'
+AUTH_LDAP_SERVER_URI = '192.168.90.13:389'
 
 AUTH_LDAP_BIND_DN = 'cn=admin,dc=nodomain'
 AUTH_LDAP_BIND_PASSWORD = os.getenv('LDAP_PASSWORD', '0')
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    'ou=users,dc=nodomain',
+    'ou=People,dc=nodomain',
     ldap.SCOPE_SUBTREE,
     '(uid=%(user)s)',
 )
@@ -36,9 +36,9 @@ AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
 AUTH_LDAP_GROUP_TYPE = PosixGroupType()
 
 AUTH_LDAP_USER_ATTR_MAP = {
-    'first_name': 'givenName',
     'last_name': 'sn',
-    'email': 'mail',
+    'username': 'uid',
+    'password': 'userPassword',
 }
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
