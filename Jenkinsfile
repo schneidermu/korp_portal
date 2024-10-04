@@ -6,12 +6,13 @@ pipeline {
             steps {
             	sh 'echo "env file: {$ENV_FILE}" > .env'
 		sh 'cp .env backend/./'
-            }
+            	sh 'cat backend/.env'
+	    }
         }
 	stage('Docker-compsoe up'){
 	    steps {
-			sh 'echo "test compose"'
-			sh 'docker pull hello-world'
+		sh 'echo "test compose"'
+		sh 'docker pull hello-world'
 	    }
 	}
     }
