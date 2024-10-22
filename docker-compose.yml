@@ -13,7 +13,7 @@ services:
       - static:/backend_static
       - media:/media
     command:
-      sh -c "python3 manage.py makemigrations && python3 manage.py migrate && gunicorn --bind 0.0.0.0:8000 korp_portal.wsgi"
+      sh -c "python3 manage.py makemigrations && python3 manage.py migrate && gunicorn --bind 0.0.0.0:8021 korp_portal.wsgi"
 
   gateway:
     build: ./gateway/
@@ -22,4 +22,4 @@ services:
       - static:/staticfiles
       - media:/media
     ports:
-      - 8000:80
+      - 8021:80
