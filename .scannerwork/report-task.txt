@@ -1,0 +1,6 @@
+projectKey=korp_portal_favr_analyze
+serverUrl=https://saas.works.sbertech.ru/ssd/tools/sonar
+serverVersion=9.9.2-1.5.0-SCA-SRSE-SNAPSHOT
+dashboardUrl=https://saas.works.sbertech.ru/ssd/tools/sonar/dashboard?id=korp_portal_favr_analyze
+ceTaskId=AZKPN4GPlnUm76dC43Qo
+ceTaskUrl=https://saas.works.sbertech.ru/ssd/tools/sonar/api/ce/task?id=AZKPN4GPlnUm76dC43Qo

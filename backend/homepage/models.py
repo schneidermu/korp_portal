@@ -36,7 +36,7 @@ class News(Published):
     organization = models.ManyToManyField(
         Organization,
         verbose_name='Организация',
-        on_delete=models.CASCADE,
+#        on_delete=models.CASCADE,
         related_name='organization',
         null=True,
         default=None
