@@ -25,7 +25,7 @@ POSITIONS = (
 class Employee(AbstractUser):
     """Модель страницы сотрудника."""
 
-    REQUIRED_FIELDS = ["email", "password", "structural_division"]
+    REQUIRED_FIELDS = ["email", "password"]
 
     id = models.UUIDField( 
         primary_key=True,
