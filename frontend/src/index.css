@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.rounded-table {
+  --radius: 10px;
+  border-radius: var(--radius);
+  border-spacing: 0;
+  border-collapse: separate;
+}
+.rounded-table tr > * {
+  border-top-width: 0;
+  border-left-width: 0;
+}
+.rounded-table tr:last-child > * {
+  border-bottom-width: 0;
+}
+.rounded-table tr > :last-child {
+  border-right-width: 0;
+}
+.rounded-table tr:first-child > :first-child {
+  border-top-left-radius: var(--radius);
+}
+.rounded-table tr:first-child > :last-child {
+  border-top-right-radius: var(--radius);
+}
+.rounded-table tr:last-child > :first-child {
+  border-bottom-left-radius: var(--radius);
+}
+.rounded-table tr:last-child > :last-child {
+  border-bottom-right-radius: var(--radius);
+}
