@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  important: ".korp-portal-portlet",
+  ...(process.env.NODE_ENV === "production"
+    ? { important: ".korp-portal-portlet" }
+    : {}),
   safelist: ["text-excel", "text-word"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {

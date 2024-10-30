@@ -24,7 +24,7 @@ import { UserContext } from "./userContext";
 
 import FileAttachment from "./FileAttachment";
 
-const PREFIX = "/o/korp-portal-portlet/dist";
+const PREFIX = import.meta.env.PROD ? "/o/korp-portal-portlet/dist" : "";
 
 function SectionSep() {
   return (

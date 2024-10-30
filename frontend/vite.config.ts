@@ -1,16 +1,23 @@
-import { defineConfig } from "vite";
+import { defineConfig, UserConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// https://vite.dev/config/
-export default defineConfig({
-  base: "/o/korp-portal-portlet/dist/",
-  plugins: [react()],
-  build: {
-    rollupOptions: {
-      output: {
-        entryFileNames: "index.js",
-        assetFileNames: "[name].[ext]",
+export default defineConfig(({ mode }) => {
+  const conf = {
+    plugins: [react()],
+  } as UserConfig;
+
+  if (mode === "development") return conf;
+
+  return {
+    ...conf,
+    base: "/o/korp-portal-portlet/dist/",
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: "index.js",
+          assetFileNames: "[name].[ext]",
+        },
       },
     },
-  },
+  };
 });
