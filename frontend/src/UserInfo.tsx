@@ -395,38 +395,22 @@ function FeedbackSection() {
 
 export default function UserInfo() {
   return (
-    <div
-      className={clsx(
-        "border-[3px] border-light-gray rounded",
-        "shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]",
-      )}
-    >
-      <div
-        className={clsx(
-          "flex items-center",
-          "mb-[70px] h-[70px] pl-[45px]",
-          "bg-light-gray",
-        )}
-      >
-        <h1 className="text-[30px] font-medium">Общие сведения</h1>
-      </div>
-      <div className="mr-[36px] ml-[64px] pb-[155px]">
-        <GeneralSection />
-        <SectionSep />
-        <EducationSection />
-        <SectionSep />
-        <CareerSection />
-        <SectionSep />
-        <TeamSection />
-        <SectionSep />
-        <CommunityWorkSection />
-        <SectionSep />
-        <AwardsSection />
-        <SectionSep />
-        <AboutMeSection />
-        <SectionSep />
-        <FeedbackSection />
-      </div>
+    <div className="mr-[36px] ml-[64px] pb-[155px]">
+      <GeneralSection />
+      <SectionSep />
+      <EducationSection />
+      <SectionSep />
+      <CareerSection />
+      <SectionSep />
+      <TeamSection />
+      <SectionSep />
+      <CommunityWorkSection />
+      <SectionSep />
+      <AwardsSection />
+      <SectionSep />
+      <AboutMeSection />
+      <SectionSep />
+      <FeedbackSection />
     </div>
   );
 }
