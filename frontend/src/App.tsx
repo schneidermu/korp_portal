@@ -1,4 +1,3 @@
-import Header from "./Header";
 import NavBar from "./NavBar";
 import UserInfo from "./UserInfo";
 
@@ -13,7 +12,6 @@ export default function App() {
   return (
     <div className="max-w-[1920px] mx-auto mb-[300px]">
       <UserContext.Provider value={user}>
-        <Header user={user} />
         <main className="flex flex-col gap-[45px] max-w-[1404px] mx-auto mt-[45px] text-[24px]">
           <NavBar>
             <a href="/">Рабочий стол</a>
