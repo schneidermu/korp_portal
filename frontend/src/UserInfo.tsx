@@ -77,7 +77,7 @@ function SectionTitle({
 }) {
   return (
     <div className="mb-[40px] flex justify-between">
-      <h2 className="font-medium text-[1.875rem]">{title}</h2>
+      <h2 className="font-medium text-[30px]">{title}</h2>
       {editable && <EditButton />}
     </div>
   );
@@ -129,7 +129,7 @@ function GeneralSection() {
         {/* ФИО */}
         <div className="flex">
           <img src={personIcon} alt="" className="w-[33px]" />
-          <h2 className="ml-[28px] text-[1.875rem]">
+          <h2 className="ml-[28px] text-[30px]">
             {user.lastName} {user.firstName} {user.patronym}
           </h2>
           <div className="grow"></div>
@@ -408,7 +408,7 @@ export default function UserInfo() {
           "bg-light-gray",
         )}
       >
-        <h1 className="text-[1.875rem] font-medium">Общие сведения</h1>
+        <h1 className="text-[30px] font-medium">Общие сведения</h1>
       </div>
       <div className="mr-[36px] ml-[64px] pb-[155px]">
         <GeneralSection />
