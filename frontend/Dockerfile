@@ -58,3 +58,10 @@ ENTRYPOINT [ "sh", "-c", \
   cp -r /app/dist /war/dist && \
   cd /war && rm -f dist/index.html && \
   mkdir -p /app/pkg && zip -qr /app/pkg/korp-portal-portlet.war ." ]
+
+
+FROM node AS dev
+
+ENTRYPOINT [ "sh", "-c", "yarn && yarn dev" ]
+
+EXPOSE 3000
