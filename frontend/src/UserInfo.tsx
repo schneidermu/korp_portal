@@ -24,8 +24,6 @@ import { UserContext } from "./userContext";
 
 import FileAttachment from "./FileAttachment";
 
-const PREFIX = import.meta.env.PROD ? "/o/korp-portal-portlet/dist" : "";
-
 function SectionSep() {
   return (
     <hr
@@ -96,7 +94,7 @@ function Picture({
 }) {
   return (
     <img
-      src={PREFIX + url}
+      src={url}
       alt={alt}
       style={{ width, height }}
       className="object-center object-cover"

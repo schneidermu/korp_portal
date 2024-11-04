@@ -34,6 +34,7 @@ export type LinkWithPicture = {
 };
 
 export type User = {
+  username: string;
   lastName: string;
   firstName: string;
   patronym: string;
