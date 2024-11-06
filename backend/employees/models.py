@@ -109,12 +109,9 @@ class Employee(AbstractUser):
 
     def __str__(self):
         name_string = ""
-        if self.surname:
-            name_string += self.surname
-        if self.name:
-            name_string += self.name
-        if self.patronym:
-            name_string += self.patronym
+        for name_part in (self.surname, self.name, self.patronym):
+            if name_part is not None:
+                name_string += name_part
         if name_string:
             return name_string
         return self.username
