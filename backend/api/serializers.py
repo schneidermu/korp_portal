@@ -331,7 +331,8 @@ class ProfileSerializer(UserSerializer):
             "username",
             "name",
             "surname",
-            "patronym"
+            "patronym",
+            "chief",
             "birth_date",
             "email",
             "telephone_number",
@@ -526,7 +527,8 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             "job_title",
             "name",
             "surname",
-            "patronym"
+            "patronym",
+            "chief",
             "email",
             "telephone_number",
             "supervizor",
@@ -556,7 +558,7 @@ class ProfileInStrucureSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "surname",
-            "patronym"
+            "patronym",
             "job_title",
             "class_rank",
             "status",

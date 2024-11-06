@@ -39,12 +39,14 @@ class Employee(AbstractUser):
         blank=True,
         null=True,
     )
+
     surname = models.CharField(
         verbose_name='Фамилия',
         max_length=CHARFIELD_LENGTH,
         blank=True,
         null=True,
     )
+
     patronym = models.CharField(
         verbose_name='Отчество',
         max_length=CHARFIELD_LENGTH,
@@ -52,6 +54,14 @@ class Employee(AbstractUser):
         null=True,
     )
     
+    chief = models.ForeignKey(
+        "Employee",
+        verbose_name="Начальник",
+        on_delete=models.SET_NULL,
+        related_name='subordinates',
+        blank=True,
+        null=True,
+    )
 
     birth_date = models.DateField(
         verbose_name='Дата рождения',

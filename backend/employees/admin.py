@@ -13,6 +13,7 @@ class EmployeeAdmin(UserAdmin):
                 'name',
                 'surname',
                 'patronym',
+                'chief',
                 'structural_division',
                 'birth_date',
                 'telephone_number',
