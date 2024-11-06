@@ -33,7 +33,7 @@ class News(Published):
         verbose_name='Заголовок'
     )
 
-    organization = models.ForeignKey(
+    organization = models.ManyToManyField(
         Organization,
         verbose_name='Организация',
         on_delete=models.CASCADE,

@@ -6,8 +6,8 @@ pipeline {
             steps {
             	sh 'echo "env file: {$ENV_FILE}" > .env'
 		sh 'cp .env backend/./'
-            	sh 'cat backend/.env'
-	    }
+		sh 'cat backend/.env'
+            }
         }
 	stage('Docker-compsoe up'){
 	    steps {
