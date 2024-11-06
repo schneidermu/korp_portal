@@ -4,7 +4,7 @@ from homepage.constants import CHARFIELD_LENGTH
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import Avg
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 
 
 CHOICES = (
@@ -74,7 +74,6 @@ class Employee(AbstractUser):
         max_length=CHARFIELD_LENGTH,
         blank=True,
         null=True,
-        choices=POSITIONS
     )
     class_rank = models.CharField(
         verbose_name='Классный чин',
@@ -287,10 +286,19 @@ class Characteristic(models.Model):
 class Course(AbstractWithPhotoNameModel):
     """Модель курса."""
 
-    date = models.DateField(
-        verbose_name='Дата прохождения курса',
+    year = models.IntegerField(
+        verbose_name='Год прохождения курса',
         blank=True,
         null=True
+    )
+    month = models.IntegerField(
+        verbose_name='Месяц прохождения курса',
+        blank=True,
+        null=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12)
+        ]
     )
 
     class Meta:
@@ -301,14 +309,29 @@ class Course(AbstractWithPhotoNameModel):
 class Career(AbstractNameModel):
     """Модель карьерного роста."""
 
-    date_start = models.DateField(
-        verbose_name='Дата вступления в должность',
+    year_start = models.IntegerField(
+        verbose_name='Год вступления в должность',
+    )
+    month_start = models.IntegerField(
+        verbose_name='Месяц вступления в должность',
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12)
+        ]
     )
 
-    date_finish = models.DateField(
-        verbose_name='Дата ухода из должности',
+    year_finish = models.IntegerField(
+        verbose_name='Год ухода из должности',
         blank=True,
-        default=None,
+        null=True
+    )
+    month_finish = models.IntegerField(
+        verbose_name='Месяц ухода из должности',
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12)
+        ]
+        blank=True,
         null=True
     )
 
@@ -332,10 +355,20 @@ class Competence(AbstractNameModel):
 class Diploma(AbstractWithPhotoNameModel):
     """Модель диплома."""
 
-    date = models.DateField(
-        verbose_name='Дата получения диплома',
+
+    year = models.IntegerField(
+        verbose_name='Год получения диплома',
         blank=True,
         null=True
+    )
+    month = models.IntegerField(
+        verbose_name='Месяц получения диплома',
+        blank=True,
+        null=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12)
+        ]
     )
 
     class Meta:
@@ -346,10 +379,25 @@ class Diploma(AbstractWithPhotoNameModel):
 class University(AbstractWithPhotoNameModel):
     """Модель университета."""
 
-    date = models.DateField(
-        verbose_name='Дата окончания университета',
+    year = models.IntegerField(
+        verbose_name='Год окончания университета',
         blank=True,
         null=True
+    )
+    month = models.IntegerField(
+        verbose_name='Месяц окончания университета',
+        blank=True,
+        null=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12)
+        ]
+    )
+
+    faculty = models.CharField(
+        verbose_name='Факультет',
+        blank=True,
+        null=True,
     )
 
     class Meta:
