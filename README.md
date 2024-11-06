@@ -35,6 +35,12 @@ docker run --rm -it -v ./frontend:/app kp-frontend-war
 cp pkg/*.war ./dev/volumes/deploy
 ```
 
+### Load dummy Django data
+
+```sh
+./database/bin/load-django-dummy.sh kp-database-1
+```
+
 ## Liferay
 
 ### Useful links

@@ -1,6 +1,9 @@
 #!/bin/sh
+set -eu
 
 . ./.env
+
+mkdir -p database/gen
 
 cat >database/gen/init.sql <<EOF
 CREATE USER ${POSTGRES_USER_DJANGO} WITH ENCRYPTED PASSWORD '${POSTGRES_PASSWORD_DJANGO}';
