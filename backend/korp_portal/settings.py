@@ -35,6 +35,9 @@ CORS_ALLOWED_ORIGINS = [
     'http://46.38.96.230:3000',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    # Dev Liferay.
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
 ]
 
 # Application definition
