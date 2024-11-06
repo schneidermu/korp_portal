@@ -193,4 +193,4 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         'structural_subdivisions__positions__class_rank',
         'structural_subdivisions__positions__status'
     )
-    search_fields = ('structural_subdivisions__positions__fio',)
+    search_fields = ('structural_subdivisions__positions__name','structural_subdivisions__positions__surname', 'structural_subdivisions__positions__patronym')

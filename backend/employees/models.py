@@ -33,12 +33,25 @@ class Employee(AbstractUser):
         editable=False
     )
 
-    fio = models.CharField(
-        verbose_name='Фамилия Имя Отчество',
+    name = models.CharField(
+        verbose_name='Имя',
         max_length=CHARFIELD_LENGTH,
         blank=True,
         null=True,
     )
+    surname = models.CharField(
+        verbose_name='Фамилия',
+        max_length=CHARFIELD_LENGTH,
+        blank=True,
+        null=True,
+    )
+    patronym = models.CharField(
+        verbose_name='Отчество',
+        max_length=CHARFIELD_LENGTH,
+        blank=True,
+        null=True,
+    )
+    
 
     birth_date = models.DateField(
         verbose_name='Дата рождения',
@@ -95,8 +108,15 @@ class Employee(AbstractUser):
         return self.structural_division.organization
 
     def __str__(self):
-        if self.fio:
-            return self.fio
+        name_string = ""
+        if self.surname:
+            name_string += self.surname
+        if self.name:
+            name_string += self.name
+        if self.patronym:
+            name_string += self.patronym
+        if name_string:
+            return name_string
         return self.username
 
     class Meta:
@@ -191,7 +211,7 @@ class Rating(models.Model):
     )
 
     def __str__(self):
-        return f"{self.employee.fio} оценил {self.user.fio} на {self.rate}"
+        return f"{self.employee} оценил {self.user} на {self.rate}"
 
     class Meta:
         verbose_name = 'оценка'
@@ -264,7 +284,7 @@ class Characteristic(models.Model):
         verbose_name_plural = "Характеристики"
 
     def __str__(self):
-        return self.employee.fio
+        return self.employee
 
 
 class Course(AbstractWithPhotoNameModel):

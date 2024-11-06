@@ -10,7 +10,9 @@ class EmployeeAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         ('Общая информация', {
             'fields': (
-                'fio',
+                'name',
+                'surname',
+                'patronym',
                 'structural_division',
                 'birth_date',
                 'telephone_number',

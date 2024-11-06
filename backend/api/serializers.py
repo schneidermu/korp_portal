@@ -329,7 +329,9 @@ class ProfileSerializer(UserSerializer):
             "structural_division",
             "id",
             "username",
-            "fio",
+            "name",
+            "surname",
+            "patronym"
             "birth_date",
             "email",
             "telephone_number",
@@ -522,7 +524,9 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             "id",
             "username",
             "job_title",
-            "fio",
+            "name",
+            "surname",
+            "patronym"
             "email",
             "telephone_number",
             "supervizor",
@@ -537,7 +541,9 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             return None
         return {
             "id": supervizor.id,
-            "fio": supervizor.fio,
+            "name": supervizor.name,
+            "surname": supervizor.surname,
+            "patronym": supervizor.patronym
         }
 
 
@@ -548,7 +554,9 @@ class ProfileInStrucureSerializer(serializers.ModelSerializer):
         model = Employee
         fields = (
             "id",
-            "fio",
+            "name",
+            "surname",
+            "patronym"
             "job_title",
             "class_rank",
             "status",
