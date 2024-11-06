@@ -53,6 +53,21 @@ The logs should say:
 # INFO [main] org.apache.catalina.startup.Catalina.start Server startup in 123456 ms
 ```
 
+### Build `favr-theme`
+
+You will need `liferay-gui-develop` repo source for this.
+
+```sh
+unzip liferay-gui-develop.zip
+cd liferay-gui-develop/favr-theme
+
+docker run --rm -t -w /build -v ./:/build node:10.15.3-alpine \
+  sh -c 'npm install && npm run build'
+# => dist/favr-theme.war
+```
+
+See also `liferay-gui-develop/README.development.md`.
+
 ## Разворачивание бэка
 
 ```sh
