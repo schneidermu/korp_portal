@@ -11,8 +11,50 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
 import os
+
+import ldap
+from django_auth_ldap.config import LDAPSearch, PosixGroupType
+
+
+AUTH_LDAP_SERVER_URI = 'ldap://192.168.90.13:389'
+
+AUTH_LDAP_BIND_DN = 'cn=admin,dc=nodomain'
+AUTH_LDAP_BIND_PASSWORD = os.getenv('LDAP_PASSWORD', '0')
+
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    'ou=People,dc=nodomain',
+    ldap.SCOPE_SUBTREE,
+    '(uid=%(user)s)',
+)
+
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    'ou=groups,dc=nodomain',
+    ldap.SCOPE_SUBTREE,
+    '(objectClass=inetOrgPerson)',
+)
+
+AUTH_LDAP_GROUP_TYPE = PosixGroupType()
+
+AUTH_LDAP_USER_ATTR_MAP = {
+    'last_name': 'sn',
+    'username': 'uid',
+    'password': 'userPassword',
+}
+
+AUTH_LDAP_USER_FLAGS_BY_GROUP = {
+    'is_active': 'cn=active,ou=groups,dc=nodomain',
+    'is_staff': 'cn=staff,ou=groups,dc=nodomain',
+    'is_superuser': 'cn=superuser,ou=groups,dc=nodomain',
+}
+
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+LOGGING = { 'version': 1, 'disable_existing_loggers': False, 'handlers': { 'mail_admins': { 'level': 'ERROR', 'class': 'django.utils.log.AdminEmailHandler' }, 'stream_to_console': { 'level': 'DEBUG', 'class': 'logging.StreamHandler' }, }, 'loggers': { 'django.request': { 'handlers': ['mail_admins'], 'level': 'ERROR', 'propagate': True, }, 'django_auth_ldap': { 'handlers': ['stream_to_console'], 'level': 'DEBUG', 'propagate': True, }, } } 
+ldap.OPT_DEBUG_LEVEL = 1
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

@@ -11,8 +11,8 @@ pipeline {
         }
 	stage('Docker-compsoe up'){
 	    steps {
-			sh 'echo "test compose"'
-			sh 'docker pull hello-world'
+		sh 'echo "test compose"'
+		sh 'docker pull hello-world'
 	    }
 	}
     }
