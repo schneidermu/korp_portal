@@ -34,6 +34,7 @@ export type LinkWithPicture = {
 };
 
 export type User = {
+  id: string;
   username: string;
   lastName: string;
   firstName: string;
@@ -56,6 +57,6 @@ export type User = {
   courses: Course[];
   communityWork: LinkWithPicture[];
   awards: LinkWithPicture[];
-  colleagues: UserPreview[];
-  bosses: UserPreview[];
+  colleagues: string[];
+  bosses: string[];
 };

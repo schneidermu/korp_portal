@@ -1,10 +1,23 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { Provider } from "react-redux";
+import { SWRConfig } from "swr";
+
+import { store } from "./store";
+
 import App from "./App.tsx";
 import "./index.css";
 
+const swrConfig = {
+  keepPreviousData: true,
+};
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <Provider store={store}>
+      <SWRConfig value={swrConfig}>
+        <App />
+      </SWRConfig>
+    </Provider>
   </StrictMode>,
 );

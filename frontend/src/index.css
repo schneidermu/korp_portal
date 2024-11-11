@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  overflow-y: scroll;
+}
+
 .korp-portal-portlet {
   font-family: Inter;
   font-weight: 500;

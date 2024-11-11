@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 
 import clsx from "clsx/lite";
 
@@ -20,9 +20,11 @@ import upArrowIcon from "/up-arrow.svg";
 import starIcon from "/star.svg";
 
 import { LinkWithPicture } from "./types";
-import { UserContext } from "./userContext";
 
 import FileAttachment from "./FileAttachment";
+import { useFetchUser } from "./users/api";
+import { useDispatch } from "react-redux";
+import { pageSlice } from "./page/slice";
 
 function SectionSep() {
   return (
@@ -102,9 +104,10 @@ function Picture({
   );
 }
 
-function GeneralSection() {
-  const user = useContext(UserContext);
-  if (user === null) return;
+function ProfileCard({ userId }: { userId: string }) {
+  const { user } = useFetchUser(userId);
+  if (!user) return;
+
   const data = [
     ["Статус", brightnessIcon, user.status],
     ["Дата рождения", giftIcon, user.dateOfBirth],
@@ -141,9 +144,10 @@ function GeneralSection() {
   );
 }
 
-function EducationSection() {
-  const user = useContext(UserContext);
-  if (user === null) return;
+function EducationSection({ userId }: { userId: string }) {
+  const { user } = useFetchUser(userId);
+  if (!user) return;
+
   const higherEducation = user.higherEducation.map((edu) => (
     <div
       key={`${edu.year}/${edu.university}`}
@@ -190,9 +194,10 @@ function EducationSection() {
   );
 }
 
-function CareerSection() {
-  const user = useContext(UserContext);
-  if (user === null) return;
+function CareerSection({ userId }: { userId: string }) {
+  const { user } = useFetchUser(userId);
+  if (!user) return;
+
   const positions = user.career.map(({ period, position }) => (
     <tr key={period} className="h-[45px]">
       <td className="border border-dark-gray pl-[30px]">{period}</td>
@@ -264,19 +269,31 @@ function ViewButton(props: {
   );
 }
 
-function TeamSection() {
-  const [showBosses, setShowBosses] = useState(false);
-  const user = useContext(UserContext);
-  if (user === null) return;
-  const data = showBosses ? user.bosses : user.colleagues;
-  const people = data.map(({ name, photoURL }) => (
-    <a href="/" key={name}>
+function UserAvatarLink({ userId }: { userId: string }) {
+  const dispatch = useDispatch();
+  const { user } = useFetchUser(userId);
+  if (!user) return;
+  return (
+    <button
+      className="hover:underline"
+      onClick={() => {
+        dispatch(pageSlice.actions.viewProfile({ userId }));
+      }}
+    >
       <div className="rounded-photo overflow-hidden">
-        <Picture width="210px" height="210px" url={photoURL} />
+        <Picture width="210px" height="210px" url={user.photoURL} />
       </div>
-      <div className="text-center mt-[16px]">{name}</div>
-    </a>
-  ));
+      <div className="text-center mt-[16px]">{`${user.lastName} ${user.firstName[0]}. ${user.patronym[0]}.`}</div>
+    </button>
+  );
+}
+
+function TeamSection({ userId }: { userId: string }) {
+  const [showBosses, setShowBosses] = useState(false);
+  const { user } = useFetchUser(userId);
+  if (!user) return;
+
+  const data = showBosses ? user.bosses : user.colleagues;
   return (
     <section>
       <SectionTitle title="Команда" />
@@ -292,7 +309,14 @@ function TeamSection() {
           onClick={() => setShowBosses(true)}
         />
       </div>
-      <div className="mt-[48px] flex gap-[70px]">{people}</div>
+      <div className="mt-[48px] flex gap-[70px]">
+        {data.map(
+          (colleagueId) =>
+            colleagueId !== userId && (
+              <UserAvatarLink key={colleagueId} userId={colleagueId} />
+            ),
+        )}
+      </div>
     </section>
   );
 }
@@ -318,9 +342,10 @@ function LinkGallery({
   );
 }
 
-function CommunityWorkSection() {
-  const user = useContext(UserContext);
-  if (user === null) return;
+function CommunityWorkSection({ userId }: { userId: string }) {
+  const { user } = useFetchUser(userId);
+  if (!user) return;
+
   return (
     <section>
       <SectionTitle title="Общественная работа" />
@@ -329,9 +354,10 @@ function CommunityWorkSection() {
   );
 }
 
-function AwardsSection() {
-  const user = useContext(UserContext);
-  if (user === null) return;
+function AwardsSection({ userId }: { userId: string }) {
+  const { user } = useFetchUser(userId);
+  if (!user) return;
+
   return (
     <section>
       <SectionTitle title="Награды" />
@@ -340,9 +366,10 @@ function AwardsSection() {
   );
 }
 
-function AboutMeSection() {
-  const user = useContext(UserContext);
-  if (user === null) return;
+function AboutMeSection({ userId }: { userId: string }) {
+  const { user } = useFetchUser(userId);
+  if (!user) return;
+
   return (
     <section>
       <SectionTitle title="Обо мне" />
@@ -351,7 +378,7 @@ function AboutMeSection() {
   );
 }
 
-function FeedbackSection() {
+function FeedbackSection({ userId: _ }: { userId: string }) {
   const [mark, setMark] = useState<number | undefined>(undefined);
   const [hoverMark, setHoverMark] = useState<number | undefined>(undefined);
   const onClick = (i: number) => {
@@ -391,24 +418,24 @@ function FeedbackSection() {
   );
 }
 
-export default function UserInfo() {
+export default function UserProfile({ userId }: { userId: string }) {
   return (
     <div className="mr-[36px] ml-[64px] pb-[155px]">
-      <GeneralSection />
+      <ProfileCard userId={userId} />
       <SectionSep />
-      <EducationSection />
+      <EducationSection userId={userId} />
       <SectionSep />
-      <CareerSection />
+      <CareerSection userId={userId} />
       <SectionSep />
-      <TeamSection />
+      <TeamSection userId={userId} />
       <SectionSep />
-      <CommunityWorkSection />
+      <CommunityWorkSection userId={userId} />
       <SectionSep />
-      <AwardsSection />
+      <AwardsSection userId={userId} />
       <SectionSep />
-      <AboutMeSection />
+      <AboutMeSection userId={userId} />
       <SectionSep />
-      <FeedbackSection />
+      <FeedbackSection userId={userId} />
     </div>
   );
 }
