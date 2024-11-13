@@ -107,6 +107,11 @@ class ColleagueProfileViewset(UserViewSet):
     permission_classes = (IsUserOrReadOnly,)
     queryset = Employee.objects.all()
 
+    filterset_fields = (
+        'structural_division__name',
+        'structural_division__id',
+    )
+
     def get_serializer_class(self):
 
         if self.action not in ('list', 'retrieve', 'create'):
