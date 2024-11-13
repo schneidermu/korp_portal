@@ -404,7 +404,6 @@ class ProfileSerializer(UserSerializer):
         instance.save()
 
         if characteristic_update:
-
             characteristic, created = Characteristic.objects.get_or_create(employee=instance)
             if not created:
                 characteristic.delete()
@@ -414,7 +413,8 @@ class ProfileSerializer(UserSerializer):
                 self.add_related_fields(characteristic_update, characteristic, attribute, model)
 
             for key in characteristic_update:
-                setattr(characteristic, key, characteristic_update[key])
+                if key:
+                    setattr(characteristic, key, characteristic_update[key])
 
             characteristic.save()
 
