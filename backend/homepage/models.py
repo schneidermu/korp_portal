@@ -32,8 +32,8 @@ class Attachment(models.Model):
     publication = models.ForeignKey('News', on_delete=models.CASCADE, verbose_name="Вложение")
 
     class Meta:
-        verbose_name = 'Вложение'
-        verbose_name_plural = 'Вложения'
+        verbose_name = 'объект вложения'
+        verbose_name_plural = 'объекты вложений'
 
 
 class News(Published):
@@ -83,8 +83,8 @@ class News(Published):
         return self.title
 
     class Meta:
-        verbose_name = 'Новость'
-        verbose_name_plural = 'Новости'
+        verbose_name = 'объект новости'
+        verbose_name_plural = 'объекты "Новости"'
 
 
 class Poll(Published):
@@ -116,8 +116,8 @@ class Poll(Published):
         return self.question_text
 
     class Meta:
-        verbose_name = 'Опрос'
-        verbose_name_plural = 'Опросы'
+        verbose_name = 'Объект "Опрос"'
+        verbose_name_plural = 'Объекты "Опросы"'
 
 
 class Choice(models.Model):
@@ -144,6 +144,6 @@ class Choice(models.Model):
         return f'Вариант {self.choice_text}'
 
     class Meta:
-        verbose_name = 'Вариант опроса'
-        verbose_name_plural = 'Варианты опроса'
+        verbose_name = 'запись варианта опроса'
+        verbose_name_plural = 'записи вариантов опроса'
 
