@@ -340,7 +340,7 @@ class Career(AbstractNameModel):
         validators=[
             MinValueValidator(1),
             MaxValueValidator(12)
-        ]
+        ],
         blank=True,
         null=True
     )
