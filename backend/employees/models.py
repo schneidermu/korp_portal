@@ -321,13 +321,16 @@ class Career(AbstractNameModel):
 
     year_start = models.IntegerField(
         verbose_name='Год вступления в должность',
+        default=1970,
     )
     month_start = models.IntegerField(
         verbose_name='Месяц вступления в должность',
         validators=[
             MinValueValidator(1),
             MaxValueValidator(12)
-        ]
+        ],
+        blank=True,
+        null=True,
     )
 
     year_finish = models.IntegerField(
