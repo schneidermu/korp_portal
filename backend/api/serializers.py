@@ -315,6 +315,17 @@ class CharacteristicSerializer(serializers.ModelSerializer):
         )
 
 
+class StructuralSubdivisionInProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = StructuralSubdivision
+        fields = (
+            "id",
+            "name",
+            "parent_structural_subdivision"
+        )
+
+
 class ProfileSerializer(UserSerializer):
     '''Сериализатор для просмотра чужих страниц'''
 
@@ -329,10 +340,7 @@ class ProfileSerializer(UserSerializer):
     team = serializers.SerializerMethodField(
         read_only=True
     )
-    structural_division = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name'
-    )
+    structural_division = StructuralSubdivisionInProfileSerializer
 
     class Meta(UserSerializer.Meta):
         model = Employee
@@ -590,6 +598,7 @@ class StructuralSubdivisionSerializer(serializers.ModelSerializer):
             "positions",
             "parent_structural_subdivision",
         )
+
 
 class OrganizationSerializer(serializers.ModelSerializer):
     '''Сериализатор организаций для страницы Орг. структуры'''
