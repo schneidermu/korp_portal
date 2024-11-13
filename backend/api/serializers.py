@@ -588,6 +588,7 @@ class StructuralSubdivisionSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "positions",
+            "parent_structural_subdivision",
         )
 
 class OrganizationSerializer(serializers.ModelSerializer):
