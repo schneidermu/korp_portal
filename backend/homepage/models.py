@@ -25,6 +25,17 @@ class Published(models.Model):
         abstract = True
 
 
+class Attachment(models.Model):
+
+    image = models.ImageField('Attachment', upload_to='news_images/')
+
+    publication = models.ForeignKey('News', on_delete=models.CASCADE, verbose_name="Вложение")
+
+    class Meta:
+        verbose_name = 'Вложение'
+        verbose_name_plural = 'Вложения'
+
+
 class News(Published):
     """Модель для новости."""
 
@@ -43,12 +54,12 @@ class News(Published):
 
     text = models.TextField(verbose_name='Текст')
 
-    image = models.ImageField(
-        verbose_name='Картинка',
-        upload_to='news/',
-        null=True,
-        default=None
-    )
+#    image = models.ImageField(
+#        verbose_name='Картинка',
+#        upload_to='news/',
+#        null=True,
+#        default=None
+#    )
 
     video = models.FileField(
         verbose_name='Видео',
