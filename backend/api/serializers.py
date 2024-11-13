@@ -3,7 +3,7 @@ from django.db import transaction
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework.validators import UniqueValidator
 
-from homepage.models import Poll, News, Choice
+from homepage.models import Poll, News, Choice, Attachment
 from homepage.constants import CHARFIELD_LENGTH
 from employees.models import University, Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating, Organization, StructuralSubdivision, Diploma
 
@@ -22,6 +22,16 @@ ATTRIBUTE_MODEL = (
     ("universitys", University)
 )
 
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    '''Сериализатор картинки'''
+
+    class Meta:
+        model = Attachment
+
+        fields = (
+            "image",
+        )
 
 class ChoiceSerializer(serializers.ModelSerializer):
     '''Сериализатор варианта ответа'''
@@ -171,13 +181,15 @@ class VoteDeleteSerializer(serializers.Serializer):
 class NewsSerializer(serializers.ModelSerializer):
     '''Сериализатор для новостей'''
 
+    attachments = AttachmentSerializer(many=True)
+
     class Meta:
         model = News
         fields = (
             'id',
             'title',
             'text',
-            'image',
+            'attachments',
             'video',
             'organization'
         )
