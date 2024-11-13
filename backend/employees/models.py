@@ -506,6 +506,15 @@ class StructuralSubdivision(models.Model):
         related_name='structural_subdivisions'
     )
 
+    parent_structural_subdivision = models.OneToOneField(
+        "StructuralSubdivision",
+        verbose_name='Родительское СП',
+        on_delete=models.SET_NULL,
+        related_name="controlled_structural_subdivision",
+        blank=True,
+        null=True,
+    )
+
     class Meta:
         verbose_name = 'структурное подразделение'
         verbose_name_plural = 'структурные подразделения'
