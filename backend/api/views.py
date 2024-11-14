@@ -107,6 +107,11 @@ class ColleagueProfileViewset(UserViewSet):
     permission_classes = (IsUserOrReadOnly,)
     queryset = Employee.objects.all()
 
+    filterset_fields = (
+        'structural_division__name',
+        'structural_division__id',
+    )
+
     def get_serializer_class(self):
 
         if self.action not in ('list', 'retrieve', 'create'):
@@ -193,4 +198,4 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         'structural_subdivisions__positions__class_rank',
         'structural_subdivisions__positions__status'
     )
-    search_fields = ('structural_subdivisions__positions__fio',)
+    search_fields = ('structural_subdivisions__positions__name','structural_subdivisions__positions__surname', 'structural_subdivisions__positions__patronym')

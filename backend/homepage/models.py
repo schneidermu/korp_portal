@@ -25,6 +25,17 @@ class Published(models.Model):
         abstract = True
 
 
+class Attachment(models.Model):
+
+    image = models.ImageField('Attachment', upload_to='news_images/')
+
+    publication = models.ForeignKey('News', on_delete=models.CASCADE, verbose_name="Вложение")
+
+    class Meta:
+        verbose_name = 'объект вложения'
+        verbose_name_plural = 'объекты вложений'
+
+
 class News(Published):
     """Модель для новости."""
 
@@ -43,12 +54,12 @@ class News(Published):
 
     text = models.TextField(verbose_name='Текст')
 
-    image = models.ImageField(
-        verbose_name='Картинка',
-        upload_to='news/',
-        null=True,
-        default=None
-    )
+#    image = models.ImageField(
+#        verbose_name='Картинка',
+#        upload_to='news/',
+#        null=True,
+#        default=None
+#    )
 
     video = models.FileField(
         verbose_name='Видео',
@@ -72,8 +83,8 @@ class News(Published):
         return self.title
 
     class Meta:
-        verbose_name = 'Новость'
-        verbose_name_plural = 'Новости'
+        verbose_name = 'объект новости'
+        verbose_name_plural = 'объекты "Новости"'
 
 
 class Poll(Published):
@@ -105,8 +116,8 @@ class Poll(Published):
         return self.question_text
 
     class Meta:
-        verbose_name = 'Опрос'
-        verbose_name_plural = 'Опросы'
+        verbose_name = 'Объект "Опрос"'
+        verbose_name_plural = 'Объекты "Опросы"'
 
 
 class Choice(models.Model):
@@ -133,6 +144,6 @@ class Choice(models.Model):
         return f'Вариант {self.choice_text}'
 
     class Meta:
-        verbose_name = 'Вариант опроса'
-        verbose_name_plural = 'Варианты опроса'
+        verbose_name = 'запись варианта опроса'
+        verbose_name_plural = 'записи вариантов опроса'
 

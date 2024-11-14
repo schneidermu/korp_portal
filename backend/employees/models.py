@@ -4,7 +4,7 @@ from homepage.constants import CHARFIELD_LENGTH
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import Avg
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 
 
 CHOICES = (
@@ -33,9 +33,32 @@ class Employee(AbstractUser):
         editable=False
     )
 
-    fio = models.CharField(
-        verbose_name='Фамилия Имя Отчество',
+    name = models.CharField(
+        verbose_name='Имя',
         max_length=CHARFIELD_LENGTH,
+        blank=True,
+        null=True,
+    )
+
+    surname = models.CharField(
+        verbose_name='Фамилия',
+        max_length=CHARFIELD_LENGTH,
+        blank=True,
+        null=True,
+    )
+
+    patronym = models.CharField(
+        verbose_name='Отчество',
+        max_length=CHARFIELD_LENGTH,
+        blank=True,
+        null=True,
+    )
+    
+    chief = models.ForeignKey(
+        "Employee",
+        verbose_name="Начальник",
+        on_delete=models.SET_NULL,
+        related_name='subordinates',
         blank=True,
         null=True,
     )
@@ -61,7 +84,6 @@ class Employee(AbstractUser):
         max_length=CHARFIELD_LENGTH,
         blank=True,
         null=True,
-        choices=POSITIONS
     )
     class_rank = models.CharField(
         verbose_name='Классный чин',
@@ -95,13 +117,17 @@ class Employee(AbstractUser):
         return self.structural_division.organization
 
     def __str__(self):
-        if self.fio:
-            return self.fio
+        name_string = ""
+        for name_part in (self.surname, self.name, self.patronym):
+            if name_part is not None:
+                name_string += name_part
+        if name_string:
+            return name_string
         return self.username
 
     class Meta:
-        verbose_name = 'сотрудник'
-        verbose_name_plural = 'Сотрудники'
+        verbose_name = 'запись о сотруднике'
+        verbose_name_plural = 'Записи сотрудников'
 
 
 class AbstractNameModel(models.Model):
@@ -191,11 +217,11 @@ class Rating(models.Model):
     )
 
     def __str__(self):
-        return f"{self.employee.fio} оценил {self.user.fio} на {self.rate}"
+        return f"{self.employee} оценил {self.user} на {self.rate}"
 
     class Meta:
-        verbose_name = 'оценка'
-        verbose_name_plural = 'Оценки'
+        verbose_name = 'запись оценки'
+        verbose_name_plural = 'Записи оценок'
 
 
 class Characteristic(models.Model):
@@ -260,38 +286,65 @@ class Characteristic(models.Model):
     )
 
     class Meta:
-        verbose_name = "характеристика"
-        verbose_name_plural = "Характеристики"
+        verbose_name = "запись характеристики"
+        verbose_name_plural = "Записи характеристик"
 
     def __str__(self):
-        return self.employee.fio
+        return str(self.employee)
 
 
 class Course(AbstractWithPhotoNameModel):
     """Модель курса."""
 
-    date = models.DateField(
-        verbose_name='Дата прохождения курса',
+    year = models.IntegerField(
+        verbose_name='Год прохождения курса',
         blank=True,
         null=True
     )
+    month = models.IntegerField(
+        verbose_name='Месяц прохождения курса',
+        blank=True,
+        null=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12)
+        ]
+    )
 
     class Meta:
-        verbose_name = 'курс'
-        verbose_name_plural = 'Курсы'
+        verbose_name = 'запись курса'
+        verbose_name_plural = 'Записи курсов'
 
 
 class Career(AbstractNameModel):
     """Модель карьерного роста."""
 
-    date_start = models.DateField(
-        verbose_name='Дата вступления в должность',
+    year_start = models.IntegerField(
+        verbose_name='Год вступления в должность',
+        default=1970,
+    )
+    month_start = models.IntegerField(
+        verbose_name='Месяц вступления в должность',
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12)
+        ],
+        blank=True,
+        null=True,
     )
 
-    date_finish = models.DateField(
-        verbose_name='Дата ухода из должности',
+    year_finish = models.IntegerField(
+        verbose_name='Год ухода из должности',
         blank=True,
-        default=None,
+        null=True
+    )
+    month_finish = models.IntegerField(
+        verbose_name='Месяц ухода из должности',
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12)
+        ],
+        blank=True,
         null=True
     )
 
@@ -308,92 +361,117 @@ class Career(AbstractNameModel):
 class Competence(AbstractNameModel):
     """Модель навыков и компетенций."""
     class Meta:
-        verbose_name = 'компетенция'
-        verbose_name_plural = 'компетенции'
+        verbose_name = 'запись компетенции'
+        verbose_name_plural = 'записи компетенций'
 
 
 class Diploma(AbstractWithPhotoNameModel):
     """Модель диплома."""
 
-    date = models.DateField(
-        verbose_name='Дата получения диплома',
+
+    year = models.IntegerField(
+        verbose_name='Год получения диплома',
         blank=True,
         null=True
     )
+    month = models.IntegerField(
+        verbose_name='Месяц получения диплома',
+        blank=True,
+        null=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12)
+        ]
+    )
 
     class Meta:
-        verbose_name = 'диплом'
-        verbose_name_plural = 'дипломы'
+        verbose_name = 'запись диплома'
+        verbose_name_plural = 'записи дипломов'
 
 
 class University(AbstractWithPhotoNameModel):
     """Модель университета."""
 
-    date = models.DateField(
-        verbose_name='Дата окончания университета',
+    year = models.IntegerField(
+        verbose_name='Год окончания университета',
         blank=True,
         null=True
     )
+    month = models.IntegerField(
+        verbose_name='Месяц окончания университета',
+        blank=True,
+        null=True,
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(12)
+        ]
+    )
+
+    faculty = models.CharField(
+        verbose_name='Факультет',
+        blank=True,
+        null=True,
+    )
 
     class Meta:
-        verbose_name = 'университет'
-        verbose_name_plural = 'университеты'
+        verbose_name = 'запись университета'
+        verbose_name_plural = 'записи университетов'
 
 
 class Training(AbstractWithPhotoNameModel):
     """Модель повышения квалификации."""
     class Meta:
-        verbose_name = 'повышение квалификации'
-        verbose_name_plural = 'повышения квалификации'
+        verbose_name = 'запись повышения квалификации'
+        verbose_name_plural = 'записи повышений квалификации'
 
 
 class Hobby(AbstractWithPhotoNameModel):
     """Модель хобби."""
     class Meta:
-        verbose_name = 'хобби'
-        verbose_name_plural = 'хобби'
+        verbose_name = 'запись хобби'
+        verbose_name_plural = 'записи хобби'
 
 
 class Reward(AbstractWithPhotoNameModel):
     """Модель награды."""
     class Meta:
-        verbose_name = 'награда'
-        verbose_name_plural = 'награды'
+        verbose_name = 'запись награды'
+        verbose_name_plural = 'записи наград'
 
 
 class Conference(AbstractWithPhotoNameModel):
     """Модель конференции."""
     class Meta:
-        verbose_name = 'конференция'
-        verbose_name_plural = 'конференции'
+        verbose_name = 'запись конференции'
+        verbose_name_plural = 'записи конференций'
 
 
 class Victory(AbstractWithPhotoNameModel):
     """Модель победы в конкурсе."""
     class Meta:
-        verbose_name = 'победа в конкурсе'
-        verbose_name_plural = 'победы в конкурсе'
+        verbose_name = 'запись победы в конкурсе'
+        verbose_name_plural = 'записи побед в конкурсе'
 
 
 class Performance(AbstractWithPhotoNameModel):
     """Модель выступления."""
     class Meta:
-        verbose_name = 'выступление'
-        verbose_name_plural = 'выступления'
+        verbose_name = 'запись выступления'
+        verbose_name_plural = 'записи выступлений'
 
 
 class Sport(AbstractWithPhotoNameModel):
     """Модель спортивного мероприятия."""
     class Meta:
-        verbose_name = 'спортивное мероприятия'
-        verbose_name_plural = 'спортивные мероприятия'
+        verbose_name = 'запись спортивного мероприятия'
+        verbose_name_plural = 'записи спортивных мероприятий'
 
 
 class Volunteer(AbstractWithPhotoNameModel):
     """Модель волонтерства."""
     class Meta:
-        verbose_name = 'волонтерство'
-        verbose_name_plural = 'волонтерства'
+        verbose_name = 'запись волонтерства'
+        verbose_name_plural = 'записи волонтерств'
 
 
 class Organization(models.Model):
@@ -413,8 +491,8 @@ class Organization(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = 'организация'
-        verbose_name_plural = 'Организации'
+        verbose_name = 'запись организации'
+        verbose_name_plural = 'записи организаций'
 
 
 class StructuralSubdivision(models.Model):
@@ -431,9 +509,18 @@ class StructuralSubdivision(models.Model):
         related_name='structural_subdivisions'
     )
 
+    parent_structural_subdivision = models.OneToOneField(
+        "StructuralSubdivision",
+        verbose_name='Родительское СП',
+        on_delete=models.SET_NULL,
+        related_name="controlled_structural_subdivision",
+        blank=True,
+        null=True,
+    )
+
     class Meta:
-        verbose_name = 'структурное подразделение'
-        verbose_name_plural = 'структурные подразделения'
+        verbose_name = 'запись структурного подразделения'
+        verbose_name_plural = 'записи структурных подразделений'
     
     def __str__(self):
         return f'{self.name} ({self.organization})'

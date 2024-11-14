@@ -3,7 +3,7 @@ from django.db import transaction
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework.validators import UniqueValidator
 
-from homepage.models import Poll, News, Choice
+from homepage.models import Poll, News, Choice, Attachment
 from homepage.constants import CHARFIELD_LENGTH
 from employees.models import University, Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating, Organization, StructuralSubdivision, Diploma
 
@@ -22,6 +22,16 @@ ATTRIBUTE_MODEL = (
     ("universitys", University)
 )
 
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    '''Сериализатор картинки'''
+
+    class Meta:
+        model = Attachment
+
+        fields = (
+            "image",
+        )
 
 class ChoiceSerializer(serializers.ModelSerializer):
     '''Сериализатор варианта ответа'''
@@ -171,13 +181,15 @@ class VoteDeleteSerializer(serializers.Serializer):
 class NewsSerializer(serializers.ModelSerializer):
     '''Сериализатор для новостей'''
 
+    attachments = AttachmentSerializer(many=True)
+
     class Meta:
         model = News
         fields = (
             'id',
             'title',
             'text',
-            'image',
+            'attachments',
             'video',
             'organization'
         )
@@ -303,6 +315,17 @@ class CharacteristicSerializer(serializers.ModelSerializer):
         )
 
 
+class StructuralSubdivisionInProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = StructuralSubdivision
+        fields = (
+            "id",
+            "name",
+            "parent_structural_subdivision"
+        )
+
+
 class ProfileSerializer(UserSerializer):
     '''Сериализатор для просмотра чужих страниц'''
 
@@ -317,10 +340,7 @@ class ProfileSerializer(UserSerializer):
     team = serializers.SerializerMethodField(
         read_only=True
     )
-    structural_division = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name'
-    )
+    structural_division = StructuralSubdivisionInProfileSerializer
 
     class Meta(UserSerializer.Meta):
         model = Employee
@@ -329,7 +349,10 @@ class ProfileSerializer(UserSerializer):
             "structural_division",
             "id",
             "username",
-            "fio",
+            "name",
+            "surname",
+            "patronym",
+            "chief",
             "birth_date",
             "email",
             "telephone_number",
@@ -381,7 +404,6 @@ class ProfileSerializer(UserSerializer):
         instance.save()
 
         if characteristic_update:
-
             characteristic, created = Characteristic.objects.get_or_create(employee=instance)
             if not created:
                 characteristic.delete()
@@ -391,7 +413,8 @@ class ProfileSerializer(UserSerializer):
                 self.add_related_fields(characteristic_update, characteristic, attribute, model)
 
             for key in characteristic_update:
-                setattr(characteristic, key, characteristic_update[key])
+                if key:
+                    setattr(characteristic, key, characteristic_update[key])
 
             characteristic.save()
 
@@ -522,7 +545,10 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             "id",
             "username",
             "job_title",
-            "fio",
+            "name",
+            "surname",
+            "patronym",
+            "chief",
             "email",
             "telephone_number",
             "supervizor",
@@ -537,7 +563,9 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             return None
         return {
             "id": supervizor.id,
-            "fio": supervizor.fio,
+            "name": supervizor.name,
+            "surname": supervizor.surname,
+            "patronym": supervizor.patronym
         }
 
 
@@ -548,7 +576,9 @@ class ProfileInStrucureSerializer(serializers.ModelSerializer):
         model = Employee
         fields = (
             "id",
-            "fio",
+            "name",
+            "surname",
+            "patronym",
             "job_title",
             "class_rank",
             "status",
@@ -566,7 +596,9 @@ class StructuralSubdivisionSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "positions",
+            "parent_structural_subdivision",
         )
+
 
 class OrganizationSerializer(serializers.ModelSerializer):
     '''Сериализатор организаций для страницы Орг. структуры'''
