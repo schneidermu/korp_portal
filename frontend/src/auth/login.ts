@@ -3,8 +3,8 @@ import { API_BASE_URL } from "../const";
 import { useAppDispatch } from "../store";
 import { authSlice } from "./slice";
 
-const username = "admin";
-const password = "admin";
+const username = "kuznetsov";
+const password = "password";
 
 export const useLogin = () => {
   const dispatch = useAppDispatch();
