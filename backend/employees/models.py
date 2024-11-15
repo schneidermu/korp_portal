@@ -290,7 +290,7 @@ class Characteristic(models.Model):
         verbose_name_plural = "Записи характеристик"
 
     def __str__(self):
-        return self.employee
+        return str(self.employee)
 
 
 class Course(AbstractWithPhotoNameModel):
