@@ -111,6 +111,7 @@ class ColleagueProfileViewset(UserViewSet):
     filterset_fields = (
         'structural_division__name',
         'structural_division__id',
+        'chief__id',
     )
 
     def get_serializer_class(self):
