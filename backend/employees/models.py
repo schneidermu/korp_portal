@@ -117,13 +117,15 @@ class Employee(AbstractUser):
         return self.structural_division.organization
 
     def __str__(self):
-        name_string = ""
-        for name_part in (self.surname, self.name, self.patronym):
-            if name_part is not None:
-                name_string += name_part
-        if name_string:
-            return name_string
-        return self.username
+
+        name = " ".join(
+            [name_part for name_part in (self.surname, self.name, self.patronym) if name_part is not None]
+        )
+
+        if not name:
+            return self.username
+
+        return name
 
     class Meta:
         verbose_name = 'запись о сотруднике'
@@ -173,7 +175,7 @@ class AbstractWithPhotoNameModel(models.Model):
 
     file = models.FileField(
         verbose_name='Документ',
-        upload_to='employees/%(class)s/',
+        upload_to=lambda instance, filename: f'employees/{instance.__class__.__name__.lower()}/{filename}',
         blank=True,
         null=True,
         default=None,
@@ -290,7 +292,7 @@ class Characteristic(models.Model):
         verbose_name_plural = "Записи характеристик"
 
     def __str__(self):
-        return self.employee
+        return str(self.employee)
 
 
 class Course(AbstractWithPhotoNameModel):
@@ -521,7 +523,6 @@ class StructuralSubdivision(models.Model):
     class Meta:
         verbose_name = 'запись структурного подразделения'
         verbose_name_plural = 'записи структурных подразделений'
-    
+
     def __str__(self):
         return f'{self.name} ({self.organization})'
-

@@ -29,7 +29,7 @@ class Attachment(models.Model):
 
     image = models.ImageField('Attachment', upload_to='news_images/')
 
-    publication = models.ForeignKey('News', on_delete=models.CASCADE, verbose_name="Вложение")
+    publication = models.ForeignKey('News', on_delete=models.CASCADE, verbose_name="Вложение", related_name="attachments")
 
     class Meta:
         verbose_name = 'объект вложения'
