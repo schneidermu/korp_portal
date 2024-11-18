@@ -509,7 +509,7 @@ class StructuralSubdivision(models.Model):
         related_name='structural_subdivisions'
     )
 
-    parent_structural_subdivision = models.OneToOneField(
+    parent_structural_subdivision = models.ForeignKey(
         "StructuralSubdivision",
         verbose_name='Родительское СП',
         on_delete=models.SET_NULL,
