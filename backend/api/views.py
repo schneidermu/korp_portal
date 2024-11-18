@@ -107,6 +107,7 @@ class ColleagueProfileViewset(UserViewSet):
     permission_classes = (IsUserOrReadOnly,)
     queryset = Employee.objects.all()
 
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = (
         'structural_division__name',
         'structural_division__id',
