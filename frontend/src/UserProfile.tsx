@@ -194,15 +194,23 @@ function EducationSection({ userId }: { userId: string }) {
     <section>
       <SectionTitle title="Образование" />
 
-      <Property icon={layoutIcon} name="Высшее образование" />
-      <div className="flex flex-col ml-[5px] mt-[48px] mb-[55px] gap-[24px]">
-        {higherEducation}
-      </div>
+      {higherEducation.length > 0 && (
+        <>
+          <Property icon={layoutIcon} name="Высшее образование" />
+          <div className="flex flex-col ml-[5px] mt-[48px] mb-[55px] gap-[24px]">
+            {higherEducation}
+          </div>
+        </>
+      )}
 
-      <Property icon={layersIcon} name="Курсы" />
-      <div className="flex flex-col ml-[5px] mt-[48px] gap-[24px]">
-        {courses}
-      </div>
+      {courses.length > 0 && (
+        <>
+          <Property icon={layersIcon} name="Курсы" />
+          <div className="flex flex-col ml-[5px] mt-[48px] gap-[24px]">
+            {courses}
+          </div>
+        </>
+      )}
     </section>
   );
 }
@@ -257,10 +265,14 @@ function CareerSection({ userId }: { userId: string }) {
           value={user.skills}
         />
 
-        <div className="flex items-start gap-[16px]">
-          <Property icon={upArrowIcon} name="Повышение квалификации" />
-          <ul className="list-disc list-inside">{certificates}</ul>
-        </div>
+        {certificates.length > 0 && (
+          <>
+            <div className="flex items-start gap-[16px]">
+              <Property icon={upArrowIcon} name="Повышение квалификации" />
+              <ul className="list-disc list-inside">{certificates}</ul>
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
