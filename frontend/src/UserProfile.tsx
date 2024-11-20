@@ -26,6 +26,7 @@ import { useFetchUser } from "./users/api";
 import { useDispatch } from "react-redux";
 import { pageSlice } from "./page/slice";
 import { fullNameLong, fullNameShort } from "./util";
+import { useAppDispatch } from "./store";
 
 function SectionSep() {
   return (
@@ -105,7 +106,8 @@ function Picture({
   );
 }
 
-function ProfileCard({ userId }: { userId: string }) {
+export function ProfileCard({ userId }: { userId: string }) {
+  const dispatch = useAppDispatch();
   const { user } = useFetchUser(userId);
   if (!user) return;
 
@@ -124,14 +126,26 @@ function ProfileCard({ userId }: { userId: string }) {
   ));
   return (
     <section className="-ml-[20px] flex gap-[64px] h-[340px]">
-      <div className="shrink-0 rounded-photo overflow-hidden">
+      <button
+        className="shrink-0 rounded-photo overflow-hidden"
+        onClick={() => {
+          dispatch(pageSlice.actions.viewProfile({ userId }));
+        }}
+      >
         <Picture width="260px" height="100%" url={user.photoURL} />
-      </div>
+      </button>
       <div className="w-full flex flex-col justify-between">
         {/* ФИО */}
         <div className="flex">
           <img src={personIcon} alt="" className="w-[33px]" />
-          <h2 className="ml-[28px] text-[30px]">{fullNameLong(user)}</h2>
+          <button
+            className="ml-[28px] text-[30px] hover:underline"
+            onClick={() => {
+              dispatch(pageSlice.actions.viewProfile({ userId }));
+            }}
+          >
+            <h2>{fullNameLong(user)}</h2>
+          </button>
           <div className="grow"></div>
           <EditButton />
         </div>
