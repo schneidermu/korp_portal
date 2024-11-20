@@ -300,7 +300,7 @@ function UserAvatarLink({ userId }: { userId: string }) {
   if (!user) return;
   return (
     <button
-      className="hover:underline"
+      className="shrink-0 hover:underline"
       onClick={() => {
         dispatch(pageSlice.actions.viewProfile({ userId }));
       }}
@@ -334,7 +334,7 @@ function TeamSection({ userId }: { userId: string }) {
           onClick={() => setShowBosses(true)}
         />
       </div>
-      <div className="mt-[48px] flex gap-[70px]">
+      <div className="mt-[48px] pb-[36px] flex gap-[70px] overflow-y-auto">
         {data.map(
           (colleagueId) =>
             colleagueId !== userId && (
