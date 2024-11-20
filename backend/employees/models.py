@@ -117,13 +117,15 @@ class Employee(AbstractUser):
         return self.structural_division.organization
 
     def __str__(self):
-        name_string = ""
-        for name_part in (self.surname, self.name, self.patronym):
-            if name_part is not None:
-                name_string += name_part
-        if name_string:
-            return name_string
-        return self.username
+
+        name = " ".join(
+            [name_part for name_part in (self.surname, self.name, self.patronym) if name_part is not None]
+        )
+
+        if not name:
+            return self.username
+
+        return name
 
     class Meta:
         verbose_name = 'запись о сотруднике'
@@ -509,7 +511,7 @@ class StructuralSubdivision(models.Model):
         related_name='structural_subdivisions'
     )
 
-    parent_structural_subdivision = models.OneToOneField(
+    parent_structural_subdivision = models.ForeignKey(
         "StructuralSubdivision",
         verbose_name='Родительское СП',
         on_delete=models.SET_NULL,
@@ -521,7 +523,6 @@ class StructuralSubdivision(models.Model):
     class Meta:
         verbose_name = 'запись структурного подразделения'
         verbose_name_plural = 'записи структурных подразделений'
-    
+
     def __str__(self):
         return f'{self.name} ({self.organization})'
-
