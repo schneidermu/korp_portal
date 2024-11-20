@@ -24,3 +24,7 @@ export function fullNameShort(user: User): string {
 export function fullNameLong(user: User): string {
   return nameParts(user).join(" ");
 }
+
+export type MonomorphFields<T, V> = {
+  [K in keyof T]: T[K] extends V ? K : never;
+}[keyof T];

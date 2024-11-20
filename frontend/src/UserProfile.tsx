@@ -1,4 +1,9 @@
-import { useState } from "react";
+import {
+  FormEventHandler,
+  HTMLInputTypeAttribute,
+  ReactNode,
+  useState,
+} from "react";
 
 import clsx from "clsx/lite";
 
@@ -18,15 +23,18 @@ import externalIcon from "/external.svg";
 import bookIcon from "/book.svg";
 import upArrowIcon from "/up-arrow.svg";
 import starIcon from "/star.svg";
+import closeIcon from "/close.svg";
+import checkmarkIcon from "/checkmark.svg";
 
-import { LinkWithPicture } from "./types";
+import { LinkWithPicture, User } from "./types";
 
 import FileAttachment from "./FileAttachment";
-import { useFetchUser } from "./users/api";
+import { updateUser, useFetchUser } from "./users/api";
 import { useDispatch } from "react-redux";
 import { pageSlice } from "./page/slice";
-import { fullNameLong, fullNameShort } from "./util";
+import { fullNameLong, fullNameShort, MonomorphFields } from "./util";
 import { useAppDispatch } from "./store";
+import { useAuth } from "./auth/slice";
 
 function SectionSep() {
   return (
@@ -48,9 +56,8 @@ function Property({
   name: string;
   value?: string;
 }) {
-  const dispatch = useAppDispatch();
-  const content = (
-    <>
+  return (
+    <div>
       <img
         style={{ width: "30px", height: "30px" }}
         src={icon}
@@ -59,22 +66,8 @@ function Property({
       />
       <span className="mr-[10px] text-dark-gray">{name}:</span>
       {value}
-    </>
+    </div>
   );
-  if (name === "Структурное подразделение") {
-    return (
-      <button
-        className="text-left hover:underline"
-        onClick={() => {
-          dispatch(pageSlice.actions.viewOrgStruct({ unitId: value || null }));
-        }}
-      >
-        {content}
-      </button>
-    );
-  } else {
-    return <div>{content}</div>;
-  }
 }
 
 function EditButton() {
@@ -121,53 +114,249 @@ function Picture({
   );
 }
 
-export function ProfileCard({ userId }: { userId: string }) {
-  const dispatch = useAppDispatch();
-  const { user } = useFetchUser(userId);
-  if (!user) return;
+function EditableProperty({
+  icon,
+  name,
+  handleClick,
+  children,
+}: {
+  icon: string;
+  name: string;
+  handleClick?: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex items-center">
+      <img
+        style={{ width: "30px", height: "30px" }}
+        src={icon}
+        alt=""
+        className="inline-block mr-[20px]"
+      />
+      <span
+        className={clsx(
+          "border-b-[1px] border-blue border-opacity-0 shrink-0 mr-[10px] text-dark-gray",
+          handleClick && "hover:underline cursor-pointer",
+        )}
+        onClick={handleClick}
+      >
+        {name}:
+      </span>
+      {children}
+    </div>
+  );
+}
 
-  const data = [
-    ["Статус", brightnessIcon, user.status],
-    ["Дата рождения", giftIcon, user.dateOfBirth],
-    ["Телефон", phoneIcon, user.phone],
-    ["Почта", atIcon, user.email],
-    ["Должность", peopleIcon, user.position],
-    ["Классный чин", awardIcon, user.serviceRank],
-    ["Структурное подразделение", peopleIcon, user.structuralUnit],
-    ["Тер. орган", pinIcon, user.territorialBody],
-  ] as string[][];
-  const properties = data.map(([name, icon, value]) => (
-    <Property key={name} icon={icon} name={name} value={value} />
-  ));
+function PropertyInput({
+  type = "text",
+  editing,
+  pattern,
+  value,
+  handleChange,
+}: {
+  type?: HTMLInputTypeAttribute;
+  editing: boolean;
+  pattern?: string;
+  value: string;
+  handleChange: (value: string) => void;
+}) {
+  return (
+    <input
+      type={type}
+      pattern={pattern}
+      className={clsx(
+        "min-w-0 py-1 border-b-[1px]",
+        "outline-none border-opacity-0 border-blue",
+        "valid:border-excel invalid:border-[#f00]",
+        editing && "border-opacity-100",
+      )}
+      value={value}
+      onChange={(e) => handleChange(e.target.value)}
+      disabled={!editing}
+    />
+  );
+}
+
+export function ProfileCard({
+  user,
+  editable = false,
+}: {
+  user: User;
+  editable?: boolean;
+}) {
+  const dispatch = useAppDispatch();
+  const auth = useAuth();
+
+  const [editing, setEditing] = useState(false);
+  const [userState, setUserState] = useState(user);
+
+  const changeField =
+    (key: MonomorphFields<User, string>) => (value: string) => {
+      setUserState({ ...userState, [key]: value });
+    };
+
+  const handleSubmit: FormEventHandler = (event) => {
+    event.preventDefault();
+    if (editing) {
+      updateUser(auth.token, user.username, userState).catch(() =>
+        setUserState(user),
+      );
+    }
+    setEditing(false);
+  };
+
+  const viewProfile = () => {
+    dispatch(pageSlice.actions.viewProfile({ userId: user.id }));
+  };
+
+  const viewUnit = () => {
+    console.log("view unit");
+    dispatch(pageSlice.actions.viewOrgStruct({ unitId: user.structuralUnit }));
+  };
+
+  const field = ({
+    name,
+    icon,
+    field,
+    canEdit = true,
+    type = "text",
+    pattern,
+    handleClick,
+  }: {
+    name: string;
+    icon: string;
+    field: MonomorphFields<User, string>;
+    canEdit?: boolean;
+    type?: string;
+    pattern?: string;
+    handleClick?: () => void;
+  }) => (
+    <EditableProperty
+      key={field}
+      icon={icon}
+      name={name}
+      handleClick={handleClick}
+    >
+      <PropertyInput
+        type={type}
+        pattern={pattern}
+        editing={canEdit && editing}
+        value={userState[field]}
+        handleChange={changeField(field)}
+      />
+    </EditableProperty>
+  );
+
   return (
     <section className="-ml-[20px] flex gap-[64px] h-[340px]">
       <button
+        type="button"
         className="shrink-0 rounded-photo overflow-hidden"
-        onClick={() => {
-          dispatch(pageSlice.actions.viewProfile({ userId }));
-        }}
+        onClick={viewProfile}
       >
         <Picture width="260px" height="100%" url={user.photoURL} />
       </button>
-      <div className="w-full flex flex-col justify-between">
-        {/* ФИО */}
+      <form
+        spellCheck
+        className="w-full flex flex-col justify-between"
+        onSubmit={handleSubmit}
+      >
         <div className="flex">
           <img src={personIcon} alt="" className="w-[33px]" />
           <button
+            type="button"
             className="ml-[28px] text-[30px] hover:underline"
-            onClick={() => {
-              dispatch(pageSlice.actions.viewProfile({ userId }));
-            }}
+            onClick={viewProfile}
           >
             <h2>{fullNameLong(user)}</h2>
           </button>
           <div className="grow"></div>
-          <EditButton />
+          {editing ? (
+            <>
+              <button type="submit">
+                <img
+                  style={{ width: "36px", height: "36px" }}
+                  src={checkmarkIcon}
+                />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(false);
+                  setUserState(user);
+                }}
+              >
+                <img
+                  style={{ width: "36px", height: "36px" }}
+                  src={closeIcon}
+                />
+              </button>
+            </>
+          ) : (
+            editable && (
+              <button type="button" onClick={() => setEditing(true)}>
+                <img style={{ width: "36px", height: "36px" }} src={editIcon} />
+              </button>
+            )
+          )}
         </div>
+        <div className="grow"></div>
         <div className="grid grid-flow-col grid-rows-[repeat(5,58px)] grid-cols-2 items-center">
-          {properties}
+          {[
+            <div key="territorialBody" className="col-span-2">
+              {field({
+                field: "territorialBody",
+                name: "Тер. орган",
+                icon: pinIcon,
+                canEdit: false,
+              })}
+            </div>,
+            <div key="structuralUnit" className="col-span-2">
+              {field({
+                field: "structuralUnit",
+                name: "Подразделение",
+                icon: peopleIcon,
+                canEdit: false,
+                handleClick: editing ? undefined : viewUnit,
+              })}
+            </div>,
+            field({
+              field: "status",
+              name: "Статус",
+              icon: brightnessIcon,
+            }),
+            field({
+              field: "dateOfBirth",
+              name: "Дата рождения",
+              icon: giftIcon,
+              type: "date",
+            }),
+            field({
+              field: "phone",
+              name: "Телефон",
+              icon: phoneIcon,
+              type: "tel",
+              pattern: "\\+7[0-9]{10}",
+            }),
+            field({
+              field: "email",
+              name: "Почта",
+              icon: atIcon,
+              type: "email",
+            }),
+            field({
+              field: "position",
+              name: "Должность",
+              icon: peopleIcon,
+            }),
+            field({
+              field: "serviceRank",
+              name: "Классный чин",
+              icon: awardIcon,
+            }),
+          ]}
         </div>
-      </div>
+      </form>
     </section>
   );
 }
@@ -459,10 +648,17 @@ function FeedbackSection({ userId: _ }: { userId: string }) {
 }
 
 export default function UserProfile({ userId }: { userId: string }) {
+  const { user } = useFetchUser(userId);
+  const auth = useAuth();
+
   return (
     <div className="mr-[36px] ml-[64px] pb-[155px]">
-      <ProfileCard userId={userId} />
-      <SectionSep />
+      {user !== null && (
+        <>
+          <ProfileCard user={user} editable={user.id == auth.userId} />
+          <SectionSep />
+        </>
+      )}
       <EducationSection userId={userId} />
       <SectionSep />
       <CareerSection userId={userId} />

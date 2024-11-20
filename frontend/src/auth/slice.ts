@@ -43,15 +43,22 @@ export const useUserId = () => useAppSelector((state) => state.auth.userId);
 export const fetcher = (path: string, init?: RequestInit) =>
   fetch(API_BASE_URL + path, init);
 
+export const tokenFetch = async (
+  token: string,
+  path: string,
+  init?: RequestInit,
+) =>
+  fetcher(path, {
+    ...init,
+    headers: {
+      ...init?.headers,
+      Authorization: "Token " + token,
+    },
+  });
+
 export const useTokenFetcher = () => {
   const token = useToken();
 
   return async (path: string, init?: RequestInit) =>
-    fetcher(path, {
-      ...init,
-      headers: {
-        ...init?.headers,
-        Authorization: "Token " + token,
-      },
-    });
+    tokenFetch(token, path, init);
 };

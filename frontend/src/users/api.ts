@@ -1,9 +1,11 @@
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 
 import { User } from "../types";
 
 import { urlBasename } from "../util";
-import { useTokenFetcher } from "../auth/slice";
+import { tokenFetch, useTokenFetcher } from "../auth/slice";
+
+import { produce } from "immer";
 
 type UserInfo = {
   average_rating: number;
@@ -156,7 +158,51 @@ export const useFetchUser = (userId: string) => {
 
   const user = users?.get(userId) || null;
 
-  console.log({ users, userId, user, error, isLoading });
+  // console.log({ users, userId, user, error, isLoading });
 
   return { user, isLoading, error };
+};
+
+export const updateUser = async (
+  token: string,
+  username: string,
+  diff: Partial<User>,
+) => {
+  const data: Partial<UserInfo> = {
+    status: diff.status,
+    birth_date: diff.dateOfBirth,
+    telephone_number: diff.phone,
+    email: diff.email,
+    job_title: diff.position,
+    class_rank: diff.serviceRank,
+    structural_division: diff.structuralUnit,
+    // structural_division: "Отдел регулирования режимов работы водохранилищ",
+    organization: diff.territorialBody,
+  };
+  return tokenFetch(token, `/colleagues/${username}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((res) => res.json())
+    .then((userInfo) => {
+      console.log({ userInfo });
+      return mutate(
+        `/colleagues/`,
+        (users: Map<string, User> | undefined) => {
+          console.log("users are", { users });
+          if (users === undefined) return undefined;
+          console.log("here");
+          const user = transformUser(userInfo);
+          console.log("user is", { user });
+          return produce(users, (draft) => {
+            console.log("set to", { user });
+            draft.set(user.id, user);
+          });
+        },
+        { revalidate: false },
+      );
+    });
 };

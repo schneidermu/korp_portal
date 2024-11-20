@@ -3,6 +3,7 @@ import { useUserId } from "./auth/slice";
 import { ProfileCard } from "./UserProfile";
 import { useFetchUser, useFetchUsers } from "./users/api";
 import { fullNameLong } from "./util";
+import { User } from "./types";
 
 export default function OrgStruct({ unitId }: { unitId: string | null }) {
   const defaultUserId = useUserId();
@@ -14,7 +15,6 @@ export default function OrgStruct({ unitId }: { unitId: string | null }) {
   }
 
   unitId ||= user.structuralUnit;
-  const userIds = [];
   const sortedUsers = [...users.values()];
   sortedUsers.sort((u1, u2) => {
     const n1 = fullNameLong(u1);
@@ -27,21 +27,23 @@ export default function OrgStruct({ unitId }: { unitId: string | null }) {
     }
     return +1;
   });
+  const selectedUsers: User[] = [];
   for (const user of sortedUsers) {
     if (user.structuralUnit === unitId) {
-      userIds.push(user.id);
+      selectedUsers.push(user);
     }
   }
   return (
     <div className="flex flex-col gap-[56px] mr-[36px] ml-[64px] pb-[60px]">
-      {userIds.map((userId) => (
+      {selectedUsers.map((user) => (
         <div
+          key={user.id}
           className={clsx(
             "pt-[52px] pr-[25px] pb-[92px] pl-[36px]",
             "border-[3px] border-light-gray rounded",
           )}
         >
-          <ProfileCard userId={userId} />
+          <ProfileCard user={user} />
         </div>
       ))}
     </div>

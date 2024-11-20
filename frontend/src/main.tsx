@@ -7,10 +7,13 @@ import { store } from "./store";
 
 import App from "./App.tsx";
 import "./index.css";
+import { enableMapSet } from "immer";
 
 const swrConfig = {
   keepPreviousData: true,
 };
+
+enableMapSet();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
