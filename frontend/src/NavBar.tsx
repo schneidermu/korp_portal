@@ -22,7 +22,12 @@ export default function NavBar() {
       >
         Мой профиль
       </button>
-      <button className="hover:underline" onClick={() => {}}>
+      <button
+        className="hover:underline"
+        onClick={() => {
+          dispatch(pageSlice.actions.viewOrgStruct({ unitId: null }));
+        }}
+      >
         Орг. структура
       </button>
     </nav>

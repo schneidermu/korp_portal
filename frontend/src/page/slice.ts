@@ -6,7 +6,7 @@ import stableHash from "stable-hash";
 import { useDispatch } from "react-redux";
 
 export interface PageState {
-  type: "profile" | "feed";
+  type: "profile" | "feed" | "org_struct";
 }
 
 export interface ProfilePage extends PageState {
@@ -16,6 +16,11 @@ export interface ProfilePage extends PageState {
 
 export interface FeedPage extends PageState {
   type: "feed";
+}
+
+export interface OrgStructPage extends PageState {
+  type: "org_struct";
+  unitId: string | null;
 }
 
 const initialState = {
@@ -34,6 +39,13 @@ export const pageSlice = createSlice({
     ) => ({
       type: "profile",
       userId: payload.userId,
+    }),
+    viewOrgStruct: (
+      _,
+      { payload }: PayloadAction<{ unitId: string | null }>,
+    ) => ({
+      type: "org_struct",
+      unitId: payload.unitId,
     }),
   },
 });

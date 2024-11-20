@@ -48,8 +48,9 @@ function Property({
   name: string;
   value?: string;
 }) {
-  return (
-    <div>
+  const dispatch = useAppDispatch();
+  const content = (
+    <>
       <img
         style={{ width: "30px", height: "30px" }}
         src={icon}
@@ -58,8 +59,22 @@ function Property({
       />
       <span className="mr-[10px] text-dark-gray">{name}:</span>
       {value}
-    </div>
+    </>
   );
+  if (name === "Структурное подразделение") {
+    return (
+      <button
+        className="text-left hover:underline"
+        onClick={() => {
+          dispatch(pageSlice.actions.viewOrgStruct({ unitId: value || null }));
+        }}
+      >
+        {content}
+      </button>
+    );
+  } else {
+    return <div>{content}</div>;
+  }
 }
 
 function EditButton() {

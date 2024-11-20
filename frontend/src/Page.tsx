@@ -6,6 +6,7 @@ import UserProfile from "./UserProfile";
 import { useEffect } from "react";
 import NewsFeed from "./NewsFeed";
 import { stableHash } from "swr/_internal";
+import OrgStruct from "./OrgStruct";
 
 function PageProfile({ userId }: { userId: string | null }) {
   const auth = useAuth();
@@ -31,6 +32,14 @@ function PageFeed() {
   return <NewsFeed />;
 }
 
+function OrgStructPage({ unitId }: { unitId: string | null }) {
+  useEffect(() => {
+    document.title = "Орг. структура | КП";
+  }, []);
+
+  return <OrgStruct unitId={unitId} />;
+}
+
 export default function Page() {
   const page = usePage();
 
@@ -45,6 +54,11 @@ export default function Page() {
     case "feed":
       elem = <PageFeed />;
       title = "Новости";
+      break;
+    case "org_struct":
+      const unitId = (page as any).unitId as string | null;
+      elem = <OrgStructPage unitId={unitId} />;
+      title = "Список сотрудников";
       break;
   }
 
