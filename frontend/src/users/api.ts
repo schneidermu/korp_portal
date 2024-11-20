@@ -8,15 +8,17 @@ import { useTokenFetcher } from "../auth/slice";
 type UserInfo = {
   average_rating: number;
   birth_date: string;
+  chief: string | null;
   class_rank: string;
   email: string;
-  fio: string;
+  surname: string;
+  name: string;
+  patronym: string | null;
   id: string;
   job_title: string;
   organization: string;
   status: string;
   structural_division: string;
-  supervizor: { id: string };
   team: { id: string }[];
   telephone_number: string;
   username: string;
@@ -25,8 +27,8 @@ type UserInfo = {
     avatar: string;
     careers: {
       id: number;
-      date_start: string;
-      date_finish?: string;
+      year_start: number;
+      year_finish?: number;
       name: string;
     }[];
     competences: {
@@ -34,7 +36,7 @@ type UserInfo = {
       name: string;
     }[];
     courses: {
-      date: string;
+      year: number;
       file: string;
       id: number;
       name: string;
@@ -51,22 +53,22 @@ type UserInfo = {
       name: string;
     }[];
     universitys: {
-      date: string;
+      year: number;
       file: string;
       id: number;
       name: string;
+      faculty: string;
     }[];
   };
 };
 
 const transformUser = (info: UserInfo): User => {
-  const [lastName, firstName, patronym] = info.fio.split(" ");
   let user: User = {
     id: info.id,
     username: info.username,
-    lastName,
-    firstName,
-    patronym,
+    lastName: info.surname,
+    firstName: info.name,
+    patronym: info.patronym,
     email: info.email,
     status: info.status,
     dateOfBirth: info.birth_date,
@@ -74,7 +76,7 @@ const transformUser = (info: UserInfo): User => {
     position: info.job_title,
     serviceRank: info.class_rank,
     structuralUnit: info.structural_division,
-    territorialBody: "N/A",
+    territorialBody: info.organization,
     about: "",
     skills: "",
     career: [],
@@ -86,7 +88,7 @@ const transformUser = (info: UserInfo): User => {
     communityWork: [],
     awards: [],
     colleagues: info.team.map(({ id }) => id),
-    bosses: [info.supervizor.id],
+    bosses: info.chief ? [info.chief] : [],
   };
   const char = info.characteristic;
   if (!char) {
@@ -97,10 +99,8 @@ const transformUser = (info: UserInfo): User => {
     about: char.about,
     skills: char.competences[0]?.name || "",
     career: char.careers.map((career) => {
-      const d1 = career.date_start.slice(0, 4);
-      const d2 = career.date_finish?.slice(0, 4) || "н. вр.";
       return {
-        period: `${d1} — ${d2}`,
+        period: `${career.year_start} — ${career.year_finish || "н. вр."}`,
         position: career.name,
       };
     }),
@@ -113,12 +113,12 @@ const transformUser = (info: UserInfo): User => {
     })),
     photoURL: char.avatar,
     higherEducation: char.universitys.map((uni) => ({
-      year: Number(uni.date.slice(0, 4)),
+      year: uni.year,
       university: uni.name,
-      major: "N/A",
+      major: uni.faculty,
     })),
     courses: char.courses.map((course) => ({
-      year: Number(course.date.slice(0, 4)),
+      year: course.year,
       name: course.name,
       certificate: urlBasename(course.file),
       certificateURL: course.file,

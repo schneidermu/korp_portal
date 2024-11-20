@@ -25,6 +25,7 @@ import FileAttachment from "./FileAttachment";
 import { useFetchUser } from "./users/api";
 import { useDispatch } from "react-redux";
 import { pageSlice } from "./page/slice";
+import { fullNameLong, fullNameShort } from "./util";
 
 function SectionSep() {
   return (
@@ -130,9 +131,7 @@ function ProfileCard({ userId }: { userId: string }) {
         {/* ФИО */}
         <div className="flex">
           <img src={personIcon} alt="" className="w-[33px]" />
-          <h2 className="ml-[28px] text-[30px]">
-            {user.lastName} {user.firstName} {user.patronym}
-          </h2>
+          <h2 className="ml-[28px] text-[30px]">{fullNameLong(user)}</h2>
           <div className="grow"></div>
           <EditButton />
         </div>
@@ -283,7 +282,7 @@ function UserAvatarLink({ userId }: { userId: string }) {
       <div className="rounded-photo overflow-hidden">
         <Picture width="210px" height="210px" url={user.photoURL} />
       </div>
-      <div className="text-center mt-[16px]">{`${user.lastName} ${user.firstName[0]}. ${user.patronym[0]}.`}</div>
+      <div className="text-center mt-[16px]">{fullNameShort(user)}</div>
     </button>
   );
 }

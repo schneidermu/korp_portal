@@ -38,7 +38,7 @@ export type User = {
   username: string;
   lastName: string;
   firstName: string;
-  patronym: string;
+  patronym: string | null;
   email: string;
   status: string;
   dateOfBirth: string;
