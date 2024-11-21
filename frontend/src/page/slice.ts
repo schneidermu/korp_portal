@@ -4,25 +4,23 @@ import { useAppSelector } from "../store";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 
-export interface PageState {
-  type: "profile" | "feed" | "org_struct";
-}
-
-export interface ProfilePage extends PageState {
+export type ProfilePage = {
   type: "profile";
   userId: string | null;
-}
+};
 
-export interface FeedPage extends PageState {
+export type FeedPage = {
   type: "feed";
-}
+};
 
-export interface OrgStructPage extends PageState {
+export type OrgStructPage = {
   type: "org_struct";
   unitId: string | null;
-}
+};
 
-const initialState = {
+export type PageState = ProfilePage | FeedPage | OrgStructPage;
+
+const initialState: PageState = {
   type: "profile",
   userId: "",
 } as PageState;

@@ -46,8 +46,7 @@ export default function Page() {
   let title = "";
   switch (page.type) {
     case "profile":
-      const userId = (page as any).userId as string | null;
-      elem = <PageProfile userId={userId} />;
+      elem = <PageProfile userId={page.userId} />;
       title = "Основные сведения";
       break;
     case "feed":
@@ -55,8 +54,7 @@ export default function Page() {
       title = "Новости";
       break;
     case "org_struct":
-      const unitId = (page as any).unitId as string | null;
-      elem = <OrgStructPage unitId={unitId} />;
+      elem = <OrgStructPage unitId={page.unitId} />;
       title = "Список сотрудников";
       break;
   }
