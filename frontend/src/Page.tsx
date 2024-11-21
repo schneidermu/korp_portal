@@ -5,7 +5,6 @@ import { useFetchUser } from "./users/api";
 import UserProfile from "./UserProfile";
 import { useEffect } from "react";
 import NewsFeed from "./NewsFeed";
-import { stableHash } from "swr/_internal";
 import OrgStruct from "./OrgStruct";
 
 function PageProfile({ userId }: { userId: string | null }) {
@@ -17,7 +16,7 @@ function PageProfile({ userId }: { userId: string | null }) {
     if (!user) return;
     const title = auth.userId === userId ? "Мой профиль" : user.firstName;
     document.title = `${title} | КП`;
-  }, [userId]);
+  }, [user, auth.userId, userId]);
 
   if (!user) return;
 
@@ -64,7 +63,7 @@ export default function Page() {
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
-  }, [stableHash(page)]);
+  }, [page]);
 
   return (
     <main

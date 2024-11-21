@@ -615,7 +615,7 @@ function FeedbackSection({ userId: _ }: { userId: string }) {
     else setMark(i);
   };
   const stars = [...Array(5)].map((_, i) => {
-    let bg =
+    const bg =
       ((mark !== undefined && hoverMark === undefined && i <= mark) ||
         (hoverMark !== undefined && i <= hoverMark)) &&
       "bg-light-blue";

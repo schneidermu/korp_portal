@@ -29,5 +29,5 @@ export const useLogin = () => {
             dispatch(authSlice.actions.login({ userId, username, token }));
           });
       });
-  }, []);
+  }, [dispatch]);
 };

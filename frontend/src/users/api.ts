@@ -65,7 +65,7 @@ type UserInfo = {
 };
 
 const transformUser = (info: UserInfo): User => {
-  let user: User = {
+  const user: User = {
     id: info.id,
     username: info.username,
     lastName: info.surname,

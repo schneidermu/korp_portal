@@ -2,7 +2,6 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { useAppSelector } from "../store";
 import { useEffect } from "react";
-import stableHash from "stable-hash";
 import { useDispatch } from "react-redux";
 
 export interface PageState {
@@ -57,5 +56,5 @@ export const useProfile = (userId: string) => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     dispatch(pageSlice.actions.viewProfile({ userId }));
-  }, [userId]);
+  }, [userId, dispatch]);
 };
