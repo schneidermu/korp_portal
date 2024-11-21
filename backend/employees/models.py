@@ -7,6 +7,9 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 
 
+def return_name(instance, filename):
+    return f'employees/{instance.__class__.__name__.lower()}/{filename}'
+
 CHOICES = (
     ('В отпуске', 'В отпуске'),
     ('В командировке', 'В командировке'),
@@ -175,7 +178,7 @@ class AbstractWithPhotoNameModel(models.Model):
 
     file = models.FileField(
         verbose_name='Документ',
-        upload_to='employees/%(class)s/',
+        upload_to=return_name,
         blank=True,
         null=True,
         default=None,
