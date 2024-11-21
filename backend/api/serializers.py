@@ -181,7 +181,7 @@ class VoteDeleteSerializer(serializers.Serializer):
 class NewsSerializer(serializers.ModelSerializer):
     '''Сериализатор для новостей'''
 
-    attachments = AttachmentSerializer(many=True)
+    attachments = AttachmentSerializer(many=True, required=False)
 
     class Meta:
         model = News
@@ -189,6 +189,11 @@ class NewsSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'text',
+            'attachments',
+            'video',
+            'organization'
+        )
+        optional_fields = (
             'attachments',
             'video',
             'organization'
