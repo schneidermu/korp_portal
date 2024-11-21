@@ -46,7 +46,9 @@ services:
       POSTGRES_DB: "${POSTGRES_DB_DJANGO}"
       DB_HOST: database
       SECRET_KEY: "${SECRET_KEY}"
-      ALLOWED_HOSTS: localhost,127.0.0.1
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS}"
+      DEBUG: "${DEBUG}"
     volumes:
       - static:/app/collected_static
       - ./volumes/media:/media

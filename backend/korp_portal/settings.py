@@ -25,20 +25,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', '').lower() in ['1', 'true', 'yes']
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '0').split(',')
+ALLOWED_HOSTS = ['localhost']
+if os.getenv('ALLOWED_HOSTS', '') != '':
+    ALLOWED_HOSTS.extend(os.environ['ALLOWED_HOSTS'].split(','))
 
 CORS_URLS_REGEX = r'^/api/.*$'
 
-CORS_ALLOWED_ORIGINS = [
-    'http://46.38.96.230:3000',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    # Dev Liferay.
-    'http://localhost:8080',
-    'http://127.0.0.1:8080',
-]
+CORS_ALLOWED_ORIGIN_REGEXES = ['^http://localhost(:[0-9]+)?$']
+
+CORS_ALLOWED_ORIGINS = []
+if os.getenv('ALLOWED_ORIGINS', '') != '':
+    CORS_ALLOWED_ORIGINS.extend(os.environ['ALLOWED_ORIGINS'].split(','))
 
 # Application definition
 
