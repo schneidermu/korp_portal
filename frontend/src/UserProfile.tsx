@@ -659,6 +659,8 @@ export default function UserProfile({ userId }: { userId: string }) {
           <SectionSep />
         </>
       )}
+      <AboutMeSection userId={userId} />
+      <SectionSep />
       <EducationSection userId={userId} />
       <SectionSep />
       <CareerSection userId={userId} />
@@ -668,8 +670,6 @@ export default function UserProfile({ userId }: { userId: string }) {
       <CommunityWorkSection userId={userId} />
       <SectionSep />
       <AwardsSection userId={userId} />
-      <SectionSep />
-      <AboutMeSection userId={userId} />
       <SectionSep />
       <FeedbackSection userId={userId} />
     </div>
