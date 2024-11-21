@@ -359,7 +359,7 @@ class ProfileSerializer(UserSerializer):
     team = serializers.SerializerMethodField(
         read_only=True
     )
-    structural_division = StructuralSubdivisionInProfileSerializer
+    structural_division = StructuralSubdivisionInProfileSerializer()
 
     class Meta(UserSerializer.Meta):
         model = Employee
