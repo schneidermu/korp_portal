@@ -114,6 +114,31 @@ function Picture({
   );
 }
 
+function EditControls({
+  editing,
+  edit,
+  reset,
+}: {
+  editing: boolean;
+  edit: () => void;
+  reset: () => void;
+}) {
+  return editing ? (
+    <>
+      <button key="reset" type="submit">
+        <img style={{ width: "36px", height: "36px" }} src={checkmarkIcon} />
+      </button>
+      <button key="save" type="button" onClick={reset}>
+        <img style={{ width: "36px", height: "36px" }} src={closeIcon} />
+      </button>
+    </>
+  ) : (
+    <button key="edit" type="button" onClick={edit}>
+      <img style={{ width: "36px", height: "36px" }} src={editIcon} />
+    </button>
+  );
+}
+
 function EditableProperty({
   icon,
   name,
@@ -271,33 +296,15 @@ export function ProfileCard({
             <h2>{fullNameLong(user)}</h2>
           </button>
           <div className="grow"></div>
-          {editing ? (
-            <>
-              <button type="submit">
-                <img
-                  style={{ width: "36px", height: "36px" }}
-                  src={checkmarkIcon}
-                />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setEditing(false);
-                  setUserState(user);
-                }}
-              >
-                <img
-                  style={{ width: "36px", height: "36px" }}
-                  src={closeIcon}
-                />
-              </button>
-            </>
-          ) : (
-            editable && (
-              <button type="button" onClick={() => setEditing(true)}>
-                <img style={{ width: "36px", height: "36px" }} src={editIcon} />
-              </button>
-            )
+          {editable && (
+            <EditControls
+              editing={editing}
+              edit={() => setEditing(true)}
+              reset={() => {
+                setEditing(false);
+                setUserState(user);
+              }}
+            />
           )}
         </div>
         <div className="grow"></div>
