@@ -1,11 +1,11 @@
 import clsx from "clsx/lite";
-import { usePage } from "./page/slice";
-import { useAuth } from "./auth/slice";
-import { useFetchUser } from "./users/api";
-import UserProfile from "./UserProfile";
 import { useEffect } from "react";
+import { useAuth } from "./auth/slice";
 import NewsFeed from "./NewsFeed";
 import OrgStruct from "./OrgStruct";
+import { usePage } from "./page/slice";
+import UserProfile from "./UserProfile";
+import { useFetchUser } from "./users/api";
 
 function PageProfile({ userId }: { userId: string | null }) {
   const auth = useAuth();

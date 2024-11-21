@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { useAppSelector } from "../store";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { useAppSelector } from "../store";
 
 export type ProfilePage = {
   type: "profile";

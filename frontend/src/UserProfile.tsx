@@ -7,34 +7,34 @@ import {
 
 import clsx from "clsx/lite";
 
-import personIcon from "/person.svg";
-import editIcon from "/edit.svg";
-import brightnessIcon from "/brightness.svg";
-import giftIcon from "/gift.svg";
-import phoneIcon from "/phone.svg";
 import atIcon from "/at.svg";
-import peopleIcon from "/people.svg";
 import awardIcon from "/award.svg";
-import pinIcon from "/pin.svg";
-import layoutIcon from "/layout.svg";
-import layersIcon from "/layers.svg";
-import creditCardIcon from "/credit-card.svg";
-import externalIcon from "/external.svg";
 import bookIcon from "/book.svg";
-import upArrowIcon from "/up-arrow.svg";
-import starIcon from "/star.svg";
-import closeIcon from "/close.svg";
+import brightnessIcon from "/brightness.svg";
 import checkmarkIcon from "/checkmark.svg";
+import closeIcon from "/close.svg";
+import creditCardIcon from "/credit-card.svg";
+import editIcon from "/edit.svg";
+import externalIcon from "/external.svg";
+import giftIcon from "/gift.svg";
+import layersIcon from "/layers.svg";
+import layoutIcon from "/layout.svg";
+import peopleIcon from "/people.svg";
+import personIcon from "/person.svg";
+import phoneIcon from "/phone.svg";
+import pinIcon from "/pin.svg";
+import starIcon from "/star.svg";
+import upArrowIcon from "/up-arrow.svg";
 
 import { LinkWithPicture, User } from "./types";
 
-import FileAttachment from "./FileAttachment";
-import { updateUser, useFetchUser } from "./users/api";
 import { useDispatch } from "react-redux";
-import { pageSlice } from "./page/slice";
-import { fullNameLong, fullNameShort, MonomorphFields } from "./util";
-import { useAppDispatch } from "./store";
 import { useAuth } from "./auth/slice";
+import FileAttachment from "./FileAttachment";
+import { pageSlice } from "./page/slice";
+import { useAppDispatch } from "./store";
+import { updateUser, useFetchUser } from "./users/api";
+import { fullNameLong, fullNameShort, MonomorphFields } from "./util";
 
 function SectionSep() {
   return (

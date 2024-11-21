@@ -5,9 +5,9 @@ import { SWRConfig } from "swr";
 
 import { store } from "./store";
 
+import { enableMapSet } from "immer";
 import App from "./App.tsx";
 import "./index.css";
-import { enableMapSet } from "immer";
 
 const swrConfig = {
   keepPreviousData: true,

@@ -1,9 +1,9 @@
 import clsx from "clsx";
 import { useUserId } from "./auth/slice";
+import { User } from "./types";
 import { ProfileCard } from "./UserProfile";
 import { useFetchUser, useFetchUsers } from "./users/api";
 import { fullNameLong } from "./util";
-import { User } from "./types";
 
 export default function OrgStruct({ unitId }: { unitId: string | null }) {
   const defaultUserId = useUserId();
