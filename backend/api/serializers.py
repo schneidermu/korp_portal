@@ -6,6 +6,8 @@ from rest_framework.validators import UniqueValidator
 from homepage.models import Poll, News, Choice, Attachment
 from homepage.constants import CHARFIELD_LENGTH
 from employees.models import University, Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating, Organization, StructuralSubdivision, Diploma
+from drf_extra_fields.fields import Base64ImageField
+
 
 ATTRIBUTE_MODEL = (
     ("courses", Course),
@@ -26,12 +28,15 @@ ATTRIBUTE_MODEL = (
 class AttachmentSerializer(serializers.ModelSerializer):
     '''Сериализатор картинки'''
 
+    image = Base64ImageField()
+
     class Meta:
         model = Attachment
 
         fields = (
             "image",
         )
+
 
 class ChoiceSerializer(serializers.ModelSerializer):
     '''Сериализатор варианта ответа'''
@@ -198,6 +203,15 @@ class NewsSerializer(serializers.ModelSerializer):
             'video',
             'organization'
         )
+
+    @transaction.atomic
+    def create(self, validated_data):
+        attachments_data = validated_data.pop('attachments', [])
+        news = News.objects.create(**validated_data)
+        for attachment_data in attachments_data:
+            Attachment.objects.create(publication=news, **attachment_data)
+        return news
+
 
 
 class CourseSerializer(serializers.ModelSerializer):
