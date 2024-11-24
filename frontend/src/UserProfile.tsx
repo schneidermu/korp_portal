@@ -2,6 +2,7 @@ import {
   FormEventHandler,
   HTMLInputTypeAttribute,
   ReactNode,
+  useEffect,
   useState,
 } from "react";
 
@@ -26,14 +27,14 @@ import pinIcon from "/pin.svg";
 import starIcon from "/star.svg";
 import upArrowIcon from "/up-arrow.svg";
 
-import { LinkWithPicture, User } from "./types";
+import { User } from "./types";
 
 import { useDispatch } from "react-redux";
 import { useAuth } from "./auth/slice";
 import FileAttachment from "./FileAttachment";
 import { pageSlice } from "./page/slice";
 import { useAppDispatch } from "./store";
-import { updateUser, useFetchUser } from "./users/api";
+import { updateUser, useFetchUser, useFetchUsers } from "./users/api";
 import { fullNameLong, fullNameShort, MonomorphFields } from "./util";
 
 function SectionSep() {
@@ -99,7 +100,7 @@ function Picture({
   height,
   alt = "",
 }: {
-  url: string;
+  url?: string;
   width: string;
   height: string;
   alt?: string;
@@ -202,6 +203,38 @@ function PropertyInput({
   );
 }
 
+function PropertySelect({
+  editing,
+  value,
+  options,
+  handleSelect: handleChange,
+}: {
+  editing: boolean;
+  value?: string;
+  options: string[];
+  handleSelect: (value: string) => void;
+}) {
+  return (
+    <select
+      className={clsx(
+        "w-full px-2 py-1 border-b-[1px]",
+        "outline-none border-opacity-0 border-blue",
+        "valid:border-excel",
+        editing && "border-opacity-100",
+      )}
+      value={value}
+      onChange={(e) => handleChange(e.target.value)}
+      disabled={!editing}
+    >
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export function ProfileCard({
   user,
   editable = false,
@@ -215,12 +248,18 @@ export function ProfileCard({
   const [editing, setEditing] = useState(false);
   const [userState, setUserState] = useState(user);
 
+  // TODO: lift state up
+  useEffect(() => {
+    setUserState(user);
+  }, [user.id]);
+
   const changeField =
-    (key: MonomorphFields<User, string>) => (value: string) => {
+    (key: MonomorphFields<User, string | null>) => (value: string) => {
       setUserState({ ...userState, [key]: value });
     };
 
   const handleSubmit: FormEventHandler = (event) => {
+    console.log("submit");
     event.preventDefault();
     if (editing) {
       updateUser(auth.token, user.username, userState).catch(() =>
@@ -236,7 +275,8 @@ export function ProfileCard({
 
   const viewUnit = () => {
     console.log("view unit");
-    dispatch(pageSlice.actions.viewOrgStruct({ unitId: user.structuralUnit }));
+    if (user.unit === null) return;
+    dispatch(pageSlice.actions.viewOrgStruct({ unitId: user.unit.id }));
   };
 
   const field = ({
@@ -250,7 +290,7 @@ export function ProfileCard({
   }: {
     name: string;
     icon: string;
-    field: MonomorphFields<User, string>;
+    field: MonomorphFields<User, string | null>;
     canEdit?: boolean;
     type?: string;
     pattern?: string;
@@ -266,7 +306,7 @@ export function ProfileCard({
         type={type}
         pattern={pattern}
         editing={canEdit && editing}
-        value={userState[field]}
+        value={userState[field] || ""}
         handleChange={changeField(field)}
       />
     </EditableProperty>
@@ -279,7 +319,7 @@ export function ProfileCard({
         className="shrink-0 rounded-photo overflow-hidden"
         onClick={viewProfile}
       >
-        <Picture width="260px" height="100%" url={user.photoURL} />
+        <Picture width="260px" height="100%" url={user.photo || undefined} />
       </button>
       <form
         spellCheck
@@ -310,22 +350,29 @@ export function ProfileCard({
         <div className="grow"></div>
         <div className="grid grid-flow-col grid-rows-[repeat(5,58px)] grid-cols-2 items-center">
           {[
-            <div key="territorialBody" className="col-span-2">
-              {field({
-                field: "territorialBody",
-                name: "Тер. орган",
-                icon: pinIcon,
-                canEdit: false,
-              })}
+            <div key="organization" className="col-span-2">
+              <EditableProperty icon={pinIcon} name="Организация">
+                <span>{userState.organization?.name}</span>
+              </EditableProperty>
             </div>,
-            <div key="structuralUnit" className="col-span-2">
-              {field({
-                field: "structuralUnit",
-                name: "Подразделение",
-                icon: peopleIcon,
-                canEdit: false,
-                handleClick: editing ? undefined : viewUnit,
-              })}
+            <div key="unit" className="col-span-2">
+              <EditableProperty
+                icon={peopleIcon}
+                name="Подразделение"
+                handleClick={editing ? undefined : viewUnit}
+              >
+                <PropertySelect
+                  editing={editing}
+                  value={userState.unit?.id.toString()}
+                  options={["1", "2", "3"]}
+                  handleSelect={(value: string) => {
+                    setUserState({
+                      ...userState,
+                      unit: { id: Number(value), name: value },
+                    });
+                  }}
+                />
+              </EditableProperty>
             </div>,
             field({
               field: "status",
@@ -339,7 +386,7 @@ export function ProfileCard({
               type: "date",
             }),
             field({
-              field: "phone",
+              field: "phoneNumber",
               name: "Телефон",
               icon: phoneIcon,
               type: "tel",
@@ -372,7 +419,7 @@ function EducationSection({ userId }: { userId: string }) {
   const { user } = useFetchUser(userId);
   if (!user) return;
 
-  const higherEducation = user.higherEducation.map((edu) => (
+  const higherEducation = user.education.map((edu) => (
     <div
       key={`${edu.year}/${edu.university}`}
       className="grid grid-cols-[112px,1fr]"
@@ -394,8 +441,8 @@ function EducationSection({ userId }: { userId: string }) {
       <div>
         <div>{course.name}</div>
         <FileAttachment
-          filename={course.certificate}
-          url={course.certificateURL}
+          filename={course.attachment || ""}
+          url={course.attachment || ""}
         />
       </div>
     </div>
@@ -430,18 +477,26 @@ function CareerSection({ userId }: { userId: string }) {
   const { user } = useFetchUser(userId);
   if (!user) return;
 
-  const positions = user.career.map(({ period, position }) => (
-    <tr key={period} className="h-[45px]">
-      <td className="border border-dark-gray pl-[30px]">{period}</td>
-      <td className="border border-dark-gray pl-[30px]">{position}</td>
-    </tr>
-  ));
-  const certificates = user.professionalDevelopments.map((dev) => {
+  const positions = user.career.map(
+    ({ year_start, year_leave, position }, i) => (
+      <tr key={i} className="h-[45px]">
+        <td className="border border-dark-gray pl-[30px]">
+          {year_start.toString() +
+            (year_leave === null ? "" : ` - ${year_leave}`)}
+        </td>
+        <td className="border border-dark-gray pl-[30px]">{position}</td>
+      </tr>
+    ),
+  );
+  const certificates = user.training.map((t) => {
     return (
-      <li key={dev.name}>
-        {dev.name}
+      <li key={t.name}>
+        {t.name}
         {", "}
-        <FileAttachment filename={dev.certificate} url={dev.certificateURL} />
+        <FileAttachment
+          filename={t.attachment || ""}
+          url={t.attachment || ""}
+        />
       </li>
     );
   });
@@ -452,7 +507,7 @@ function CareerSection({ userId }: { userId: string }) {
         <Property
           icon={creditCardIcon}
           name="Стаж"
-          value={user.workExperience}
+          value={user.workExperience?.toString() || "?"}
         />
 
         <Property icon={externalIcon} name="Карьерный рост" />
@@ -517,7 +572,7 @@ function UserAvatarLink({ userId }: { userId: string }) {
       }}
     >
       <div className="rounded-photo overflow-hidden">
-        <Picture width="210px" height="210px" url={user.photoURL} />
+        <Picture width="210px" height="210px" url={user.photo || undefined} />
       </div>
       <div className="text-center mt-[16px]">{fullNameShort(user)}</div>
     </button>
@@ -526,10 +581,20 @@ function UserAvatarLink({ userId }: { userId: string }) {
 
 function TeamSection({ userId }: { userId: string }) {
   const [showBosses, setShowBosses] = useState(false);
+  const { data: users } = useFetchUsers();
   const { user } = useFetchUser(userId);
-  if (!user) return;
+  if (!user || !users) return;
 
-  const data = showBosses ? user.bosses : user.colleagues;
+  const data = showBosses
+    ? user.bossId === null
+      ? []
+      : [user.bossId]
+    : [
+        ...[...users.values()]
+          .filter((u) => u.bossId === user.id || u.unit === user.unit)
+          .map((u) => u.id),
+      ];
+
   return (
     <section>
       <SectionTitle title="Команда" />
@@ -562,7 +627,7 @@ function LinkGallery({
   width,
   height,
 }: {
-  links: LinkWithPicture[];
+  links: { title: string; url: string; pictureURL: string }[];
   width: string;
   height: string;
 }) {
@@ -578,6 +643,7 @@ function LinkGallery({
   );
 }
 
+/*
 function CommunityWorkSection({ userId }: { userId: string }) {
   const { user } = useFetchUser(userId);
   if (!user) return;
@@ -585,10 +651,11 @@ function CommunityWorkSection({ userId }: { userId: string }) {
   return (
     <section>
       <SectionTitle title="Общественная работа" />
-      <LinkGallery width="240px" height="240px" links={user.communityWork} />
+      <LinkGallery width="240px" height="240px" links={{user.communityWork}} />
     </section>
   );
 }
+*/
 
 function AwardsSection({ userId }: { userId: string }) {
   const { user } = useFetchUser(userId);
@@ -597,19 +664,51 @@ function AwardsSection({ userId }: { userId: string }) {
   return (
     <section>
       <SectionTitle title="Награды" />
-      <LinkGallery width="270px" height="240px" links={user.awards} />
+      <LinkGallery
+        width="270px"
+        height="240px"
+        links={user.awards.map((award) => ({
+          title: award.title,
+          pictureURL: award.image || "",
+          url: "",
+        }))}
+      />
     </section>
   );
 }
 
-function AboutMeSection({ userId }: { userId: string }) {
-  const { user } = useFetchUser(userId);
-  if (!user) return;
+function AboutMeSection({ user }: { user: User }) {
+  const auth = useAuth();
+  const [text, setText] = useState(user.about);
+  const [editing, setEditing] = useState(false);
 
   return (
-    <section>
-      <SectionTitle title="Обо мне" />
-      <p>{user.about}</p>
+    <section className="relative">
+      <SectionTitle editable={false} title="Обо мне" />
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          updateUser(auth.token, auth.username, { ...user, about: text });
+          setEditing(false);
+        }}
+      >
+        <div className="absolute top-0 right-0">
+          <EditControls
+            editing={editing}
+            edit={() => setEditing(true)}
+            reset={() => {
+              setEditing(false);
+              setText(user.about);
+            }}
+          />
+        </div>
+        <textarea
+          disabled={!editing}
+          value={text}
+          className="w-full"
+          onChange={(event) => setText(event.target.value)}
+        />
+      </form>
     </section>
   );
 }
@@ -664,18 +763,20 @@ export default function UserProfile({ userId }: { userId: string }) {
         <>
           <ProfileCard user={user} editable={user.id == auth.userId} />
           <SectionSep />
+          <AboutMeSection user={user} />
+          <SectionSep />
         </>
       )}
-      <AboutMeSection userId={userId} />
-      <SectionSep />
       <EducationSection userId={userId} />
       <SectionSep />
       <CareerSection userId={userId} />
       <SectionSep />
       <TeamSection userId={userId} />
       <SectionSep />
+      {/*
       <CommunityWorkSection userId={userId} />
       <SectionSep />
+      */}
       <AwardsSection userId={userId} />
       <SectionSep />
       <FeedbackSection userId={userId} />

@@ -31,7 +31,7 @@ function PageFeed() {
   return <NewsFeed />;
 }
 
-function OrgStructPage({ unitId }: { unitId: string | null }) {
+function OrgStructPage({ unitId }: { unitId: number | null }) {
   useEffect(() => {
     document.title = "Орг. структура | КП";
   }, []);

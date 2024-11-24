@@ -1,6 +1,10 @@
-function filetype(filename: string): string | undefined {
+function extention(filename: string): string | undefined {
   const parts = filename.split(".");
-  const ext = parts[parts.length - 1];
+  return parts[parts.length - 1];
+}
+
+function filetype(filename: string): string | undefined {
+  const ext = extention(filename);
   if (ext === "doc" || ext === "docx") {
     return "word";
   }
@@ -16,11 +20,12 @@ export default function FileAttachment({
   filename: string;
   url: string;
 }) {
+  const ext = extention(filename);
   const ft = filetype(filename);
   const color = ft ? `text-${ft}` : "";
   return (
     <a href={url} className={`underline ${color}`}>
-      {filename}
+      Приложение.{ext}
     </a>
   );
 }

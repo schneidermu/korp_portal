@@ -1,136 +1,170 @@
 import useSWR, { mutate } from "swr";
 
-import { User } from "../types";
+import { User, UserStatus } from "../types";
 
-import { urlBasename } from "../util";
 import { tokenFetch, useTokenFetcher } from "../auth/slice";
 
 import { produce } from "immer";
 
-type UserInfo = {
-  average_rating: number;
-  birth_date: string;
-  chief: string | null;
-  class_rank: string;
-  email: string;
-  surname: string;
-  name: string;
-  patronym: string | null;
-  id: string;
-  job_title: string;
-  organization: string;
-  status: string;
-  structural_division: string;
-  team: { id: string }[];
-  telephone_number: string;
+type UserData = {
+  id: string; // UUID
+  email: string | null;
   username: string;
+  surname: string | null;
+  name: string | null;
+  patronym: string | null;
+  status: UserStatus | null;
+  birth_date: string | null;
+  telephone_number: string | null;
+  job_title: string | null;
+  class_rank: string | null;
+  chief: string | null; // UUID
+  structural_division: number | null;
+  organization: string | null;
+  average_rating: number | null;
   characteristic: {
-    about: string;
-    avatar: string;
+    experience: number | null;
+    about: string | null;
+    competences: { name: string }[];
+    avatar: string | null; // URI
     careers: {
-      id: number;
+      name: string;
       year_start: number;
-      year_finish?: number;
-      name: string;
-    }[];
-    competences: {
-      id: number;
-      name: string;
-    }[];
-    courses: {
-      year: number;
-      file: string;
-      id: number;
-      name: string;
-    }[];
-    experience: number;
-    rewards: {
-      file: string;
-      id: number;
-      name: string;
-    }[];
-    trainings: {
-      file: string;
-      id: number;
-      name: string;
+      month_start: number | null;
+      year_finish: number | null;
+      month_finish: number | null;
     }[];
     universitys: {
-      year: number;
-      file: string;
-      id: number;
       name: string;
-      faculty: string;
+      faculty: string | null;
+      year: number | null;
+      month: number | null;
+      file: string | null; // URI
+    }[];
+    courses: {
+      name: string;
+      year: number | null;
+      month: number | null;
+      file: string | null; // URI
+    }[];
+    rewards: {
+      name: string;
+      file: string | null; // URI
+    }[];
+    trainings: {
+      name: string;
+      file: string | null; // URI
     }[];
   };
 };
 
-const transformUser = (info: UserInfo): User => {
-  const user: User = {
-    id: info.id,
-    username: info.username,
-    lastName: info.surname,
-    firstName: info.name,
-    patronym: info.patronym,
-    email: info.email,
-    status: info.status,
-    dateOfBirth: info.birth_date,
-    phone: info.telephone_number,
-    position: info.job_title,
-    serviceRank: info.class_rank,
-    structuralUnit: info.structural_division,
-    territorialBody: info.organization,
-    about: "",
-    skills: "",
-    career: [],
-    workExperience: "",
-    professionalDevelopments: [],
-    photoURL: "",
-    higherEducation: [],
-    courses: [],
-    communityWork: [],
-    awards: [],
-    colleagues: info.team.map(({ id }) => id),
-    bosses: info.chief ? [info.chief] : [],
-  };
-  const char = info.characteristic;
-  if (!char) {
-    return user;
-  }
+const toUser = (data: UserData): User => {
+  const char = data.characteristic;
   return {
-    ...user,
-    about: char.about,
+    id: data.id,
+    email: data.username + "@voda.gov.ru",
+    username: data.username,
+    lastName: data.surname || "?",
+    firstName: data.name || "?",
+    patronym: data.patronym,
+    status: data.status || "На рабочем месте",
+    dateOfBirth: data.birth_date,
+    phoneNumber: data.telephone_number || "",
+    workExperience: char.experience,
+    about: char.about || "",
     skills: char.competences[0]?.name || "",
-    career: char.careers.map((career) => {
-      return {
-        period: `${career.year_start} — ${career.year_finish || "н. вр."}`,
-        position: career.name,
-      };
-    }),
-    // TODO: склонения
-    workExperience: `${char.experience} лет`,
-    professionalDevelopments: char.trainings.map((training) => ({
-      name: training.name,
-      certificate: urlBasename(training.file),
-      certificateURL: training.file,
+    photo: char.avatar,
+    position: data.job_title || "",
+    serviceRank: data.class_rank || "",
+    bossId: data.chief,
+    unit:
+      data.structural_division === null
+        ? null
+        : {
+            id: data.structural_division,
+            name: data.structural_division.toString(),
+          },
+    organization:
+      data.organization === null
+        ? null
+        : {
+            id: 9999,
+            name: data.organization,
+          },
+    career: char.careers.map((c) => ({
+      position: c.name,
+      year_start: c.year_start,
+      month_start: c.month_start,
+      year_leave: c.year_finish,
+      month_leave: c.month_finish,
     })),
-    photoURL: char.avatar,
-    higherEducation: char.universitys.map((uni) => ({
-      year: uni.year,
-      university: uni.name,
-      major: uni.faculty,
+    training: char.trainings.map((t) => ({ name: t.name, attachment: t.file })),
+    education: char.universitys.map((u) => ({
+      year: u.year || 9999,
+      university: u.name,
+      major: u.faculty || "?",
     })),
-    courses: char.courses.map((course) => ({
-      year: course.year,
-      name: course.name,
-      certificate: urlBasename(course.file),
-      certificateURL: course.file,
+    courses: char.courses.map((c) => ({
+      year: c.year || 9999,
+      name: c.name,
+      attachment: c.file,
     })),
-    awards: char.rewards.map((award) => ({
-      title: award.name,
-      // TODO
-      url: "/",
-      pictureURL: award.file,
-    })),
+    communityWork: [],
+    awards: char.rewards.map((r) => ({ title: r.name, image: r.file || "" })),
+  };
+};
+
+const fromUser = (user: User): UserData => {
+  return {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    surname: user.lastName,
+    name: user.firstName,
+    patronym: user.patronym,
+    status: user.status,
+    birth_date: user.dateOfBirth,
+    telephone_number: user.phoneNumber,
+    job_title: user.position,
+    class_rank: user.serviceRank,
+    chief: user.bossId,
+    structural_division: user.unit && user.unit.id,
+    organization: user.organization && user.organization.name,
+    average_rating: null,
+    characteristic: {
+      experience: user.workExperience,
+      about: user.about,
+      competences: user.skills === null ? [] : [{ name: user.skills }],
+      avatar: user.photo,
+      careers: user.career.map((c) => ({
+        name: c.position,
+        year_start: c.year_start,
+        month_start: c.month_start,
+        year_finish: c.year_leave,
+        month_finish: c.month_leave,
+      })),
+      universitys: user.education.map((e) => ({
+        name: e.university,
+        faculty: e.major,
+        year: e.year,
+        month: null,
+        file: null,
+      })),
+      courses: user.courses.map((c) => ({
+        name: c.name,
+        year: c.year,
+        month: null,
+        file: c.attachment,
+      })),
+      rewards: user.awards.map((a) => ({
+        name: a.title,
+        file: a.image,
+      })),
+      trainings: user.training.map((t) => ({
+        name: t.name,
+        file: t.attachment,
+      })),
+    },
   };
 };
 
@@ -140,14 +174,8 @@ export const useFetchUsers = () => {
   return useSWR("/colleagues/", async (path: string) =>
     tokenFetcher(path)
       .then((res) => res.json())
-      .then((usersInfo) => {
-        const users = new Map<string, User>();
-        for (const info of usersInfo) {
-          const user = transformUser(info);
-          users.set(user.id, user);
-        }
-        return users;
-      }),
+      .then((usersData: UserData[]) => usersData.map(toUser))
+      .then((users: User[]) => new Map(users.map((user) => [user.id, user]))),
   );
 };
 
@@ -163,21 +191,24 @@ export const useFetchUser = (userId: string) => {
   return { user, isLoading, error };
 };
 
+type Partial2<T> = {
+  [P in keyof T]?: T[P] extends object ? Partial<T[P]> : T[P];
+};
+
 export const updateUser = async (
   token: string,
   username: string,
   diff: Partial<User>,
 ) => {
-  const data: Partial<UserInfo> = {
+  const data: Partial<UserData> = {
     status: diff.status,
     birth_date: diff.dateOfBirth,
-    telephone_number: diff.phone,
+    telephone_number: diff.phoneNumber,
     email: diff.email,
     job_title: diff.position,
     class_rank: diff.serviceRank,
-    structural_division: diff.structuralUnit,
-    // structural_division: "Отдел регулирования режимов работы водохранилищ",
-    organization: diff.territorialBody,
+    structural_division: diff.unit?.id,
+    organization: diff.organization?.name,
   };
   return tokenFetch(token, `/colleagues/${username}/`, {
     method: "PATCH",
@@ -187,15 +218,15 @@ export const updateUser = async (
     body: JSON.stringify(data),
   })
     .then((res) => res.json())
-    .then((userInfo) => {
-      console.log({ userInfo });
+    .then((userData) => {
+      console.log({ userData });
       return mutate(
         `/colleagues/`,
         (users: Map<string, User> | undefined) => {
           console.log("users are", { users });
           if (users === undefined) return undefined;
           console.log("here");
-          const user = transformUser(userInfo);
+          const user = toUser(userData);
           console.log("user is", { user });
           return produce(users, (draft) => {
             console.log("set to", { user });

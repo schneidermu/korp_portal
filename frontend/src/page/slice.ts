@@ -15,7 +15,7 @@ export type FeedPage = {
 
 export type OrgStructPage = {
   type: "org_struct";
-  unitId: string | null;
+  unitId: number | null;
 };
 
 export type PageState = ProfilePage | FeedPage | OrgStructPage;
@@ -39,7 +39,7 @@ export const pageSlice = createSlice({
     }),
     viewOrgStruct: (
       _,
-      { payload }: PayloadAction<{ unitId: string | null }>,
+      { payload }: PayloadAction<{ unitId: number | null }>,
     ) => ({
       type: "org_struct",
       unitId: payload.unitId,

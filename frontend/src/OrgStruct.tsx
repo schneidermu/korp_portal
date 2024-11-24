@@ -5,7 +5,7 @@ import { ProfileCard } from "./UserProfile";
 import { useFetchUser, useFetchUsers } from "./users/api";
 import { fullNameLong } from "./util";
 
-export default function OrgStruct({ unitId }: { unitId: string | null }) {
+export default function OrgStruct({ unitId }: { unitId: number | null }) {
   const defaultUserId = useUserId();
   const { user } = useFetchUser(defaultUserId);
   const { data: users } = useFetchUsers();
@@ -14,7 +14,9 @@ export default function OrgStruct({ unitId }: { unitId: string | null }) {
     return;
   }
 
-  unitId ||= user.structuralUnit;
+  if (unitId === null) {
+    unitId = user.unit && user.unit.id;
+  }
   const sortedUsers = [...users.values()];
   sortedUsers.sort((u1, u2) => {
     const n1 = fullNameLong(u1);
@@ -29,7 +31,7 @@ export default function OrgStruct({ unitId }: { unitId: string | null }) {
   });
   const selectedUsers: User[] = [];
   for (const user of sortedUsers) {
-    if (user.structuralUnit === unitId) {
+    if (user.unit === unitId) {
       selectedUsers.push(user);
     }
   }
