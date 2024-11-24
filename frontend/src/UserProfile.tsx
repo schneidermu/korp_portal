@@ -34,7 +34,7 @@ import { useAuth } from "./auth/slice";
 import FileAttachment from "./FileAttachment";
 import { pageSlice } from "./page/slice";
 import { useAppDispatch } from "./store";
-import { updateUser, useFetchUser, useFetchUsers } from "./users/api";
+import { updateUser, useFetchColleagues, useFetchUser } from "./users/api";
 import { fullNameLong, fullNameShort, MonomorphFields } from "./util";
 
 function SectionSep() {
@@ -579,21 +579,11 @@ function UserAvatarLink({ userId }: { userId: string }) {
   );
 }
 
-function TeamSection({ userId }: { userId: string }) {
+function TeamSection({ user }: { user: User }) {
   const [showBosses, setShowBosses] = useState(false);
-  const { data: users } = useFetchUsers();
-  const { user } = useFetchUser(userId);
-  if (!user || !users) return;
 
-  const data = showBosses
-    ? user.bossId === null
-      ? []
-      : [user.bossId]
-    : [
-        ...[...users.values()]
-          .filter((u) => u.bossId === user.id || u.unit === user.unit)
-          .map((u) => u.id),
-      ];
+  const colleagues = useFetchColleagues(user);
+  if (colleagues === undefined) return;
 
   return (
     <section>
@@ -601,22 +591,27 @@ function TeamSection({ userId }: { userId: string }) {
       <div className="flex gap-[60px]">
         <ViewButton
           active={!showBosses}
-          text="Мой отдел"
+          text="Мои коллеги"
           onClick={() => setShowBosses(false)}
         />
         <ViewButton
           active={showBosses}
-          text="Мои руководители"
+          text="Мой руководитель"
           onClick={() => setShowBosses(true)}
         />
       </div>
       <div className="mt-[48px] pb-[36px] flex gap-[70px] overflow-y-auto">
-        {data.map(
-          (colleagueId) =>
-            colleagueId !== userId && (
-              <UserAvatarLink key={colleagueId} userId={colleagueId} />
-            ),
-        )}
+        {showBosses
+          ? user.bossId !== null && (
+              <UserAvatarLink key={user.bossId} userId={user.bossId} />
+            )
+          : [...colleagues.keys()].map(
+              (colleagueId) =>
+                colleagueId !== user.id &&
+                colleagueId !== user.bossId && (
+                  <UserAvatarLink key={colleagueId} userId={colleagueId} />
+                ),
+            )}
       </div>
     </section>
   );
@@ -771,8 +766,12 @@ export default function UserProfile({ userId }: { userId: string }) {
       <SectionSep />
       <CareerSection userId={userId} />
       <SectionSep />
-      <TeamSection userId={userId} />
-      <SectionSep />
+      {user !== null && (
+        <>
+          <TeamSection user={user} />
+          <SectionSep />
+        </>
+      )}
       {/*
       <CommunityWorkSection userId={userId} />
       <SectionSep />

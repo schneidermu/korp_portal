@@ -5,6 +5,7 @@ import { User, UserStatus } from "../types";
 import { tokenFetch, useTokenFetcher } from "../auth/slice";
 
 import { produce } from "immer";
+import { fullNameLong } from "../util";
 
 type UserData = {
   id: string; // UUID
@@ -177,6 +178,55 @@ export const useFetchUsers = () => {
       .then((usersData: UserData[]) => usersData.map(toUser))
       .then((users: User[]) => new Map(users.map((user) => [user.id, user]))),
   );
+};
+
+export const cmpUsers = (u1: User, u2: User): -1 | 0 | 1 => {
+  const n1 = fullNameLong(u1);
+  const n2 = fullNameLong(u2);
+  if (n1 < n2) return -1;
+  if (n1 > n2) return +1;
+  if (u1.id < u2.id) return -1;
+  if (u1.id > u2.id) return +1;
+  return 0;
+};
+
+export const useFetchUsersSubset = ({
+  unitId,
+  bossId,
+}: {
+  unitId?: number;
+  bossId?: string;
+}) => {
+  const tokenFetcher = useTokenFetcher();
+
+  const query = [];
+  if (unitId !== undefined) query.push(`structural_division__id=${unitId}`);
+  if (bossId !== undefined) query.push(`chief__id=${bossId}`);
+  // TODO: return {data: undefined}
+
+  const uri = "/colleagues/?" + query.join("&");
+  const key = query.length === 0 ? null : uri;
+
+  return useSWR(key, async (path: string) =>
+    tokenFetcher(path)
+      .then((res) => res.json())
+      .then((usersData: UserData[]) => {
+        const users = usersData.map(toUser);
+        users.sort(cmpUsers);
+        return users;
+      }),
+  );
+};
+
+export const useFetchColleagues = (
+  user: User,
+): Map<string, User> | undefined => {
+  const s1 = useFetchUsersSubset({ unitId: user.unit?.id });
+  const s2 = useFetchUsersSubset({ bossId: user.id });
+  const s = [...(s1?.data || []), ...(s2?.data || [])];
+  if (s.length === 0) return;
+  s.sort(cmpUsers);
+  return new Map(s.map((user) => [user.id, user]));
 };
 
 export const useFetchUser = (userId: string) => {
