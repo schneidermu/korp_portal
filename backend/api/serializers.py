@@ -364,6 +364,7 @@ class ProfileSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = Employee
         fields = (
+            "is_superuser",
             "email",
             "structural_division",
             "id",
@@ -384,6 +385,11 @@ class ProfileSerializer(UserSerializer):
             "supervizor",
             "team",
         )
+        extra_kwargs = {
+            "is_superuser": {
+                "read_only": True
+            }
+        }
 
     def get_supervizor(self, object):
         supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
