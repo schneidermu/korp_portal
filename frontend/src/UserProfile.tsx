@@ -211,8 +211,8 @@ function PropertySelect({
 }: {
   editing: boolean;
   value?: string;
-  options: string[];
-  handleSelect: (value: string) => void;
+  options?: [string, string][];
+  handleSelect: (value: string, text: string) => void;
 }) {
   return (
     <select
@@ -223,14 +223,15 @@ function PropertySelect({
         editing && "border-opacity-100",
       )}
       value={value}
-      onChange={(e) => handleChange(e.target.value)}
+      onChange={(e) => handleChange(e.target.value, e.target.textContent || "")}
       disabled={!editing}
     >
-      {options.map((option) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
+      {options &&
+        options.map(([value, text]) => (
+          <option key={value} value={value}>
+            {text}
+          </option>
+        ))}
     </select>
   );
 }
@@ -364,11 +365,16 @@ export function ProfileCard({
                 <PropertySelect
                   editing={editing}
                   value={userState.unit?.id.toString()}
-                  options={["1", "2", "3"]}
-                  handleSelect={(value: string) => {
+                  // TODO: fetch units
+                  options={
+                    userState.unit
+                      ? [[userState.unit.id.toString(), userState.unit.name]]
+                      : undefined
+                  }
+                  handleSelect={(unitId: string, name: string) => {
                     setUserState({
                       ...userState,
-                      unit: { id: Number(value), name: value },
+                      unit: { id: Number(unitId), name },
                     });
                   }}
                 />

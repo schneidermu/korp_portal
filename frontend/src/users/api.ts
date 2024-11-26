@@ -20,7 +20,7 @@ type UserData = {
   job_title: string | null;
   class_rank: string | null;
   chief: string | null; // UUID
-  structural_division: number | null;
+  structural_division: null | { id: number; name: string };
   organization: string | null;
   average_rating: number | null;
   characteristic: {
@@ -78,13 +78,7 @@ const toUser = (data: UserData): User => {
     position: data.job_title || "",
     serviceRank: data.class_rank || "",
     bossId: data.chief,
-    unit:
-      data.structural_division === null
-        ? null
-        : {
-            id: data.structural_division,
-            name: data.structural_division.toString(),
-          },
+    unit: data.structural_division,
     organization:
       data.organization === null
         ? null
@@ -129,7 +123,7 @@ const fromUser = (user: User): UserData => {
     job_title: user.position,
     class_rank: user.serviceRank,
     chief: user.bossId,
-    structural_division: user.unit && user.unit.id,
+    structural_division: user.unit,
     organization: user.organization && user.organization.name,
     average_rating: null,
     characteristic: {
@@ -257,7 +251,7 @@ export const updateUser = async (
     email: diff.email,
     job_title: diff.position,
     class_rank: diff.serviceRank,
-    structural_division: diff.unit?.id,
+    structural_division: diff.unit,
     organization: diff.organization?.name,
   };
   return tokenFetch(token, `/colleagues/${username}/`, {
