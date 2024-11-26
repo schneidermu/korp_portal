@@ -363,7 +363,7 @@ export function ProfileCard({
                 handleClick={editing ? undefined : viewUnit}
               >
                 <PropertySelect
-                  editing={editing}
+                  editing={auth.isAdmin && editing}
                   value={userState.unit?.id.toString()}
                   // TODO: fetch units
                   options={

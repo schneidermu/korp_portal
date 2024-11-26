@@ -25,9 +25,19 @@ export const useLogin = () => {
           },
         })
           .then((res) => res.json())
-          .then(({ id: userId }: { id: string }) => {
-            dispatch(authSlice.actions.login({ userId, username, token }));
-          });
+          .then(
+            ({
+              id: userId,
+              is_superuser: isAdmin,
+            }: {
+              id: string;
+              is_superuser: boolean;
+            }) => {
+              dispatch(
+                authSlice.actions.login({ userId, username, token, isAdmin }),
+              );
+            },
+          );
       });
   }, [dispatch]);
 };

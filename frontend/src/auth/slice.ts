@@ -8,6 +8,7 @@ export interface AuthState {
   userId: string;
   username: string;
   token: string;
+  isAdmin: boolean;
   isLoggedIn: boolean;
 }
 
@@ -15,6 +16,7 @@ const initialState: AuthState = {
   userId: "",
   username: "",
   token: "",
+  isAdmin: false,
   isLoggedIn: false,
 };
 
@@ -26,7 +28,12 @@ export const authSlice = createSlice({
       _,
       {
         payload,
-      }: PayloadAction<{ userId: string; username: string; token: string }>,
+      }: PayloadAction<{
+        userId: string;
+        username: string;
+        token: string;
+        isAdmin: boolean;
+      }>,
     ) => {
       return {
         ...payload,

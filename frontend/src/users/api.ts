@@ -11,6 +11,7 @@ type UserData = {
   id: string; // UUID
   email: string | null;
   username: string;
+  is_superuser: boolean;
   surname: string | null;
   name: string | null;
   patronym: string | null;
@@ -65,6 +66,7 @@ const toUser = (data: UserData): User => {
     id: data.id,
     email: data.username + "@voda.gov.ru",
     username: data.username,
+    isAdmin: data.is_superuser,
     lastName: data.surname || "?",
     firstName: data.name || "?",
     patronym: data.patronym,
@@ -114,6 +116,7 @@ const fromUser = (user: User): UserData => {
     id: user.id,
     email: user.email,
     username: user.username,
+    is_superuser: user.isAdmin,
     surname: user.lastName,
     name: user.firstName,
     patronym: user.patronym,
