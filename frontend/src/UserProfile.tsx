@@ -284,7 +284,6 @@ export function ProfileCard({
     name,
     icon,
     field,
-    canEdit = true,
     type = "text",
     pattern,
     handleClick,
@@ -292,7 +291,6 @@ export function ProfileCard({
     name: string;
     icon: string;
     field: MonomorphFields<User, string | null>;
-    canEdit?: boolean;
     type?: string;
     pattern?: string;
     handleClick?: () => void;
@@ -306,7 +304,7 @@ export function ProfileCard({
       <PropertyInput
         type={type}
         pattern={pattern}
-        editing={canEdit && editing}
+        editing={editable && editing}
         value={userState[field] || ""}
         handleChange={changeField(field)}
       />
