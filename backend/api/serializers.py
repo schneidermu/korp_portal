@@ -6,6 +6,8 @@ from rest_framework.validators import UniqueValidator
 from homepage.models import Poll, News, Choice, Attachment
 from homepage.constants import CHARFIELD_LENGTH
 from employees.models import University, Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating, Organization, StructuralSubdivision, Diploma
+from drf_extra_fields.fields import Base64ImageField
+
 
 ATTRIBUTE_MODEL = (
     ("courses", Course),
@@ -26,12 +28,15 @@ ATTRIBUTE_MODEL = (
 class AttachmentSerializer(serializers.ModelSerializer):
     '''Сериализатор картинки'''
 
+    image = Base64ImageField()
+
     class Meta:
         model = Attachment
 
         fields = (
             "image",
         )
+
 
 class ChoiceSerializer(serializers.ModelSerializer):
     '''Сериализатор варианта ответа'''
@@ -181,7 +186,7 @@ class VoteDeleteSerializer(serializers.Serializer):
 class NewsSerializer(serializers.ModelSerializer):
     '''Сериализатор для новостей'''
 
-    attachments = AttachmentSerializer(many=True)
+    attachments = AttachmentSerializer(many=True, required=False)
 
     class Meta:
         model = News
@@ -193,6 +198,20 @@ class NewsSerializer(serializers.ModelSerializer):
             'video',
             'organization'
         )
+        optional_fields = (
+            'attachments',
+            'video',
+            'organization'
+        )
+
+    @transaction.atomic
+    def create(self, validated_data):
+        attachments_data = validated_data.pop('attachments', [])
+        news = News.objects.create(**validated_data)
+        for attachment_data in attachments_data:
+            Attachment.objects.create(publication=news, **attachment_data)
+        return news
+
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -340,11 +359,12 @@ class ProfileSerializer(UserSerializer):
     team = serializers.SerializerMethodField(
         read_only=True
     )
-    structural_division = StructuralSubdivisionInProfileSerializer
+    structural_division = StructuralSubdivisionInProfileSerializer()
 
     class Meta(UserSerializer.Meta):
         model = Employee
         fields = (
+            "is_superuser",
             "email",
             "structural_division",
             "id",
@@ -365,6 +385,11 @@ class ProfileSerializer(UserSerializer):
             "supervizor",
             "team",
         )
+        extra_kwargs = {
+            "is_superuser": {
+                "read_only": True
+            }
+        }
 
     def get_supervizor(self, object):
         supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
