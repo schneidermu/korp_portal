@@ -12,6 +12,7 @@ from drf_extra_fields.fields import Base64ImageField
 ATTRIBUTE_MODEL = (
     ("courses", Course),
     ("competences", Competence),
+    ("careers", Career),
     ("trainings", Training),
     ("hobbys", Hobby),
     ("rewards", Reward),
@@ -359,7 +360,9 @@ class ProfileSerializer(UserSerializer):
     team = serializers.SerializerMethodField(
         read_only=True
     )
-    structural_division = StructuralSubdivisionInProfileSerializer()
+    structural_division = StructuralSubdivisionInProfileSerializer(
+        read_only=True
+    )
 
     class Meta(UserSerializer.Meta):
         model = Employee
