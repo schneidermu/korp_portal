@@ -13,4 +13,5 @@ db_container=$1
 {
   cat database/sql/django-dummy.sql
   database/bin/gen-django-dummy-seq.sh
+  database/bin/gen_news.py
 } | docker exec -i "$db_container" psql -U "${POSTGRES_USER_DJANGO}" -d "${POSTGRES_DB_DJANGO}"

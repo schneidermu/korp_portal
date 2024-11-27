@@ -233,13 +233,3 @@ COPY public.homepage_choice (id, choice_text, poll_id) FROM stdin;
 
 COPY public.homepage_choice_voted (id, choice_id, employee_id) FROM stdin;
 \.
-
-
-COPY public.homepage_news (id, is_published, created_at, pub_date, title, text, video) FROM stdin;
-1	t	2024-05-29 10:00:00	2024-05-29 12:00:00	Росводресурсы отпраздновали Дни Дона и Волги	Росводресурсы отпраздновали Дни Дона и Волги	\N
-\.
-
-
-COPY public.homepage_news_organization (id, news_id, organization_id) FROM stdin;
-1	1	1
-\.
