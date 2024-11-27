@@ -12,6 +12,7 @@ from drf_extra_fields.fields import Base64ImageField
 ATTRIBUTE_MODEL = (
     ("courses", Course),
     ("competences", Competence),
+    ("careers", Career),
     ("trainings", Training),
     ("hobbys", Hobby),
     ("rewards", Reward),
