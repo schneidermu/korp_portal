@@ -22,6 +22,7 @@ export default {
       "dark-gray": "#8C8C8C",
       word: "#2F80ED",
       excel: "#5AC75C",
+      date: "#2F80ED",
     },
     borderRadius: {
       none: "0",
