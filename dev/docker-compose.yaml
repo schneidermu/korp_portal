@@ -59,7 +59,7 @@ services:
   gateway:
     image: nginx:1.22.1-alpine
     volumes:
-      - ./gateway/nginx.conf:/etc/nginx/templates/default.conf.template
+      - ./nginx:/etc/nginx/conf.d
       - static:/static
       - ./volumes/media:/media
     ports:
