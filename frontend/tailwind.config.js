@@ -23,6 +23,7 @@ export default {
       word: "#2F80ED",
       excel: "#5AC75C",
       date: "#2F80ED",
+      "nav-link": "#004199",
     },
     borderRadius: {
       none: "0",
