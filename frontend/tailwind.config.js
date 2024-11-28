@@ -24,6 +24,7 @@ export default {
       excel: "#5AC75C",
       date: "#2F80ED",
       "nav-link": "#004199",
+      modal: "#d9d9d97a",
     },
     borderRadius: {
       none: "0",
