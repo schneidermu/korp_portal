@@ -36,6 +36,7 @@ import { pageSlice } from "./page/slice";
 import { useAppDispatch } from "./store";
 import { updateUser, useFetchColleagues, useFetchUser } from "./users/api";
 import { fullNameLong, fullNameShort, MonomorphFields } from "./util";
+import { useOrganization } from "./org/api";
 
 function SectionSep() {
   return (
@@ -245,6 +246,8 @@ export function ProfileCard({
 }) {
   const dispatch = useAppDispatch();
   const auth = useAuth();
+  // TODO: get id
+  const { data: org } = useOrganization(1);
 
   const [editing, setEditing] = useState(false);
   const [userState, setUserState] = useState(user);
@@ -363,11 +366,12 @@ export function ProfileCard({
                 <PropertySelect
                   editing={auth.isAdmin && editing}
                   value={userState.unit?.id.toString()}
-                  // TODO: fetch units
                   options={
-                    userState.unit
-                      ? [[userState.unit.id.toString(), userState.unit.name]]
-                      : undefined
+                    org
+                      ? org.units.map(({ id, name }) => [id.toString(), name])
+                      : userState.unit
+                        ? [[userState.unit.id.toString(), userState.unit.name]]
+                        : undefined
                   }
                   handleSelect={(unitId: string, name: string) => {
                     setUserState({
