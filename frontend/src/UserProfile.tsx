@@ -25,6 +25,7 @@ import personIcon from "/person.svg";
 import phoneIcon from "/phone.svg";
 import pinIcon from "/pin.svg";
 import starIcon from "/star.svg";
+import starFillIcon from "/star-fill.svg";
 import upArrowIcon from "/up-arrow.svg";
 
 import { User } from "./types";
@@ -724,22 +725,18 @@ function FeedbackSection({ userId: _ }: { userId: string }) {
     else setMark(i);
   };
   const stars = [...Array(5)].map((_, i) => {
-    const bg =
-      ((mark !== undefined && hoverMark === undefined && i <= mark) ||
-        (hoverMark !== undefined && i <= hoverMark)) &&
-      "bg-light-blue";
+    const icon =
+      (mark !== undefined && hoverMark === undefined && i <= mark) ||
+      (hoverMark !== undefined && i <= hoverMark)
+        ? starFillIcon
+        : starIcon;
     return (
       <button
         key={i}
         onClick={() => onClick(i)}
         onMouseEnter={() => setHoverMark(i)}
       >
-        <img
-          style={{ width: "52px", height: "52px" }}
-          src={starIcon}
-          alt=""
-          className={clsx(bg)}
-        />
+        <img style={{ width: "52px", height: "52px" }} src={icon} alt="" />
       </button>
     );
   });
