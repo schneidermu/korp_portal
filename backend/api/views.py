@@ -87,7 +87,7 @@ class NewsViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
 
     filterset_fields = (
-        'organization__name',
+        'organization__id',
     )
 
     permission_classes = (IsAdminUserOrReadOnly,)
@@ -102,8 +102,6 @@ class NewsViewSet(viewsets.ModelViewSet):
 class ColleagueProfileViewset(UserViewSet):
     """Вьюсет для профиля"""
 
-    lookup_field = 'username'
-
     permission_classes = (IsUserOrReadOnly,)
     queryset = Employee.objects.all()
 
@@ -112,6 +110,7 @@ class ColleagueProfileViewset(UserViewSet):
         'structural_division__name',
         'structural_division__id',
         'chief__id',
+        'organization__id',
     )
 
     def get_serializer_class(self):
