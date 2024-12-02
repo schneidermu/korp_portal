@@ -23,7 +23,7 @@ class PollViewset(viewsets.ModelViewSet):
     queryset = Poll.objects.filter(
         is_published=True,
         pub_date__lte=datetime.now()
-    )
+    ).order_by('-pub_date')
     serializer_class = PollSerializer
     permission_classes = (IsAuthenticated, IsAdminUserOrReadOnly,)
     pagination_class = PageNumberPagination
@@ -94,7 +94,7 @@ class NewsViewSet(viewsets.ModelViewSet):
     queryset = News.objects.filter(
         is_published=True,
         pub_date__lte=datetime.now()
-    )
+    ).order_by('-pub_date')
     serializer_class = NewsSerializer
     pagination_class = PageNumberPagination
 
