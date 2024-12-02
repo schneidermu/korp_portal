@@ -25,7 +25,7 @@ class PollViewset(viewsets.ModelViewSet):
         pub_date__lte=datetime.now()
     )
     serializer_class = PollSerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsAdminUserOrReadOnly,)
     pagination_class = PageNumberPagination
 
     @staticmethod
@@ -90,7 +90,7 @@ class NewsViewSet(viewsets.ModelViewSet):
         'organization__id',
     )
 
-    permission_classes = (IsAdminUserOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsAdminUserOrReadOnly,)
     queryset = News.objects.filter(
         is_published=True,
         pub_date__lte=datetime.now()
@@ -102,7 +102,7 @@ class NewsViewSet(viewsets.ModelViewSet):
 class ColleagueProfileViewset(UserViewSet):
     """Вьюсет для профиля"""
 
-    permission_classes = (IsUserOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsUserOrReadOnly,)
     queryset = Employee.objects.all()
 
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
@@ -181,7 +181,7 @@ class OrgStructureViewset(
     '''Вьюсет для орг. структуры'''
 
     serializer_class = OrgStructureSerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsAdminUserOrReadOnly,)
     queryset = Employee.objects.all()
 
 
@@ -189,7 +189,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     '''Вьюсет для организаций для страницы Орг. структуры'''
 
     serializer_class = OrganizationSerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsAdminUserOrReadOnly,)
     queryset = Organization.objects.all()
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = (
