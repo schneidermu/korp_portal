@@ -111,6 +111,14 @@ class Employee(AbstractUser):
         null=True,
     )
 
+    avatar = models.ImageField(
+        verbose_name='Аватар',
+        upload_to='employees/avatars/',
+        null=True,
+        blank=True,
+        default=None
+    )
+
     @property
     def average_rating(self):
         return self.rated.all().aggregate(Avg('rate'))['rate__avg']
@@ -245,14 +253,6 @@ class Characteristic(models.Model):
 #        blank=True,
 #        null=True,
 #    )
-
-    avatar = models.ImageField(
-        verbose_name='Аватар',
-        upload_to='employees/avatars/',
-        null=True,
-        blank=True,
-        default=None
-    )
 
     # Курсы через class Course
 

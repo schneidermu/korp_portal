@@ -12,6 +12,7 @@ from drf_extra_fields.fields import Base64ImageField
 ATTRIBUTE_MODEL = (
     ("courses", Course),
     ("competences", Competence),
+    ("careers", Career),
     ("trainings", Training),
     ("hobbys", Hobby),
     ("rewards", Reward),
@@ -78,7 +79,14 @@ class PollSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Poll
-        fields = ("id", "question_text", "choices", "is_anonymous", "is_multiple_choice")
+        fields = (
+            "id",
+            "question_text",
+            "choices",
+            "is_anonymous",
+            "is_multiple_choice",
+            "pub_date",
+        )
         extra_kwargs = {
             "id": {
                 "read_only": True
@@ -86,6 +94,9 @@ class PollSerializer(serializers.ModelSerializer):
             "question_text": {
                 "required": True
             },
+            "pub_date": {
+                "required": False
+            }
         }
 
     @transaction.atomic
@@ -196,12 +207,14 @@ class NewsSerializer(serializers.ModelSerializer):
             'text',
             'attachments',
             'video',
-            'organization'
+            'organization',
+            'pub_date',
         )
         optional_fields = (
             'attachments',
             'video',
-            'organization'
+            'organization',
+            'pub_date',
         )
 
     @transaction.atomic
@@ -359,7 +372,9 @@ class ProfileSerializer(UserSerializer):
     team = serializers.SerializerMethodField(
         read_only=True
     )
-    structural_division = StructuralSubdivisionInProfileSerializer()
+    structural_division = StructuralSubdivisionInProfileSerializer(
+        read_only=True
+    )
 
     class Meta(UserSerializer.Meta):
         model = Employee
