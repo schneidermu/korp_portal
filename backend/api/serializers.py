@@ -79,7 +79,14 @@ class PollSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Poll
-        fields = ("id", "question_text", "choices", "is_anonymous", "is_multiple_choice")
+        fields = (
+            "id",
+            "question_text",
+            "choices",
+            "is_anonymous",
+            "is_multiple_choice",
+            "pub_date",
+        )
         extra_kwargs = {
             "id": {
                 "read_only": True
@@ -87,6 +94,9 @@ class PollSerializer(serializers.ModelSerializer):
             "question_text": {
                 "required": True
             },
+            "pub_date": {
+                "required": False
+            }
         }
 
     @transaction.atomic
@@ -197,12 +207,14 @@ class NewsSerializer(serializers.ModelSerializer):
             'text',
             'attachments',
             'video',
-            'organization'
+            'organization',
+            'pub_date',
         )
         optional_fields = (
             'attachments',
             'video',
-            'organization'
+            'organization',
+            'pub_date',
         )
 
     @transaction.atomic
