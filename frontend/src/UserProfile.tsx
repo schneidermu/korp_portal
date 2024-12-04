@@ -37,7 +37,6 @@ import { pageSlice } from "./page/slice";
 import { useAppDispatch } from "./store";
 import { updateUser, useFetchColleagues, useFetchUser } from "./users/api";
 import { fullNameLong, fullNameShort, MonomorphFields } from "./util";
-import { useOrganization } from "./org/api";
 
 function SectionSep() {
   return (
@@ -145,16 +144,18 @@ function EditControls({
 function EditableProperty({
   icon,
   name,
+  wrap = false,
   handleClick,
   children,
 }: {
   icon: string;
   name: string;
+  wrap?: boolean;
   handleClick?: () => void;
   children: ReactNode;
 }) {
   return (
-    <div className="flex items-center">
+    <div className={clsx("h-fit", wrap || "flex")}>
       <img
         style={{ width: "30px", height: "30px" }}
         src={icon}
@@ -163,7 +164,8 @@ function EditableProperty({
       />
       <span
         className={clsx(
-          "border-b-[1px] border-blue border-opacity-0 shrink-0 mr-[10px] text-dark-gray",
+          "inline-block",
+          "border-b-[1px] mb-[-1px] border-blue border-opacity-0 shrink-0 mr-[10px] text-dark-gray",
           handleClick && "hover:underline cursor-pointer",
         )}
         onClick={handleClick}
@@ -193,7 +195,7 @@ function PropertyInput({
       type={type}
       pattern={pattern}
       className={clsx(
-        "min-w-0 py-1 border-b-[1px]",
+        "min-w-0 border-b-[1px] mb-[-1px]",
         "outline-none border-opacity-0 border-blue",
         "valid:border-excel invalid:border-[#f00]",
         editing && "border-opacity-100",
@@ -247,8 +249,6 @@ export function ProfileCard({
 }) {
   const dispatch = useAppDispatch();
   const auth = useAuth();
-  // TODO: get id
-  const { data: org } = useOrganization(1);
 
   const [editing, setEditing] = useState(false);
   const [userState, setUserState] = useState(user);
@@ -350,39 +350,13 @@ export function ProfileCard({
             />
           )}
         </div>
-        <div className="grow"></div>
-        <div className="grid grid-flow-col grid-rows-[repeat(5,58px)] grid-cols-2 items-center">
+        <div
+          className={clsx(
+            "grid grid-flow-col grid-rows-5 grid-cols-2",
+            "gap-y-[1.2em] gap-x-[1em]",
+          )}
+        >
           {[
-            <div key="organization" className="col-span-2">
-              <EditableProperty icon={pinIcon} name="Организация">
-                <span>{userState.organization?.name}</span>
-              </EditableProperty>
-            </div>,
-            <div key="unit" className="col-span-2">
-              <EditableProperty
-                icon={peopleIcon}
-                name="Подразделение"
-                handleClick={editing ? undefined : viewUnit}
-              >
-                <PropertySelect
-                  editing={auth.isAdmin && editing}
-                  value={userState.unit?.id.toString()}
-                  options={
-                    org
-                      ? org.units.map(({ id, name }) => [id.toString(), name])
-                      : userState.unit
-                        ? [[userState.unit.id.toString(), userState.unit.name]]
-                        : undefined
-                  }
-                  handleSelect={(unitId: string, name: string) => {
-                    setUserState({
-                      ...userState,
-                      unit: { id: Number(unitId), name },
-                    });
-                  }}
-                />
-              </EditableProperty>
-            </div>,
             field({
               field: "status",
               name: "Статус",
@@ -418,6 +392,23 @@ export function ProfileCard({
               icon: awardIcon,
             }),
           ]}
+          <Property
+            key="organization"
+            name="Организация"
+            icon={pinIcon}
+            value={userState.organization?.name}
+          />
+          <div className="row-span-3">
+            <EditableProperty
+              key="unit"
+              name="Структурное подразделение"
+              icon={peopleIcon}
+              wrap
+              handleClick={editing ? undefined : viewUnit}
+            >
+              {userState.unit?.name}
+            </EditableProperty>
+          </div>
         </div>
       </form>
     </section>
