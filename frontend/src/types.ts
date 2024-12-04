@@ -1,9 +1,12 @@
-export type UserStatus =
-  | "В командировке"
-  | "В отпуске"
-  | "На больничном"
-  | "На рабочем месте"
-  | "Нет на месте";
+export const USER_STATUS = [
+  "В командировке",
+  "В отпуске",
+  "На больничном",
+  "На рабочем месте",
+  "Нет на месте",
+] as const;
+
+export type UserStatus = (typeof USER_STATUS)[number];
 
 export type User = {
   id: string;

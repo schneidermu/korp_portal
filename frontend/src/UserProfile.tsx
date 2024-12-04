@@ -28,7 +28,7 @@ import starIcon from "/star.svg";
 import starFillIcon from "/star-fill.svg";
 import upArrowIcon from "/up-arrow.svg";
 
-import { User } from "./types";
+import { User, USER_STATUS, UserStatus } from "./types";
 
 import { useDispatch } from "react-redux";
 import { useAuth } from "./auth/slice";
@@ -221,7 +221,7 @@ function PropertySelect({
   return (
     <select
       className={clsx(
-        "w-full px-2 py-1 border-b-[1px]",
+        "w-full px-2 border-b-[1px] mb-[-1px]",
         "outline-none border-opacity-0 border-blue",
         "valid:border-excel",
         editing && "border-opacity-100",
@@ -356,12 +356,17 @@ export function ProfileCard({
             "gap-y-[1.2em] gap-x-[1em]",
           )}
         >
+          <EditableProperty key="status" name="Статус" icon={brightnessIcon}>
+            <PropertySelect
+              editing={editable && editing}
+              value={userState.status}
+              options={USER_STATUS.map((status) => [status, status])}
+              handleSelect={(value) => {
+                setUserState({ ...user, status: value as UserStatus });
+              }}
+            ></PropertySelect>
+          </EditableProperty>
           {[
-            field({
-              field: "status",
-              name: "Статус",
-              icon: brightnessIcon,
-            }),
             field({
               field: "dateOfBirth",
               name: "Дата рождения",
