@@ -1,3 +1,4 @@
+import { LOCALE } from "./const";
 import { User } from "./types";
 
 export function urlBasename(url: string): string {
@@ -28,3 +29,11 @@ export function fullNameLong(user: User): string {
 export type MonomorphFields<T, V> = {
   [K in keyof T]: T[K] extends V ? K : never;
 }[keyof T];
+
+export const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat(LOCALE, {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date);

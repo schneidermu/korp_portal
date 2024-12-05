@@ -1,7 +1,8 @@
 import useSWRInfinite from "swr/infinite";
 import { Paged } from "../common/types";
+import { NEWS_PAGE_LIMIT } from "../const";
 import { Post } from "./types";
-import { fetcher } from "../auth/slice";
+import { useTokenFetcher } from "../auth/slice";
 
 interface PostData {
   id: number;
@@ -12,6 +13,7 @@ interface PostData {
   }[];
   video: string | null; // URI
   organization: number[];
+  pub_date: string; // date
 }
 
 const toPost = (data: PostData): Post => ({
@@ -21,13 +23,19 @@ const toPost = (data: PostData): Post => ({
   images: data.attachments.map((a) => a.image),
   video: data.video,
   organizations: data.organization,
+  publishedAt: new Date(data.pub_date),
 });
 
 export const useNews = () => {
+  const fetcher = useTokenFetcher();
+
+  const limit = NEWS_PAGE_LIMIT;
+
   const getKey = (index: number, prevPage: Paged<PostData>) => {
-    if (index === 0) return "/news/";
+    if (index === 0) return `/news/?limit=${limit}`;
     if (prevPage && prevPage.next === null) return null;
-    return `/news/?page=${index + 1}`;
+    const offset = limit * index;
+    return `/news/?limit=${limit}&offset=${offset}`;
   };
 
   const {

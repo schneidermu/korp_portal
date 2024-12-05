@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Gallery from "./Gallery";
 import { useNews } from "./news/api";
 import { Post } from "./news/types";
+import { formatDate } from "./util";
 
 const useReachBottom = (handleBottom: () => void) => {
   useEffect(() => {
@@ -41,8 +42,8 @@ const NewsPost = ({
         <a className="grow cursor-pointer" onClick={showFull}>
           <h2>{post.title}</h2>
         </a>
-        <time className="text-date" dateTime="2024-11-31">
-          31 ноября 2024
+        <time className="text-date" dateTime={post.publishedAt.toString()}>
+          {formatDate(post.publishedAt)}
         </time>
       </div>
       {full && <div className="mt-[56px] mb-[90px]">{post.text}</div>}

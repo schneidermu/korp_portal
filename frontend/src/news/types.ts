@@ -5,4 +5,5 @@ export interface Post {
   images: string[]; // URIs
   video: string | null; // URI
   organizations: number[];
+  publishedAt: Date;
 }
