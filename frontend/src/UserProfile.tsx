@@ -565,15 +565,14 @@ function ViewButton(props: {
   );
 }
 
-function UserAvatarLink({ userId }: { userId: string }) {
+function UserAvatarLink({ user }: { user: User }) {
   const dispatch = useDispatch();
-  const { user } = useFetchUser(userId);
-  if (!user) return;
+
   return (
     <button
       className="shrink-0 hover:underline"
       onClick={() => {
-        dispatch(pageSlice.actions.viewProfile({ userId }));
+        dispatch(pageSlice.actions.viewProfile({ userId: user.id }));
       }}
     >
       <div className="rounded-photo overflow-hidden">
@@ -588,6 +587,7 @@ function TeamSection({ user }: { user: User }) {
   const [showBosses, setShowBosses] = useState(false);
 
   const colleagues = useFetchColleagues(user);
+  const { user: boss } = useFetchUser(user.bossId);
   if (colleagues === undefined) return;
 
   return (
@@ -607,14 +607,15 @@ function TeamSection({ user }: { user: User }) {
       </div>
       <div className="mt-[48px] pb-[36px] flex gap-[70px] overflow-y-auto">
         {showBosses
-          ? user.bossId !== null && (
-              <UserAvatarLink key={user.bossId} userId={user.bossId} />
+          ? boss &&
+            user.bossId !== null && (
+              <UserAvatarLink key={user.bossId} user={boss} />
             )
-          : [...colleagues.keys()].map(
-              (colleagueId) =>
-                colleagueId !== user.id &&
-                colleagueId !== user.bossId && (
-                  <UserAvatarLink key={colleagueId} userId={colleagueId} />
+          : [...colleagues.values()].map(
+              (colleague) =>
+                colleague.id !== user.id &&
+                colleague.id !== user.bossId && (
+                  <UserAvatarLink key={colleague.id} user={colleague} />
                 ),
             )}
       </div>
@@ -755,7 +756,7 @@ export default function UserProfile({ userId }: { userId: string }) {
 
   return (
     <div className="mr-[36px] ml-[64px] pb-[155px]">
-      {user !== null && (
+      {user !== undefined && (
         <>
           <ProfileCard user={user} editable={user.id == auth.userId} />
           <SectionSep />
@@ -767,7 +768,7 @@ export default function UserProfile({ userId }: { userId: string }) {
       <SectionSep />
       <CareerSection userId={userId} />
       <SectionSep />
-      {user !== null && (
+      {user !== undefined && (
         <>
           <TeamSection user={user} />
           <SectionSep />

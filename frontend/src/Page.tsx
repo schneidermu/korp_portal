@@ -7,9 +7,8 @@ import { usePage } from "./page/slice";
 import UserProfile from "./UserProfile";
 import { useFetchUser } from "./users/api";
 
-function PageProfile({ userId }: { userId: string | null }) {
+function PageProfile({ userId }: { userId: string }) {
   const auth = useAuth();
-  userId ||= auth.userId;
   const { user } = useFetchUser(userId);
 
   useEffect(() => {

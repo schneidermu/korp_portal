@@ -19,7 +19,7 @@ export const useLogin = () => {
     })
       .then((res) => res.json())
       .then(({ auth_token: token }: { auth_token: string }) => {
-        fetch(`${API_BASE_URL}/colleagues/${username}`, {
+        fetch(`${API_BASE_URL}/colleagues/me/`, {
           headers: {
             Authorization: "Token " + token,
           },

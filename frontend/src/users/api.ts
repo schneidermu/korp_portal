@@ -210,6 +210,9 @@ export const useFetchUsersSubset = ({
       .then((usersData: UserData[]) => {
         const users = usersData.map(toUser);
         users.sort(cmpUsers);
+        for (const user of users.values()) {
+          mutate(`/colleagues/${user.id}/`, user, { revalidate: false });
+        }
         return users;
       }),
   );
@@ -226,16 +229,24 @@ export const useFetchColleagues = (
   return new Map(s.map((user) => [user.id, user]));
 };
 
-export const useFetchUser = (userId: string) => {
-  const { data: users, isLoading, error } = useFetchUsers();
+export const useFetchUser = (userId: string | null) => {
+  const tokenFetcher = useTokenFetcher();
 
-  if (error) throw error;
+  const { data, ...rest } = useSWR<User>(
+    userId === null ? null : `/colleagues/${userId}/`,
+    async (path: string) =>
+      tokenFetcher(path)
+        .then((data) => data.json())
+        .then((data) => {
+          console.log("user data", { path, data });
+          return toUser(data);
+        }),
+  );
 
-  const user = users?.get(userId) || null;
-
-  // console.log({ users, userId, user, error, isLoading });
-
-  return { user, isLoading, error };
+  return {
+    user: data,
+    ...rest,
+  };
 };
 
 type Partial2<T> = {

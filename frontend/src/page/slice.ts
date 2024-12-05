@@ -6,7 +6,7 @@ import { useAppSelector } from "../store";
 
 export type ProfilePage = {
   type: "profile";
-  userId: string | null;
+  userId: string;
 };
 
 export type FeedPage = {
@@ -22,7 +22,7 @@ export type PageState = ProfilePage | FeedPage | OrgStructPage;
 
 const initialState: PageState = {
   type: "profile",
-  userId: "",
+  userId: "me",
 } as PageState;
 
 export const pageSlice = createSlice({
@@ -30,10 +30,7 @@ export const pageSlice = createSlice({
   initialState,
   reducers: {
     viewFeed: () => ({ type: "feed" }) as FeedPage,
-    viewProfile: (
-      _,
-      { payload }: PayloadAction<{ userId: string | null }>,
-    ) => ({
+    viewProfile: (_, { payload }: PayloadAction<{ userId: string }>) => ({
       type: "profile",
       userId: payload.userId,
     }),

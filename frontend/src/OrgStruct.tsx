@@ -1,11 +1,9 @@
 import clsx from "clsx";
-import { useUserId } from "./auth/slice";
 import { ProfileCard } from "./UserProfile";
 import { useFetchUser, useFetchUsersSubset } from "./users/api";
 
 export default function OrgStruct({ unitId }: { unitId: number | null }) {
-  const defaultUserId = useUserId();
-  const { user } = useFetchUser(defaultUserId);
+  const { user } = useFetchUser("me");
   const unitUsers = useFetchUsersSubset({ unitId: unitId || user?.unit?.id });
 
   if (

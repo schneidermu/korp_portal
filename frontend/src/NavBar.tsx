@@ -85,7 +85,7 @@ export default function NavBar() {
       <button
         className="hover:underline mx-[120px]"
         onClick={() => {
-          dispatch(pageSlice.actions.viewProfile({ userId: null }));
+          dispatch(pageSlice.actions.viewProfile({ userId: "me" }));
         }}
       >
         Мой профиль
