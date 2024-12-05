@@ -24,11 +24,11 @@ type UserData = {
   structural_division: null | { id: number; name: string };
   organization: string | null;
   average_rating: number | null;
+  avatar: string | null; // URI
   characteristic: {
     experience: number | null;
     about: string | null;
     competences: { name: string }[];
-    avatar: string | null; // URI
     careers: {
       name: string;
       year_start: number;
@@ -76,7 +76,7 @@ const toUser = (data: UserData): User => {
     workExperience: char.experience,
     about: char.about || "",
     skills: char.competences[0]?.name || "",
-    photo: char.avatar,
+    photo: data.avatar,
     position: data.job_title || "",
     serviceRank: data.class_rank || "",
     bossId: data.chief,
@@ -129,11 +129,11 @@ const fromUser = (user: User): UserData => {
     structural_division: user.unit,
     organization: user.organization && user.organization.name,
     average_rating: null,
+    avatar: user.photo,
     characteristic: {
       experience: user.workExperience,
       about: user.about,
       competences: user.skills === null ? [] : [{ name: user.skills }],
-      avatar: user.photo,
       careers: user.career.map((c) => ({
         name: c.position,
         year_start: c.year_start,
