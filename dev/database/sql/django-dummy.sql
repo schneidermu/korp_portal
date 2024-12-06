@@ -214,22 +214,5 @@ COPY public.employees_victory (id, name, characteristic_id, file) FROM stdin;
 COPY public.employees_volunteer (id, name, characteristic_id, file) FROM stdin;
 \.
 
-COPY public.homepage_poll (id, is_published, is_anonymous, is_multiple_choice, created_at, pub_date, question_text) FROM stdin;
-1	t	f	f	2024-05-26 10:00:00	2024-05-26 12:00:00	Куда поедете отдыхать в отпуск?
-2	t	f	t	2024-05-27 10:00:00	2024-05-27 12:00:00	Какой социальной сетью вы пользуетесь?
-\.
-
-COPY public.homepage_choice (id, choice_text, poll_id) FROM stdin;
-1	На море	1
-2	Не поеду	1
-3	На дачу	1
-4	Останусь дома	1
-5	ВКонтакте	2
-6	Одноклассники	2
-7	Twitter	2
-8	Facebook	2
-\.
-
-
 COPY public.homepage_choice_voted (id, choice_id, employee_id) FROM stdin;
 \.
