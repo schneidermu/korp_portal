@@ -1,7 +1,7 @@
 import clsx from "clsx/lite";
 import { useEffect } from "react";
 import { useAuth } from "./auth/slice";
-import Feed from "./NewsFeed";
+import Feed from "./Feed";
 import OrgStruct from "./OrgStruct";
 import { usePage } from "./page/slice";
 import UserProfile from "./UserProfile";

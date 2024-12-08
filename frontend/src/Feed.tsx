@@ -2,8 +2,8 @@ import clsx from "clsx";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import Gallery from "./Gallery";
-import { useFeed } from "./news/api";
-import * as types from "./news/types";
+import { useFeed } from "./feed/api";
+import * as types from "./feed/types";
 import { formatDate } from "./util";
 import pollCoverImg from "/poll-cover.png";
 
