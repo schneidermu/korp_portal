@@ -1,12 +1,13 @@
 import clsx from "clsx";
 import { AnimatePresence } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Gallery from "./Gallery";
-import { useNews } from "./news/api";
-import { Post } from "./news/types";
+import { useFeed } from "./news/api";
+import * as types from "./news/types";
 import { formatDate } from "./util";
+import pollCoverImg from "/poll-cover.png";
 
-const useReachBottom = (handleBottom: () => void) => {
+const useReachBottom = (handleBottom: () => boolean) => {
   useEffect(() => {
     function handleScroll() {
       const windowHeight = window.innerHeight;
@@ -14,8 +15,9 @@ const useReachBottom = (handleBottom: () => void) => {
       const scrollTop = window.scrollY;
 
       if (windowHeight + scrollTop >= documentHeight - 200) {
-        handleBottom();
-        window.removeEventListener("scroll", handleScroll);
+        if (handleBottom()) {
+          window.removeEventListener("scroll", handleScroll);
+        }
       }
     }
 
@@ -26,27 +28,17 @@ const useReachBottom = (handleBottom: () => void) => {
   }, [handleBottom]);
 };
 
-const NewsPost = ({
-  post,
+const NewsContent = ({
+  news,
   full = false,
-  showFull,
 }: {
-  post: Post;
+  news: types.News;
   full?: boolean;
-  showFull?: () => void;
 }) => {
-  const images = full ? post.images : post.images.slice(0, 2);
+  const images = full ? news.images : news.images.slice(0, 2);
   return (
-    <div className="mt-[60px] mx-[65px] mb-[50px]">
-      <div className="flex mb-[36px]">
-        <a className="grow cursor-pointer" onClick={showFull}>
-          <h2>{post.title}</h2>
-        </a>
-        <time className="text-date" dateTime={post.publishedAt.toString()}>
-          {formatDate(post.publishedAt)}
-        </time>
-      </div>
-      {full && <div className="mt-[56px] mb-[90px]">{post.text}</div>}
+    <div className="mt-[36px]">
+      {full && <div className="mt-[56px] mb-[90px]">{news.text}</div>}
       <div className="grid grid-cols-2 gap-[20px]">
         {images.map((src, i) => (
           <img key={i} className="w-full h-[400px] object-cover" src={src} />
@@ -56,14 +48,88 @@ const NewsPost = ({
   );
 };
 
+const PollContent = ({ poll }: { poll: types.Poll; full: boolean }) => {
+  const [choiceId, setChoiceId] = useState<number | null>(null);
+
+  const choices = (
+    <div className="grow text-[32px] flex flex-col justify-around">
+      {poll.choices.map((choice) => (
+        <label
+          key={choice.id}
+          className="select-none flex items-center gap-[28px]"
+        >
+          <span
+            className={clsx(
+              "flex shrink-0 w-[28px] h-[28px] items-center justify-center rounded-full",
+              choiceId === choice.id
+                ? "border-[2px] border-light-blue"
+                : "bg-radio-unchecked",
+            )}
+          >
+            <input
+              className={clsx(
+                "w-[16px] h-[16px] rounded-full appearance-none",
+                choiceId === choice.id && "bg-light-blue",
+              )}
+              name="choice"
+              type="radio"
+              key={choice.id}
+              onChange={() => setChoiceId(choice.id)}
+            />
+          </span>
+          {choice.text}
+        </label>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="grid grid-cols-2 mt-[24px]">
+      <div className="flex flex-col gap-[24px]">
+        <h3 className="text-[32px]">{poll.question}</h3>
+        {choices}
+      </div>
+      <img src={pollCoverImg} className="h-[362px] w-full object-cover" />
+    </div>
+  );
+};
+
+const Post = ({
+  post,
+  full = false,
+  handleOpen,
+}: {
+  post: types.Post;
+  full?: boolean;
+  handleOpen?: () => void;
+}) => {
+  return (
+    <article className="mt-[60px] mx-[65px] mb-[50px]">
+      <div className="flex">
+        <a className="grow cursor-pointer" onClick={handleOpen}>
+          <h2 className="text-[32px]">{post.title}</h2>
+        </a>
+        <time className="text-date" dateTime={post.publishedAt.toString()}>
+          {formatDate(post.publishedAt)}
+        </time>
+      </div>
+      {post.kind === "news" ? (
+        <NewsContent full={full} news={post} />
+      ) : (
+        <PollContent full={full} poll={post} />
+      )}
+    </article>
+  );
+};
+
 function Separator() {
   return (
     <hr className={clsx("border-[1px] border-medium-gray", "mx-[24px]")} />
   );
 }
 
-export default function NewsFeed() {
-  const { posts, allAreLoaded, size, setSize } = useNews();
+export default function Feed() {
+  const { data: posts, loadMore } = useFeed();
   const [overlayPost, setOverlayPost] = useState<number | null>(null);
 
   const refs = useRef<(HTMLDivElement | null)[]>(Array(posts?.length));
@@ -74,26 +140,21 @@ export default function NewsFeed() {
     }
   };
 
-  const loadNext = useMemo(
-    () => () => allAreLoaded || setSize(size + 1),
-    [posts?.length],
-  );
-
-  useReachBottom(loadNext);
+  useReachBottom(loadMore);
 
   if (!posts) return <div>Loading...</div>;
 
   return (
-    <div className="text-[32px]">
+    <div>
       {posts.map((post, i) => (
         <div
           ref={(elem) => {
             refs.current[i] = elem;
           }}
-          key={post.id}
+          key={`${post.kind}-${post.id}`}
         >
           {i > 0 && <Separator />}
-          <NewsPost post={post} showFull={() => setOverlayPost(i)} />
+          <Post post={post} handleOpen={() => setOverlayPost(i)} />
         </div>
       ))}
       <AnimatePresence>
@@ -113,7 +174,7 @@ export default function NewsFeed() {
               }
             }}
           >
-            <NewsPost post={posts[overlayPost]} full />
+            <Post full post={posts[overlayPost]} />
           </Gallery>
         )}
       </AnimatePresence>

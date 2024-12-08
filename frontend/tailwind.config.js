@@ -25,11 +25,13 @@ export default {
       date: "#2F80ED",
       "nav-link": "#004199",
       modal: "#d9d9d97a",
+      "radio-unchecked": "#d9d9d9",
     },
     borderRadius: {
       none: "0",
       photo: "5px",
       DEFAULT: "10px",
+      full: "9999px",
     },
     extend: {},
   },

@@ -1,7 +1,7 @@
 import clsx from "clsx/lite";
 import { useEffect } from "react";
 import { useAuth } from "./auth/slice";
-import NewsFeed from "./NewsFeed";
+import Feed from "./NewsFeed";
 import OrgStruct from "./OrgStruct";
 import { usePage } from "./page/slice";
 import UserProfile from "./UserProfile";
@@ -27,7 +27,7 @@ function PageFeed() {
     document.title = "Новости | КП";
   }, []);
 
-  return <NewsFeed />;
+  return <Feed />;
 }
 
 function OrgStructPage({ unitId }: { unitId: number | null }) {
