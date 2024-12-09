@@ -20,6 +20,7 @@ class EmployeeAdmin(UserAdmin):
                 'job_title',
                 'class_rank',
                 'status',
+                'avatar',
             )
         }),
     )
@@ -141,5 +142,9 @@ class RatingAdmin(admin.ModelAdmin):
 class StructuralSubdivisionAdmin(admin.ModelAdmin):
     pass
 
+
+@admin.register(Career)
+class CareerAdmin(admin.ModelAdmin):
+    pass
 
 #TODO: админка 
