@@ -15,7 +15,7 @@ export interface Poll {
   publishedAt: Date;
   title: "Опрос";
   question: string;
-  choices: { id: number; text: string }[];
+  choices: { id: number; text: string; voters: string[] }[];
   isAnonymous: boolean;
   isMultipleChoice: boolean;
 }

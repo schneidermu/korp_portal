@@ -2,10 +2,11 @@ import clsx from "clsx";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import Gallery from "./Gallery";
-import { useFeed } from "./feed/api";
+import { useFeed, useSendVote } from "./feed/api";
 import * as types from "./feed/types";
 import { formatDate } from "./util";
 import pollCoverImg from "/poll-cover.png";
+import { useAuth } from "./auth/slice";
 
 const useReachBottom = (handleBottom: () => boolean) => {
   useEffect(() => {
@@ -49,7 +50,52 @@ const NewsContent = ({
 };
 
 const PollContent = ({ poll }: { poll: types.Poll; full: boolean }) => {
-  const [choiceId, setChoiceId] = useState<number | null>(null);
+  const { username } = useAuth();
+  const sendVote = useSendVote();
+  const [choiceIds, setChoiceIds] = useState<Set<number> | undefined>();
+
+  useEffect(() => {
+    setChoiceIds(
+      new Set(
+        poll.choices
+          .filter(({ voters }) => voters.includes(username))
+          .map(({ id }) => id),
+      ),
+    );
+  }, [username, poll.choices]);
+
+  if (choiceIds === undefined) {
+    return;
+  }
+
+  const voteSingleChoice = (kind: "for" | "against", id: number) => {
+    const oldId: number | undefined = [...choiceIds.keys()][0];
+    if (kind === "for") {
+      setChoiceIds(new Set([id]));
+    } else {
+      setChoiceIds(new Set([]));
+    }
+    sendVote("against", poll.id, oldId)
+      .then(() => {
+        if (kind === "for") {
+          return sendVote(kind, poll.id, id);
+        }
+      })
+      .catch(() => {
+        setChoiceIds(choiceIds);
+      });
+  };
+
+  const voteMultipleChoice = (kind: "for" | "against", id: number) => {
+    const s = new Set([...choiceIds]);
+    if (kind === "for") {
+      s.add(id);
+    } else {
+      s.delete(id);
+    }
+    setChoiceIds(s);
+    sendVote(kind, poll.id, id).catch(() => setChoiceIds(choiceIds));
+  };
 
   const choices = (
     <div className="grow text-[32px] flex flex-col justify-around">
@@ -60,8 +106,9 @@ const PollContent = ({ poll }: { poll: types.Poll; full: boolean }) => {
         >
           <span
             className={clsx(
-              "flex shrink-0 w-[28px] h-[28px] items-center justify-center rounded-full",
-              choiceId === choice.id
+              "flex shrink-0 w-[28px] h-[28px] items-center justify-center",
+              poll.isMultipleChoice || "rounded-full",
+              choiceIds.has(choice.id)
                 ? "border-[2px] border-light-blue"
                 : "bg-radio-unchecked",
             )}
@@ -69,12 +116,20 @@ const PollContent = ({ poll }: { poll: types.Poll; full: boolean }) => {
             <input
               className={clsx(
                 "w-[16px] h-[16px] rounded-full appearance-none",
-                choiceId === choice.id && "bg-light-blue",
+                choiceIds.has(choice.id) && "bg-light-blue",
               )}
-              name="choice"
-              type="radio"
+              name={poll.isMultipleChoice ? `choice-${choice.id}` : "choice"}
+              type={poll.isMultipleChoice ? "checkbox" : "radio"}
               key={choice.id}
-              onChange={() => setChoiceId(choice.id)}
+              checked={choiceIds.has(choice.id)}
+              onChange={(event) => {
+                const kind = event.target.checked ? "for" : "against";
+                if (poll.isMultipleChoice) {
+                  voteMultipleChoice(kind, choice.id);
+                } else {
+                  voteSingleChoice(kind, choice.id);
+                }
+              }}
             />
           </span>
           {choice.text}

@@ -31,7 +31,7 @@ const toNews = (data: NewsData): News => ({
 interface PollData {
   id: number;
   question_text: string;
-  choices: { id: number; choice_text: string }[];
+  choices: { id: number; choice_text: string; who_voted: string[] }[];
   is_anonymous: boolean;
   is_multiple_choice: boolean;
   pub_date: string;
@@ -42,9 +42,10 @@ const toPoll = (data: PollData): Poll => ({
   title: "Опрос",
   id: data.id,
   question: data.question_text,
-  choices: data.choices.map(({ id, choice_text }) => ({
+  choices: data.choices.map(({ id, choice_text, who_voted }) => ({
     id,
     text: choice_text,
+    voters: who_voted,
   })),
   isAnonymous: data.is_anonymous,
   isMultipleChoice: data.is_multiple_choice,
@@ -129,4 +130,16 @@ export const useFeed = () => {
     allAreLoaded: news.allAreLoaded && polls.allAreLoaded,
     loadMore,
   };
+};
+
+export const useSendVote = () => {
+  const fetch = useTokenFetcher();
+  return (kind: "for" | "against", pollId: number, choiceId: number) =>
+    fetch("/polls/vote/", {
+      method: kind === "for" ? "POST" : "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ poll_id: pollId, choice_id: choiceId }),
+    });
 };
