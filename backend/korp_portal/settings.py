@@ -33,7 +33,7 @@ if os.getenv('ALLOWED_HOSTS', '') != '':
 
 CORS_URLS_REGEX = r'^/api/.*$'
 
-CORS_ALLOWED_ORIGIN_REGEXES = ['^http://localhost(:[0-9]+)?$']
+CORS_ALLOWED_ORIGIN_REGEXES = ['^http://([a-z0-9]+\.)*localhost(:[0-9]+)?$']
 
 CORS_ALLOWED_ORIGINS = []
 if os.getenv('ALLOWED_ORIGINS', '') != '':
