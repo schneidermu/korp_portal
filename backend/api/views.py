@@ -26,6 +26,11 @@ class PollViewset(viewsets.ModelViewSet):
     serializer_class = PollSerializer
     permission_classes = (IsAuthenticated, IsAdminUserOrReadOnly,)
 
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = (
+        'organization__id',
+    )
+
     @staticmethod
     def validate_poll(serializer_class, request):
         serializer = serializer_class(
