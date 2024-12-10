@@ -371,10 +371,7 @@ class ProfileSerializer(UserSerializer):
     '''Сериализатор для просмотра чужих страниц'''
 
     characteristic = CharacteristicSerializer(required=False)
-    organization = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name'
-    )
+
     supervizor = serializers.SerializerMethodField(
         read_only=True
     )
