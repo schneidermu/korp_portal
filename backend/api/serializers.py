@@ -66,6 +66,11 @@ class ChoiceSerializer(serializers.ModelSerializer):
             return 0
 
     def get_who_voted(self, obj):
+        if obj.poll.is_anonymous:
+            current_user = self.context['request'].user
+            return [
+                user.id for user in obj.voted.all() if current_user == user
+            ]
         return [user.id for user in obj.voted.all()]
 
 
