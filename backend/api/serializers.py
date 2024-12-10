@@ -66,7 +66,7 @@ class ChoiceSerializer(serializers.ModelSerializer):
             return 0
 
     def get_who_voted(self, obj):
-        return [user.username for user in obj.voted.all()]
+        return [user.id for user in obj.voted.all()]
 
 
 class PollSerializer(serializers.ModelSerializer):
