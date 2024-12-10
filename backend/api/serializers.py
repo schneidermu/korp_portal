@@ -90,6 +90,7 @@ class PollSerializer(serializers.ModelSerializer):
             "choices",
             "is_anonymous",
             "is_multiple_choice",
+            "organization",
             "pub_date",
         )
         extra_kwargs = {
@@ -100,6 +101,9 @@ class PollSerializer(serializers.ModelSerializer):
                 "required": True
             },
             "pub_date": {
+                "required": False
+            },
+            "organization": {
                 "required": False
             }
         }

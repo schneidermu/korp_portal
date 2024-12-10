@@ -95,6 +95,14 @@ class Poll(Published):
         default=False
     )
 
+    organization = models.ManyToManyField(
+        Organization,
+        verbose_name='Организация',
+        related_name='organization',
+        null=True,
+        default=None
+    )
+
     is_multiple_choice = models.BooleanField(
         'Несколько вариантов ответа',
         default=False
