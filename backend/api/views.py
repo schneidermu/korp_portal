@@ -63,24 +63,24 @@ class PollViewset(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED
             )
 
-    @transaction.atomic
-    @vote.mapping.delete
-    def unvote(self, request):
-
-        serializer = self.validate_poll(VoteDeleteSerializer, request)
-
-        choices = serializer.validated_data
-
-        for choice in choices:
-            choice.voted.remove(request.user)
-
-        return Response(
-            {
-                "message":
-                "Вы отменили свой голос"
-            },
-            status=status.HTTP_204_NO_CONTENT
-        )
+#    @transaction.atomic
+#    @vote.mapping.delete
+#    def unvote(self, request):
+#
+#        serializer = self.validate_poll(VoteDeleteSerializer, request)
+#
+#        choices = serializer.validated_data
+#
+#        for choice in choices:
+#            choice.voted.remove(request.user)
+#
+#        return Response(
+#            {
+#                "message":
+#                "Вы отменили свой голос"
+#            },
+#            status=status.HTTP_204_NO_CONTENT
+#        )
 
 
 class NewsViewSet(viewsets.ModelViewSet):
