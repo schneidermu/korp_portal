@@ -249,7 +249,7 @@ type Partial2<T> = {
 
 export const updateUser = async (
   token: string,
-  username: string,
+  userId: string,
   diff: Partial<User>,
 ) => {
   const data: Partial<UserData> = {
@@ -262,7 +262,7 @@ export const updateUser = async (
     structural_division: diff.unit,
     organization: diff.organization,
   };
-  return tokenFetch(token, `/colleagues/${username}/`, {
+  return tokenFetch(token, `/colleagues/${userId}/`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

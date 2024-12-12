@@ -267,7 +267,7 @@ export function ProfileCard({
     console.log("submit");
     event.preventDefault();
     if (editing) {
-      updateUser(auth.token, user.username, userState).catch(() =>
+      updateUser(auth.token, user.id, userState).catch(() =>
         setUserState(user),
       );
     }
@@ -689,7 +689,7 @@ function AboutMeSection({ user }: { user: User }) {
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          updateUser(auth.token, auth.username, { ...user, about: text });
+          updateUser(auth.token, auth.userId, { ...user, about: text });
           setEditing(false);
         }}
       >
