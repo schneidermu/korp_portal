@@ -22,7 +22,7 @@ type UserData = {
   class_rank: string | null;
   chief: string | null; // UUID
   structural_division: null | { id: number; name: string };
-  organization: string | null;
+  organization: null | { id: number; name: string };
   average_rating: number | null;
   avatar: string | null; // URI
   characteristic: {
@@ -81,13 +81,7 @@ const toUser = (data: UserData): User => {
     serviceRank: data.class_rank || "",
     bossId: data.chief,
     unit: data.structural_division,
-    organization:
-      data.organization === null
-        ? null
-        : {
-            id: 9999,
-            name: data.organization,
-          },
+    organization: data.organization,
     career: char.careers.map((c) => ({
       position: c.name,
       year_start: c.year_start,
@@ -127,7 +121,7 @@ const fromUser = (user: User): UserData => {
     class_rank: user.serviceRank,
     chief: user.bossId,
     structural_division: user.unit,
-    organization: user.organization && user.organization.name,
+    organization: user.organization,
     average_rating: null,
     avatar: user.photo,
     characteristic: {
@@ -266,7 +260,7 @@ export const updateUser = async (
     job_title: diff.position,
     class_rank: diff.serviceRank,
     structural_division: diff.unit,
-    organization: diff.organization?.name,
+    organization: diff.organization,
   };
   return tokenFetch(token, `/colleagues/${username}/`, {
     method: "PATCH",
