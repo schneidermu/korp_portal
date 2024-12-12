@@ -50,7 +50,7 @@ const NewsContent = ({
 };
 
 const PollContent = ({ poll }: { poll: types.Poll; full: boolean }) => {
-  const { username } = useAuth();
+  const { userId } = useAuth();
   const sendVote = useSendVote();
   const [choiceIds, setChoiceIds] = useState<Set<number> | undefined>();
 
@@ -58,11 +58,11 @@ const PollContent = ({ poll }: { poll: types.Poll; full: boolean }) => {
     setChoiceIds(
       new Set(
         poll.choices
-          .filter(({ voters }) => voters.includes(username))
+          .filter(({ voters }) => voters.includes(userId))
           .map(({ id }) => id),
       ),
     );
-  }, [username, poll.choices]);
+  }, [userId, poll.choices]);
 
   if (choiceIds === undefined) {
     return;
