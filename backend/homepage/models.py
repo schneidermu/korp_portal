@@ -47,7 +47,6 @@ class News(Published):
     organization = models.ManyToManyField(
         Organization,
         verbose_name='Организация',
-        related_name='organization',
         null=True,
         default=None
     )
@@ -93,6 +92,13 @@ class Poll(Published):
     is_anonymous = models.BooleanField(
         'Анонимный опрос',
         default=False
+    )
+
+    organization = models.ManyToManyField(
+        Organization,
+        verbose_name='Организация',
+        null=True,
+        default=None
     )
 
     is_multiple_choice = models.BooleanField(

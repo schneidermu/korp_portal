@@ -66,7 +66,12 @@ class ChoiceSerializer(serializers.ModelSerializer):
             return 0
 
     def get_who_voted(self, obj):
-        return [user.username for user in obj.voted.all()]
+        if obj.poll.is_anonymous:
+            current_user = self.context['request'].user
+            return [
+                user.id for user in obj.voted.all() if current_user == user
+            ]
+        return [user.id for user in obj.voted.all()]
 
 
 class PollSerializer(serializers.ModelSerializer):
@@ -85,6 +90,7 @@ class PollSerializer(serializers.ModelSerializer):
             "choices",
             "is_anonymous",
             "is_multiple_choice",
+            "organization",
             "pub_date",
         )
         extra_kwargs = {
@@ -95,6 +101,9 @@ class PollSerializer(serializers.ModelSerializer):
                 "required": True
             },
             "pub_date": {
+                "required": False
+            },
+            "organization": {
                 "required": False
             }
         }
@@ -358,14 +367,22 @@ class StructuralSubdivisionInProfileSerializer(serializers.ModelSerializer):
         )
 
 
+class OrganizationInProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Organization
+
+        fields = (
+            "id",
+            "name",
+        )
+
+
 class ProfileSerializer(UserSerializer):
     '''Сериализатор для просмотра чужих страниц'''
 
     characteristic = CharacteristicSerializer(required=False)
-    organization = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name'
-    )
+
     supervizor = serializers.SerializerMethodField(
         read_only=True
     )
@@ -373,6 +390,9 @@ class ProfileSerializer(UserSerializer):
         read_only=True
     )
     structural_division = StructuralSubdivisionInProfileSerializer(
+        read_only=True
+    )
+    organization = OrganizationInProfileSerializer(
         read_only=True
     )
 
@@ -387,6 +407,7 @@ class ProfileSerializer(UserSerializer):
             "name",
             "surname",
             "patronym",
+            "avatar",
             "chief",
             "birth_date",
             "email",
@@ -588,6 +609,7 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             "name",
             "surname",
             "patronym",
+            "avatar",
             "chief",
             "email",
             "telephone_number",
@@ -619,6 +641,7 @@ class ProfileInStrucureSerializer(serializers.ModelSerializer):
             "name",
             "surname",
             "patronym",
+            "avatar",
             "job_title",
             "class_rank",
             "status",
