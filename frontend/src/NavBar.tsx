@@ -54,7 +54,7 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
           <a
             className="hover:underline cursor-pointer"
             onClick={() => {
-              dispatch(pageSlice.actions.viewOrgStruct({ unitId: null }));
+              dispatch(pageSlice.actions.viewOrgStruct({ query: [] }));
               setShown(false);
             }}
           >

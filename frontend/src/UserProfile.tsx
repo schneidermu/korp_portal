@@ -281,7 +281,7 @@ export function ProfileCard({
   const viewUnit = () => {
     console.log("view unit");
     if (user.unit === null) return;
-    dispatch(pageSlice.actions.viewOrgStruct({ unitId: user.unit.id }));
+    dispatch(pageSlice.actions.viewOrgStruct({ query: [user.unit.name] }));
   };
 
   const field = ({

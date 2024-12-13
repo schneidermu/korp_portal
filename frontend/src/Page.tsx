@@ -1,5 +1,5 @@
 import clsx from "clsx/lite";
-import { useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 import { useAuth } from "./auth/slice";
 import Feed from "./Feed";
 import OrgStruct from "./OrgStruct";
@@ -30,12 +30,12 @@ function PageFeed() {
   return <Feed />;
 }
 
-function OrgStructPage({ unitId }: { unitId: number | null }) {
+function OrgStructPage({ query }: { query: string[] }) {
   useEffect(() => {
     document.title = "Орг. структура | КП";
   }, []);
 
-  return <OrgStruct unitId={unitId} />;
+  return <OrgStruct initialQuery={query} />;
 }
 
 export default function Page() {
@@ -53,7 +53,7 @@ export default function Page() {
       title = "Новости";
       break;
     case "org_struct":
-      elem = <OrgStructPage unitId={page.unitId} />;
+      elem = <OrgStructPage query={page.query} />;
       title = "Список сотрудников";
       break;
   }
@@ -61,6 +61,10 @@ export default function Page() {
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, [page]);
+
+  if (page.type === "org_struct") {
+    return elem;
+  }
 
   return (
     <main
@@ -83,3 +87,32 @@ export default function Page() {
     </main>
   );
 }
+
+export const PageSkel = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) => {
+  return (
+    <main
+      className={clsx(
+        "border-[3px] border-light-gray rounded",
+        "shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]",
+      )}
+    >
+      <h1
+        className={clsx(
+          "flex items-center",
+          "mb-[70px] h-[70px] pl-[45px]",
+          "bg-light-gray",
+          "text-[30px] font-medium",
+        )}
+      >
+        {title}
+      </h1>
+      {children}
+    </main>
+  );
+};
