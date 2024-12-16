@@ -433,7 +433,10 @@ class ProfileSerializer(UserSerializer):
         }
 
     def get_supervizor(self, object):
-        supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+        try:
+            supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+        except:
+            return None
 
         if not supervizor:
             return None
@@ -442,7 +445,10 @@ class ProfileSerializer(UserSerializer):
         }
 
     def get_team(self, object):
-        ids = object.structural_division.positions.values('id')
+        try:
+            ids = object.structural_division.positions.values('id')
+        except:
+            return []
         return ids
 
     def get_subordinates_count(self, obj):
@@ -627,7 +633,10 @@ class OrgStructureSerializer(serializers.ModelSerializer):
 
     def get_supervizor(self, object):
         if object:
-            supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+            try:
+                supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+            except:
+                return None
 
         if not supervizor:
             return None
