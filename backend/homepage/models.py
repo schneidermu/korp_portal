@@ -98,7 +98,8 @@ class Poll(Published):
         Organization,
         verbose_name='Организация',
         null=True,
-        default=None
+        blank=True,
+        default=None,
     )
 
     is_multiple_choice = models.BooleanField(
@@ -112,7 +113,6 @@ class Poll(Published):
     )
 
     pub_date = models.DateTimeField(
-        auto_now_add=True,
         verbose_name='Дата и время публикации',
         help_text=('Если установить дату и время в будущем'
                    ' — можно делать отложенные публикации.'),
