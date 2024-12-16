@@ -382,6 +382,10 @@ class ProfileSerializer(UserSerializer):
         read_only=True
     )
 
+    subordinates_count = serializers.SerializerMethodField(
+        read_only=True
+    )
+
     class Meta(UserSerializer.Meta):
         model = Employee
         fields = (
@@ -406,6 +410,7 @@ class ProfileSerializer(UserSerializer):
             "characteristic",
             "supervizor",
             "team",
+            "subordinates_count",
         )
         extra_kwargs = {
             "is_superuser": {
@@ -425,6 +430,9 @@ class ProfileSerializer(UserSerializer):
     def get_team(self, object):
         ids = object.structural_division.positions.values('id')
         return ids
+
+    def get_subordinates_count(self, obj):
+        return obj.subordinates.count()
 
     @staticmethod
     def add_related_fields(characteristic_update, characteristic, name, model_class):
