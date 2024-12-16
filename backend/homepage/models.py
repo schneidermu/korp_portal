@@ -47,7 +47,6 @@ class News(Published):
     organization = models.ManyToManyField(
         Organization,
         verbose_name='Организация',
-        related_name='organization',
         null=True,
         default=None
     )
@@ -98,7 +97,6 @@ class Poll(Published):
     organization = models.ManyToManyField(
         Organization,
         verbose_name='Организация',
-        related_name='organization',
         null=True,
         default=None
     )

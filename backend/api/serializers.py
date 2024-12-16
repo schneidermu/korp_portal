@@ -367,6 +367,17 @@ class StructuralSubdivisionInProfileSerializer(serializers.ModelSerializer):
         )
 
 
+class OrganizationInProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Organization
+
+        fields = (
+            "id",
+            "name",
+        )
+
+
 class ProfileSerializer(UserSerializer):
     '''Сериализатор для просмотра чужих страниц'''
 
@@ -379,6 +390,9 @@ class ProfileSerializer(UserSerializer):
         read_only=True
     )
     structural_division = StructuralSubdivisionInProfileSerializer(
+        read_only=True
+    )
+    organization = OrganizationInProfileSerializer(
         read_only=True
     )
 
