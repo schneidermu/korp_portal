@@ -156,9 +156,9 @@ class VoteCreateSerializer(serializers.Serializer):
             voted=user
         ).exists()
 
-        if already_voted and not poll.is_multiple_choice:
+        if already_voted:
             raise serializers.ValidationError(
-                {"error": "Нельзя выбрать несколько вариантов ответа"}
+                {"error": "Нельзя голосовать несколько раз"}
             )
 
         return data
