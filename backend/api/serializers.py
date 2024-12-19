@@ -156,9 +156,9 @@ class VoteCreateSerializer(serializers.Serializer):
             voted=user
         ).exists()
 
-        if already_voted and not poll.is_multiple_choice:
+        if already_voted:
             raise serializers.ValidationError(
-                {"error": "Нельзя выбрать несколько вариантов ответа"}
+                {"error": "Нельзя голосовать несколько раз"}
             )
 
         return data
@@ -396,6 +396,10 @@ class ProfileSerializer(UserSerializer):
         read_only=True
     )
 
+    subordinates_count = serializers.SerializerMethodField(
+        read_only=True
+    )
+
     class Meta(UserSerializer.Meta):
         model = Employee
         fields = (
@@ -420,6 +424,7 @@ class ProfileSerializer(UserSerializer):
             "characteristic",
             "supervizor",
             "team",
+            "subordinates_count",
         )
         extra_kwargs = {
             "is_superuser": {
@@ -428,7 +433,10 @@ class ProfileSerializer(UserSerializer):
         }
 
     def get_supervizor(self, object):
-        supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+        try:
+            supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+        except:
+            return None
 
         if not supervizor:
             return None
@@ -437,8 +445,14 @@ class ProfileSerializer(UserSerializer):
         }
 
     def get_team(self, object):
-        ids = object.structural_division.positions.values('id')
+        try:
+            ids = object.structural_division.positions.values('id')
+        except:
+            return []
         return ids
+
+    def get_subordinates_count(self, obj):
+        return obj.subordinates.count()
 
     @staticmethod
     def add_related_fields(characteristic_update, characteristic, name, model_class):
@@ -619,7 +633,10 @@ class OrgStructureSerializer(serializers.ModelSerializer):
 
     def get_supervizor(self, object):
         if object:
-            supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+            try:
+                supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+            except:
+                return None
 
         if not supervizor:
             return None
