@@ -25,7 +25,7 @@ type UserData = {
   organization: null | { id: number; name: string };
   average_rating: number | null;
   avatar: string | null; // URI
-  characteristic: {
+  characteristic: null | {
     experience: number | null;
     about: string | null;
     competences: { name: string }[];
@@ -73,35 +73,40 @@ const toUser = (data: UserData): User => {
     status: data.status || "На рабочем месте",
     dateOfBirth: data.birth_date,
     phoneNumber: data.telephone_number || "",
-    workExperience: char.experience,
-    about: char.about || "",
-    skills: char.competences[0]?.name || "",
+    workExperience: char?.experience || null,
+    about: char?.about || "",
+    skills: char?.competences[0]?.name || "",
     photo: data.avatar,
     position: data.job_title || "",
     serviceRank: data.class_rank || "",
     bossId: data.chief,
     unit: data.structural_division,
     organization: data.organization,
-    career: char.careers.map((c) => ({
-      position: c.name,
-      year_start: c.year_start,
-      month_start: c.month_start,
-      year_leave: c.year_finish,
-      month_leave: c.month_finish,
-    })),
-    training: char.trainings.map((t) => ({ name: t.name, attachment: t.file })),
-    education: char.universitys.map((u) => ({
-      year: u.year || 9999,
-      university: u.name,
-      major: u.faculty || "?",
-    })),
-    courses: char.courses.map((c) => ({
-      year: c.year || 9999,
-      name: c.name,
-      attachment: c.file,
-    })),
+    career:
+      char?.careers.map((c) => ({
+        position: c.name,
+        year_start: c.year_start,
+        month_start: c.month_start,
+        year_leave: c.year_finish,
+        month_leave: c.month_finish,
+      })) || [],
+    training:
+      char?.trainings.map((t) => ({ name: t.name, attachment: t.file })) || [],
+    education:
+      char?.universitys.map((u) => ({
+        year: u.year || 9999,
+        university: u.name,
+        major: u.faculty || "?",
+      })) || [],
+    courses:
+      char?.courses.map((c) => ({
+        year: c.year || 9999,
+        name: c.name,
+        attachment: c.file,
+      })) || [],
     communityWork: [],
-    awards: char.rewards.map((r) => ({ title: r.name, image: r.file || "" })),
+    awards:
+      char?.rewards.map((r) => ({ title: r.name, image: r.file || "" })) || [],
   };
 };
 
