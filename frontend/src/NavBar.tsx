@@ -1,9 +1,7 @@
-import { useDispatch } from "react-redux";
-import { pageSlice } from "./page/slice";
-
 import backArrowIcon from "/back-arrow.svg";
 import clsx from "clsx";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const DropdownArrow = () => {
   return (
@@ -16,7 +14,6 @@ const DropdownArrow = () => {
 };
 
 const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
-  const dispatch = useDispatch();
   const [shown, setShown] = useState(false);
 
   return (
@@ -51,15 +48,9 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
           <a className="hover:underline cursor-pointer" onClick={() => {}}>
             Орг. структура
           </a>
-          <a
-            className="hover:underline cursor-pointer"
-            onClick={() => {
-              dispatch(pageSlice.actions.viewOrgStruct({ query: [] }));
-              setShown(false);
-            }}
-          >
+          <Link to="/list" className="hover:underline cursor-pointer">
             Список сотрудников
-          </a>
+          </Link>
           <a className="hover:underline cursor-pointer" onClick={() => {}}>
             Список отделов
           </a>
@@ -70,26 +61,14 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
 };
 
 export default function NavBar() {
-  const dispatch = useDispatch();
-
   return (
     <nav className="flex justify-between items-center h-[76px] bg-blue rounded text-[32px] text-white">
-      <button
-        className="hover:underline mx-[120px]"
-        onClick={() => {
-          dispatch(pageSlice.actions.viewFeed());
-        }}
-      >
+      <Link to="/feed" className="hover:underline mx-[120px]">
         Рабочий стол
-      </button>
-      <button
-        className="hover:underline mx-[120px]"
-        onClick={() => {
-          dispatch(pageSlice.actions.viewProfile({ userId: "me" }));
-        }}
-      >
+      </Link>
+      <Link to="/" className="hover:underline mx-[120px]">
         Мой профиль
-      </button>
+      </Link>
       <DropdownMenu position="right" />
     </nav>
   );

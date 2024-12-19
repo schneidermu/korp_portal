@@ -25,10 +25,10 @@ const SearchBar = ({
   setQuery,
 }: {
   query: string[];
-  setQuery: (query: string[]) => void;
+  setQuery: (args: { query: string[]; reload: boolean }) => void;
 }) => {
   const addTerm = () => {
-    setQuery([...query, ""]);
+    setQuery({ query: [...query, ""], reload: true });
   };
 
   return (
@@ -57,7 +57,10 @@ const SearchBar = ({
           placeholder="Поиск..."
           value={query[query.length - 1]}
           onChange={(event) => {
-            setQuery([...query.slice(0, -1), event.target.value]);
+            setQuery({
+              query: [...query.slice(0, -1), event.target.value],
+              reload: false,
+            });
           }}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -70,9 +73,12 @@ const SearchBar = ({
         {query.slice(0, -1).map((term, i) => (
           <QueryTerm
             term={term}
-            handleClick={() =>
-              setQuery([...query.slice(0, i), ...query.slice(i + 1)])
-            }
+            handleClick={() => {
+              setQuery({
+                query: [...query.slice(0, i), ...query.slice(i + 1)],
+                reload: true,
+              });
+            }}
           />
         ))}
       </div>

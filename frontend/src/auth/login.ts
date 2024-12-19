@@ -1,15 +1,20 @@
 import { useEffect } from "react";
 import { API_BASE_URL } from "../const";
 import { useAppDispatch } from "../store";
-import { authSlice } from "./slice";
+import { authSlice, useAuth } from "./slice";
 
 const username = "kuznetsov";
 const password = "password";
 
 export const useLogin = () => {
+  const auth = useAuth();
   const dispatch = useAppDispatch();
 
   useEffect(() => {
+    if (auth.isLoggedIn) {
+      return;
+    }
+
     fetch(`${API_BASE_URL}/auth/token/login`, {
       method: "POST",
       body: JSON.stringify({ username, password }),
@@ -39,5 +44,7 @@ export const useLogin = () => {
             },
           );
       });
-  }, [dispatch]);
+  }, [dispatch, auth.isLoggedIn]);
+
+  return auth;
 };

@@ -6,6 +6,7 @@ import SearchBar from "./SearchBar";
 import { useEffect, useMemo, useState } from "react";
 import { User } from "./types";
 import { fullNameLong, fullNameShort } from "./util";
+import { useNavigate, useParams } from "react-router-dom";
 
 const matchString = (q: string, s: string): boolean => {
   return s.toLowerCase().includes(q);
@@ -28,18 +29,26 @@ const filterUsers = (users: User[], term: string) => {
   });
 };
 
-export default function OrgStruct({
-  initialQuery = [],
-}: {
-  initialQuery: string[];
-}) {
+export function UserList() {
+  const navigate = useNavigate();
+  const params = useParams();
+
   const { data: allUsers } = useFetchUsers();
 
-  const [query, setQuery] = useState<string[]>([...initialQuery, ""]);
+  const [query, setQuery] = useState<string[]>([""]);
+  const [pagePath, setPagePath] = useState(
+    `/list/${query.slice(0, -1).join("+")}`,
+  );
 
   useEffect(() => {
-    setQuery([...initialQuery, ""]);
-  }, [initialQuery]);
+    if (!params.query) {
+      return;
+    }
+    setPagePath(`/list/${params.query}`);
+    const terms = params.query.split("+");
+    terms.push("");
+    setQuery(terms);
+  }, [params.query]);
 
   const users = useMemo(() => {
     if (!allUsers) {
@@ -59,8 +68,23 @@ export default function OrgStruct({
 
   return (
     <>
-      <SearchBar query={query} setQuery={setQuery} />
-      <PageSkel title="Список сотрудников">
+      <SearchBar
+        query={query}
+        setQuery={({ query, reload }) => {
+          setQuery(query);
+          if (reload) {
+            const path = `/list/${query.slice(0, -1).join("+")}`;
+            setPagePath(path);
+            navigate(path);
+            console.log("new page path", path);
+          }
+        }}
+      />
+      <PageSkel
+        title="Список сотрудников"
+        heading="Список сотрудников"
+        id={pagePath}
+      >
         <div className="flex flex-col gap-[56px] mr-[36px] ml-[64px] pb-[60px]">
           {users.map((user) => (
             <div
@@ -78,3 +102,5 @@ export default function OrgStruct({
     </>
   );
 }
+
+export default UserList;

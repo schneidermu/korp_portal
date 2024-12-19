@@ -1,100 +1,30 @@
 import clsx from "clsx/lite";
 import { ReactNode, useEffect } from "react";
-import { useAuth } from "./auth/slice";
-import Feed from "./Feed";
-import OrgStruct from "./OrgStruct";
-import { usePage } from "./page/slice";
-import UserProfile from "./UserProfile";
-import { useFetchUser } from "./users/api";
-
-function PageProfile({ userId }: { userId: string }) {
-  const auth = useAuth();
-  const { user } = useFetchUser(userId);
-
-  useEffect(() => {
-    if (!user) return;
-    const title = auth.userId === userId ? "Мой профиль" : user.firstName;
-    document.title = `${title} | КП`;
-  }, [user, auth.userId, userId]);
-
-  if (!user) return;
-
-  return <UserProfile userId={userId} />;
-}
-
-function PageFeed() {
-  useEffect(() => {
-    document.title = "Новости | КП";
-  }, []);
-
-  return <Feed />;
-}
-
-function OrgStructPage({ query }: { query: string[] }) {
-  useEffect(() => {
-    document.title = "Орг. структура | КП";
-  }, []);
-
-  return <OrgStruct initialQuery={query} />;
-}
-
-export default function Page() {
-  const page = usePage();
-
-  let elem = undefined;
-  let title = "";
-  switch (page.type) {
-    case "profile":
-      elem = <PageProfile userId={page.userId} />;
-      title = "Основные сведения";
-      break;
-    case "feed":
-      elem = <PageFeed />;
-      title = "Новости";
-      break;
-    case "org_struct":
-      elem = <OrgStructPage query={page.query} />;
-      title = "Список сотрудников";
-      break;
-  }
-
-  useEffect(() => {
-    window.scrollTo({ top: 0 });
-  }, [page]);
-
-  if (page.type === "org_struct") {
-    return elem;
-  }
-
-  return (
-    <main
-      className={clsx(
-        "border-[3px] border-light-gray rounded",
-        "shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]",
-      )}
-    >
-      <h2
-        className={clsx(
-          "flex items-center",
-          "mb-[70px] h-[70px] pl-[45px]",
-          "bg-light-gray",
-          "text-[30px] font-medium",
-        )}
-      >
-        {title}
-      </h2>
-      {elem}
-    </main>
-  );
-}
+import { Outlet } from "react-router-dom";
+import { useLogin } from "./auth/login";
+import NavBar from "./NavBar";
 
 export const PageSkel = ({
   title,
+  heading,
+  id = "",
   children,
 }: {
   title: string;
+  heading: string;
+  id?: string;
   children: ReactNode;
 }) => {
+  useEffect(() => {
+    document.title = `${title} | КП`;
+  }, [title]);
+
+  id = title + "/" + id;
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [id]);
+
   return (
     <main
       className={clsx(
@@ -110,9 +40,26 @@ export const PageSkel = ({
           "text-[30px] font-medium",
         )}
       >
-        {title}
+        {heading}
       </h1>
       {children}
     </main>
+  );
+};
+
+export const Page = () => {
+  const auth = useLogin();
+
+  if (!auth.isLoggedIn) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="max-w-[1920px] mx-auto mb-[300px]">
+      <div className="flex flex-col gap-[45px] max-w-[1404px] mx-auto mt-[45px] text-[24px]">
+        <NavBar></NavBar>
+        <Outlet />
+      </div>
+    </div>
   );
 };

@@ -7,6 +7,7 @@ import * as types from "./feed/types";
 import { formatDate } from "./util";
 import pollCoverImg from "/poll-cover.png";
 import { useAuth } from "./auth/slice";
+import { PageSkel } from "./Page";
 
 const useReachBottom = (handleBottom: () => boolean) => {
   useEffect(() => {
@@ -200,39 +201,41 @@ export default function Feed() {
   if (!posts) return <div>Loading...</div>;
 
   return (
-    <div>
-      {posts.map((post, i) => (
-        <div
-          ref={(elem) => {
-            refs.current[i] = elem;
-          }}
-          key={`${post.kind}-${post.id}`}
-        >
-          {i > 0 && <Separator />}
-          <Post post={post} handleOpen={() => setOverlayPost(i)} />
-        </div>
-      ))}
-      <AnimatePresence>
-        {overlayPost !== null && (
-          <Gallery
-            close={() => setOverlayPost(null)}
-            left={() => {
-              if (overlayPost > 0) {
-                setOverlayPost(overlayPost - 1);
-                scrollToCard(overlayPost - 1);
-              }
+    <PageSkel title="Новости" heading="Новости">
+      <div>
+        {posts.map((post, i) => (
+          <div
+            ref={(elem) => {
+              refs.current[i] = elem;
             }}
-            right={() => {
-              if (overlayPost < posts.length - 1) {
-                setOverlayPost(overlayPost + 1);
-                scrollToCard(overlayPost + 1);
-              }
-            }}
+            key={`${post.kind}-${post.id}`}
           >
-            <Post full post={posts[overlayPost]} />
-          </Gallery>
-        )}
-      </AnimatePresence>
-    </div>
+            {i > 0 && <Separator />}
+            <Post post={post} handleOpen={() => setOverlayPost(i)} />
+          </div>
+        ))}
+        <AnimatePresence>
+          {overlayPost !== null && (
+            <Gallery
+              close={() => setOverlayPost(null)}
+              left={() => {
+                if (overlayPost > 0) {
+                  setOverlayPost(overlayPost - 1);
+                  scrollToCard(overlayPost - 1);
+                }
+              }}
+              right={() => {
+                if (overlayPost < posts.length - 1) {
+                  setOverlayPost(overlayPost + 1);
+                  scrollToCard(overlayPost + 1);
+                }
+              }}
+            >
+              <Post full post={posts[overlayPost]} />
+            </Gallery>
+          )}
+        </AnimatePresence>
+      </div>
+    </PageSkel>
   );
 }

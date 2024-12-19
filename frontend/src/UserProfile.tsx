@@ -30,13 +30,12 @@ import upArrowIcon from "/up-arrow.svg";
 
 import { User, USER_STATUS, UserStatus } from "./types";
 
-import { useDispatch } from "react-redux";
 import { useAuth } from "./auth/slice";
 import FileAttachment from "./FileAttachment";
-import { pageSlice } from "./page/slice";
-import { useAppDispatch } from "./store";
 import { updateUser, useFetchColleagues, useFetchUser } from "./users/api";
 import { fullNameLong, fullNameShort, MonomorphFields } from "./util";
+import { PageSkel } from "./Page.tsx";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 function SectionSep() {
   return (
@@ -247,7 +246,7 @@ export function ProfileCard({
   user: User;
   editable?: boolean;
 }) {
-  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const auth = useAuth();
 
   const [editing, setEditing] = useState(false);
@@ -274,14 +273,10 @@ export function ProfileCard({
     setEditing(false);
   };
 
-  const viewProfile = () => {
-    dispatch(pageSlice.actions.viewProfile({ userId: user.id }));
-  };
-
   const viewUnit = () => {
     console.log("view unit");
     if (user.unit === null) return;
-    dispatch(pageSlice.actions.viewOrgStruct({ query: [user.unit.name] }));
+    navigate("/list/" + user.unit.name);
   };
 
   const field = ({
@@ -317,13 +312,12 @@ export function ProfileCard({
 
   return (
     <section className="-ml-[20px] flex gap-[64px] h-[340px]">
-      <button
-        type="button"
+      <Link
+        to={`/profile/${user.id}`}
         className="shrink-0 rounded-photo overflow-hidden"
-        onClick={viewProfile}
       >
         <Picture width="260px" height="100%" url={user.photo || undefined} />
-      </button>
+      </Link>
       <form
         spellCheck
         className="w-full flex flex-col justify-between"
@@ -331,13 +325,12 @@ export function ProfileCard({
       >
         <div className="flex">
           <img src={personIcon} alt="" className="w-[33px]" />
-          <button
-            type="button"
+          <Link
+            to={"/profile/" + user.id}
             className="ml-[28px] text-[30px] hover:underline"
-            onClick={viewProfile}
           >
             <h2>{fullNameLong(user)}</h2>
-          </button>
+          </Link>
           <div className="grow"></div>
           {editable && (
             <EditControls
@@ -566,20 +559,13 @@ function ViewButton(props: {
 }
 
 function UserAvatarLink({ user }: { user: User }) {
-  const dispatch = useDispatch();
-
   return (
-    <button
-      className="shrink-0 hover:underline"
-      onClick={() => {
-        dispatch(pageSlice.actions.viewProfile({ userId: user.id }));
-      }}
-    >
+    <Link to={`/profile/${user.id}`} className="shrink-0 hover:underline">
       <div className="rounded-photo overflow-hidden">
         <Picture width="210px" height="210px" url={user.photo || undefined} />
       </div>
       <div className="text-center mt-[16px]">{fullNameShort(user)}</div>
-    </button>
+    </Link>
   );
 }
 
@@ -750,37 +736,51 @@ function FeedbackSection({ userId: _ }: { userId: string }) {
   );
 }
 
-export default function UserProfile({ userId }: { userId: string }) {
+export function UserProfile() {
+  const params = useParams();
+  const userId = params.userId || "me";
   const { user } = useFetchUser(userId);
   const auth = useAuth();
 
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  const title =
+    userId == "me" || auth.userId === userId ? "Мой профиль" : user.firstName;
+  console.log(auth, { userId });
+
   return (
-    <div className="mr-[36px] ml-[64px] pb-[155px]">
-      {user !== undefined && (
-        <>
-          <ProfileCard user={user} editable={user.id == auth.userId} />
-          <SectionSep />
-          <AboutMeSection user={user} />
-          <SectionSep />
-        </>
-      )}
-      <EducationSection userId={userId} />
-      <SectionSep />
-      <CareerSection userId={userId} />
-      <SectionSep />
-      {user !== undefined && (
-        <>
-          <TeamSection user={user} />
-          <SectionSep />
-        </>
-      )}
-      {/*
-      <CommunityWorkSection userId={userId} />
-      <SectionSep />
-      */}
-      <AwardsSection userId={userId} />
-      <SectionSep />
-      <FeedbackSection userId={userId} />
-    </div>
+    <PageSkel title={title} heading="Основные сведения">
+      <div className="mr-[36px] ml-[64px] pb-[155px]">
+        {user !== undefined && (
+          <>
+            <ProfileCard user={user} editable={user.id == auth.userId} />
+            <SectionSep />
+            <AboutMeSection user={user} />
+            <SectionSep />
+          </>
+        )}
+        <EducationSection userId={userId} />
+        <SectionSep />
+        <CareerSection userId={userId} />
+        <SectionSep />
+        {user !== undefined && (
+          <>
+            <TeamSection user={user} />
+            <SectionSep />
+          </>
+        )}
+        {/*
+        <CommunityWorkSection userId={userId} />
+        <SectionSep />
+        */}
+        <AwardsSection userId={userId} />
+        <SectionSep />
+        <FeedbackSection userId={userId} />
+      </div>
+    </PageSkel>
   );
 }
+
+export default UserProfile;
