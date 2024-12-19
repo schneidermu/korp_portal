@@ -450,23 +450,15 @@ function EducationSection({ userId }: { userId: string }) {
     <section>
       <SectionTitle title="Образование" />
 
-      {higherEducation.length > 0 && (
-        <>
-          <Property icon={layoutIcon} name="Высшее образование" />
-          <div className="flex flex-col ml-[5px] mt-[48px] mb-[55px] gap-[24px]">
-            {higherEducation}
-          </div>
-        </>
-      )}
+      <Property icon={layoutIcon} name="Высшее образование" />
+      <div className="flex flex-col ml-[5px] mt-[48px] mb-[55px] gap-[24px]">
+        {higherEducation}
+      </div>
 
-      {courses.length > 0 && (
-        <>
-          <Property icon={layersIcon} name="Курсы" />
-          <div className="flex flex-col ml-[5px] mt-[48px] gap-[24px]">
-            {courses}
-          </div>
-        </>
-      )}
+      <Property icon={layersIcon} name="Курсы" />
+      <div className="flex flex-col ml-[5px] mt-[48px] gap-[24px]">
+        {courses}
+      </div>
     </section>
   );
 }
