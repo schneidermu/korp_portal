@@ -43,7 +43,9 @@ const NewsContent = ({
 
   return (
     <div className="mt-[36px]">
-      {full && <div className="mt-[56px] mb-[90px]">{news.text}</div>}
+      {full && (
+        <div className="text-[32px] mt-[56px] mb-[90px]">{news.text}</div>
+      )}
       <div className="grid grid-cols-2 gap-[20px]">
         {images.map((src, i) => (
           <img
@@ -138,7 +140,7 @@ const PollContent = ({ poll }: { poll: types.Poll; full: boolean }) => {
         >
           <span
             className={clsx(
-              "flex shrink-0 w-[28px] h-[28px] items-center justify-center",
+              "flex shrink-0 w-[32px] h-[32px] items-center justify-center",
               poll.isMultipleChoice || "rounded-full",
               choiceIds.has(choice.id)
                 ? "border-[2px] border-light-blue"
@@ -192,11 +194,16 @@ const Post = ({
 }) => {
   return (
     <article className="mt-[60px] mx-[65px] mb-[50px]">
-      <div className="flex">
+      <div className="flex items-center">
         <a className="grow cursor-pointer" onClick={handleOpen}>
-          <h2 className="text-[32px]">{post.title}</h2>
+          <h2 className={clsx("text-[32px]", full && "font-medium")}>
+            {post.title}
+          </h2>
         </a>
-        <time className="text-date" dateTime={post.publishedAt.toString()}>
+        <time
+          className={clsx("text-date shrink-0", full && "text-[32px]")}
+          dateTime={post.publishedAt.toString()}
+        >
           {formatDate(post.publishedAt)}
         </time>
       </div>
