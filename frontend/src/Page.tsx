@@ -3,6 +3,7 @@ import { ReactNode, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { useLogin } from "./auth/login";
 import NavBar from "./NavBar";
+import { motion } from "motion/react";
 
 export const PageSkel = ({
   title,
@@ -61,5 +62,24 @@ export const Page = () => {
         <Outlet />
       </div>
     </div>
+  );
+};
+
+export const AnimatePage = ({
+  id,
+  children,
+}: {
+  id?: React.Key;
+  children?: ReactNode;
+}) => {
+  return (
+    <motion.div
+      key={id}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "anticipate" }}
+    >
+      {children}
+    </motion.div>
   );
 };

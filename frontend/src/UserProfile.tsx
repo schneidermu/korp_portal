@@ -34,7 +34,7 @@ import { useAuth } from "./auth/slice";
 import FileAttachment from "./FileAttachment";
 import { updateUser, useFetchColleagues, useFetchUser } from "./users/api";
 import { fullNameLong, fullNameShort, MonomorphFields } from "./util";
-import { PageSkel } from "./Page.tsx";
+import { AnimatePage, PageSkel } from "./Page.tsx";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 function SectionSep() {
@@ -743,35 +743,37 @@ export function UserProfile() {
   console.log(auth, { userId });
 
   return (
-    <PageSkel title={title} heading="Основные сведения">
-      <div className="mr-[36px] ml-[64px] pb-[155px]">
-        {user !== undefined && (
-          <>
-            <ProfileCard user={user} editable={user.id == auth.userId} />
-            <SectionSep />
-            <AboutMeSection user={user} />
-            <SectionSep />
-          </>
-        )}
-        <EducationSection userId={userId} />
-        <SectionSep />
-        <CareerSection userId={userId} />
-        <SectionSep />
-        {user !== undefined && (
-          <>
-            <TeamSection user={user} />
-            <SectionSep />
-          </>
-        )}
-        {/*
+    <AnimatePage id={user.id}>
+      <PageSkel title={title} heading="Основные сведения">
+        <div className="mr-[36px] ml-[64px] pb-[155px]">
+          {user !== undefined && (
+            <>
+              <ProfileCard user={user} editable={user.id == auth.userId} />
+              <SectionSep />
+              <AboutMeSection user={user} />
+              <SectionSep />
+            </>
+          )}
+          <EducationSection userId={userId} />
+          <SectionSep />
+          <CareerSection userId={userId} />
+          <SectionSep />
+          {user !== undefined && (
+            <>
+              <TeamSection user={user} />
+              <SectionSep />
+            </>
+          )}
+          {/*
         <CommunityWorkSection userId={userId} />
         <SectionSep />
         */}
-        <AwardsSection userId={userId} />
-        <SectionSep />
-        <FeedbackSection userId={userId} />
-      </div>
-    </PageSkel>
+          <AwardsSection userId={userId} />
+          <SectionSep />
+          <FeedbackSection userId={userId} />
+        </div>
+      </PageSkel>
+    </AnimatePage>
   );
 }
 

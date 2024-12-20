@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { ProfileCard } from "./UserProfile";
 import { cmpUsers, useFetchUsers } from "./users/api";
-import { PageSkel } from "./Page";
+import { AnimatePage, PageSkel } from "./Page";
 import SearchBar from "./SearchBar";
 import { useEffect, useMemo, useState } from "react";
 import { User } from "./types";
@@ -67,7 +67,7 @@ export function UserList() {
   }
 
   return (
-    <>
+    <AnimatePage id={pagePath}>
       <SearchBar
         query={query}
         setQuery={({ query, reload }) => {
@@ -80,6 +80,7 @@ export function UserList() {
           }
         }}
       />
+      <div className="h-[45px]"></div>
       <PageSkel
         title="Список сотрудников"
         heading="Список сотрудников"
@@ -99,7 +100,7 @@ export function UserList() {
           ))}
         </div>
       </PageSkel>
-    </>
+    </AnimatePage>
   );
 }
 
