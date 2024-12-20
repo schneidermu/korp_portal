@@ -49,9 +49,9 @@ const Gallery = ({
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0 }}
-        className="py-[50px] w-full h-full max-w-[1639px] max-h-[1347px]"
+        className="py-[50px] w-full h-full max-w-[1639px] flex items-center"
       >
-        <div className="grid grid-cols-[83px,1fr,83px] gap-[35px] w-full h-full">
+        <div className="grid grid-cols-[83px,1fr,83px] gap-[35px] w-full h-fit">
           <div className="flex items-center">
             <SlideButton direction="left" onClick={left} />
           </div>
