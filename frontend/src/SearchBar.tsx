@@ -72,6 +72,7 @@ const SearchBar = ({
       <div className="flex flex-wrap gap-2 ml-4 mt-2">
         {query.slice(0, -1).map((term, i) => (
           <QueryTerm
+            key={term}
             term={term}
             handleClick={() => {
               setQuery({
