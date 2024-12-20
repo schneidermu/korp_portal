@@ -38,14 +38,45 @@ const NewsContent = ({
   full?: boolean;
 }) => {
   const images = full ? news.images : news.images.slice(0, 2);
+
+  const [overlayImg, setOverlayImg] = useState<number | null>(null);
+
   return (
     <div className="mt-[36px]">
       {full && <div className="mt-[56px] mb-[90px]">{news.text}</div>}
       <div className="grid grid-cols-2 gap-[20px]">
         {images.map((src, i) => (
-          <img key={i} className="w-full h-[400px] object-cover" src={src} />
+          <img
+            key={i}
+            src={src}
+            className="w-full h-[400px] object-cover"
+            onClick={() => setOverlayImg(i)}
+          />
         ))}
       </div>
+      <AnimatePresence>
+        {overlayImg !== null && (
+          <Gallery
+            close={() => setOverlayImg(null)}
+            left={() => {
+              if (overlayImg > 0) {
+                setOverlayImg(overlayImg - 1);
+              }
+            }}
+            right={() => {
+              if (overlayImg < images.length - 1) {
+                setOverlayImg(overlayImg + 1);
+              }
+            }}
+          >
+            <img
+              src={images[overlayImg]}
+              className="w-full h-full object-cover"
+              onClick={() => setOverlayImg(null)}
+            />
+          </Gallery>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
