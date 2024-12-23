@@ -9,13 +9,21 @@ export interface News {
   organizations: number[];
 }
 
+export interface Choice {
+  id: number;
+  text: string;
+  voters: string[];
+  votes: number;
+}
+
 export interface Poll {
   kind: "polls";
   id: number;
   publishedAt: Date;
   title: "Опрос";
   question: string;
-  choices: { id: number; text: string; voters: string[] }[];
+  choices: Choice[];
+  votes: number;
   isAnonymous: boolean;
   isMultipleChoice: boolean;
 }

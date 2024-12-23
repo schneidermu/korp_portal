@@ -31,7 +31,12 @@ const toNews = (data: NewsData): News => ({
 interface PollData {
   id: number;
   question_text: string;
-  choices: { id: number; choice_text: string; who_voted: string[] }[];
+  choices: {
+    id: number;
+    choice_text: string;
+    who_voted: string[];
+    voted: number;
+  }[];
   is_anonymous: boolean;
   is_multiple_choice: boolean;
   pub_date: string;
@@ -42,11 +47,13 @@ const toPoll = (data: PollData): Poll => ({
   title: "Опрос",
   id: data.id,
   question: data.question_text,
-  choices: data.choices.map(({ id, choice_text, who_voted }) => ({
+  choices: data.choices.map(({ id, choice_text, who_voted, voted }) => ({
     id,
     text: choice_text,
     voters: who_voted,
+    votes: voted,
   })),
+  votes: data.choices.reduce((acc, { voted }) => acc + voted, 0),
   isAnonymous: data.is_anonymous,
   isMultipleChoice: data.is_multiple_choice,
   publishedAt: new Date(data.pub_date),
@@ -69,6 +76,12 @@ const usePosts = <P extends Post, Data>(
   const { data: pages, ...rest } = useSWRInfinite<Paged<Data>>(
     getKey,
     (key: string) => fetcher(key).then((res) => res.json()),
+    {
+      revalidateFirstPage: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+    },
   );
 
   const allAreLoaded = pages ? pages[pages.length - 1]?.next === null : false;
@@ -132,14 +145,14 @@ export const useFeed = () => {
   };
 };
 
-export const useSendVote = () => {
+export const useVote = () => {
   const fetch = useTokenFetcher();
-  return (kind: "for" | "against", pollId: number, choiceId: number) =>
+  return (pollId: number, choiceIds: number[]) =>
     fetch("/polls/vote/", {
-      method: kind === "for" ? "POST" : "DELETE",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ poll_id: pollId, choice_id: choiceId }),
+      body: JSON.stringify({ poll_id: pollId, choice_ids: choiceIds }),
     });
 };
