@@ -355,7 +355,7 @@ export function ProfileCard({
               value={userState.status}
               options={USER_STATUS.map((status) => [status, status])}
               handleSelect={(value) => {
-                setUserState({ ...user, status: value as UserStatus });
+                setUserState({ ...userState, status: value as UserStatus });
               }}
             ></PropertySelect>
           </EditableProperty>
