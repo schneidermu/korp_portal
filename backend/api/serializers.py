@@ -125,12 +125,14 @@ class VoteCreateSerializer(serializers.Serializer):
     '''Сериализатор для голосования'''
 
     poll_id = serializers.IntegerField()
-    choice_id = serializers.IntegerField()
+    choice_ids = serializers.ListField(
+        child=serializers.IntegerField()
+    )
 
     def validate(self, data):
         user = self.context.get("user")
         poll_id = data.get("poll_id")
-        choice_id = data.get("choice_id")
+        choice_ids = data.get("choice_ids")
 
         poll = Poll.objects.filter(
             id=poll_id
@@ -141,15 +143,21 @@ class VoteCreateSerializer(serializers.Serializer):
                 {"error": "Опроса не существует"}
             )
 
-        choice_exists = Choice.objects.filter(
-            id=choice_id,
-            poll_id=poll_id
-        )
-
-        if not choice_exists:
+        if not poll.is_multiple_choice and len(choice_ids) > 1:
             raise serializers.ValidationError(
-                {"error": "Такого варианта ответа нет"}
+                {"error": "Можно выбрать только один вариант ответа."}
             )
+
+        for choice_id in choice_ids:
+            choice_exists = Choice.objects.filter(
+                id=choice_id,
+                poll_id=poll_id
+            )
+
+            if not choice_exists:
+                raise serializers.ValidationError(
+                    {"error": "Такого варианта ответа нет"}
+                )
 
         already_voted = Choice.objects.filter(
             poll_id=poll_id,
@@ -166,8 +174,9 @@ class VoteCreateSerializer(serializers.Serializer):
     @transaction.atomic
     def create(self, validated_data):
 
-        choice = Choice.objects.get(id=validated_data.get("choice_id"))
-        choice.voted.add(self.context.get("user"))
+        for id in validated_data.get("choice_ids"):
+            choice = Choice.objects.get(id=id)
+            choice.voted.add(self.context.get("user"))
 
         return validated_data
 
