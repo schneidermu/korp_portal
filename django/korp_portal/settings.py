@@ -25,21 +25,34 @@ AUTH_LDAP_BIND_PASSWORD = os.getenv('LDAP_PASSWORD', '0')
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
     'ou=People,dc=nodomain',
     ldap.SCOPE_SUBTREE,
-    '(uid=%(user)s)',
+    '(mail=%(user)s)',
 )
 
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
     'ou=groups,dc=nodomain',
     ldap.SCOPE_SUBTREE,
-    '(objectClass=inetOrgPerson)',
+    '(objectClass=groupOfUniqueNames)',
 )
 
 AUTH_LDAP_GROUP_TYPE = PosixGroupType()
 
 AUTH_LDAP_USER_ATTR_MAP = {
-    'last_name': 'sn',
-    'username': 'uid',
+    'id': 'UUID',
+    'username': 'cn',
+    'email': 'uid',
     'password': 'userPassword',
+    'name': 'givenName',
+    'patronym': 'displayName',
+    'surname': 'sn',
+    'job_title': 'title',
+    'status': 'status',
+#    'avatar': 'jpegPhoto',
+}
+
+AUTH_LDAP_GROUP_ATTR_MAP = {
+    'name': 'cn',
+    'description': 'description',
+    'members': 'uniqueMember',
 }
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
