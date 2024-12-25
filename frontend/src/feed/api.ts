@@ -40,6 +40,7 @@ interface PollData {
   is_anonymous: boolean;
   is_multiple_choice: boolean;
   pub_date: string;
+  voted_count: number;
 }
 
 const toPoll = (data: PollData): Poll => ({
@@ -53,7 +54,7 @@ const toPoll = (data: PollData): Poll => ({
     voters: new Set(who_voted),
     votes: voted,
   })),
-  votes: data.choices.reduce((acc, { voted }) => acc + voted, 0),
+  votes: data.voted_count,
   isAnonymous: data.is_anonymous,
   isMultipleChoice: data.is_multiple_choice,
   publishedAt: new Date(data.pub_date),
