@@ -12,8 +12,6 @@ import atIcon from "/at.svg";
 import awardIcon from "/award.svg";
 import bookIcon from "/book.svg";
 import brightnessIcon from "/brightness.svg";
-import checkmarkIcon from "/checkmark.svg";
-import closeIcon from "/close.svg";
 import creditCardIcon from "/credit-card.svg";
 import editIcon from "/edit.svg";
 import externalIcon from "/external.svg";
@@ -76,27 +74,8 @@ function Property({
   );
 }
 
-function EditButton() {
-  return (
-    <button>
-      <img style={{ width: "36px", height: "36px" }} src={editIcon} />
-    </button>
-  );
-}
-
-function SectionTitle({
-  title,
-  editable = true,
-}: {
-  title: string;
-  editable?: boolean;
-}) {
-  return (
-    <div className="mb-[40px] flex justify-between">
-      <h2 className="font-medium text-[30px]">{title}</h2>
-      {editable && <EditButton />}
-    </div>
-  );
+function SectionTitle({ title }: { title: string }) {
+  return <h2 className="mb-[40px] font-medium text-[30px]">{title}</h2>;
 }
 
 function Picture({
@@ -129,15 +108,21 @@ function EditControls({
   edit: () => void;
   reset: () => void;
 }) {
+  const btn = clsx(
+    "px-[30px] py-[6px] w-fit",
+    "rounded bg-light-blue text-white",
+    "text-[24px]",
+  );
+
   return editing ? (
-    <>
-        <img style={{ width: "36px", height: "36px" }} src={checkmarkIcon} />
-      <button key="save" type="submit">
+    <div className="flex gap-[24px]">
+      <button className={btn} key="save" type="submit">
+        Сохранить
       </button>
-        <img style={{ width: "36px", height: "36px" }} src={closeIcon} />
-      <button key="reset" type="button" onClick={reset}>
+      <button className={btn} key="reset" type="button" onClick={reset}>
+        Отменить
       </button>
-    </>
+    </div>
   ) : (
     <button key="edit" type="button" onClick={edit}>
       <img style={{ width: "36px", height: "36px" }} src={editIcon} />
@@ -651,8 +636,8 @@ function AboutMeSection({
   editing: boolean;
 }) {
   return (
-    <section className="relative">
-      <SectionTitle editable={false} title="Обо мне" />
+    <section>
+      <SectionTitle title="Обо мне" />
       <textarea
         disabled={!editing}
         value={user.about}
@@ -747,7 +732,7 @@ export function UserProfile() {
           onSubmit={handleSubmit}
         >
           {editable && (
-            <div className="absolute right-0">
+            <div className="absolute right-0 bottom-[100%]">
               <EditControls
                 editing={editing}
                 edit={() => setEditing(true)}
