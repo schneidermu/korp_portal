@@ -277,52 +277,31 @@ const Poll = ({
   );
 };
 
-const Post = ({
-  post,
+const News = ({
+  news,
   full = false,
-  vote,
   handleOpen,
 }: {
-  post: types.Post;
+  news: types.News;
   full?: boolean;
-  vote: (poll: types.Poll, choiceIds: Set<number>) => void;
   handleOpen?: () => void;
 }) => {
   return (
     <article className="mt-[60px] mx-[65px] mb-[50px]">
       <div className="flex items-center justify-end">
-        {post.kind === "news" && (
-          <a className="grow cursor-pointer" onClick={handleOpen}>
-            <h2 className={clsx("text-[32px]", full && "font-medium")}>
-              {post.title}
-            </h2>
-          </a>
-        )}
+        <a className="grow cursor-pointer" onClick={handleOpen}>
+          <h2 className={clsx("text-[32px]", full && "font-medium")}>
+            {news.title}
+          </h2>
+        </a>
         <time
           className={clsx("text-date shrink-0", full && "text-[32px]")}
-          dateTime={post.publishedAt.toString()}
+          dateTime={news.publishedAt.toString()}
         >
-          {formatDate(post.publishedAt)}
+          {formatDate(news.publishedAt)}
         </time>
       </div>
-      <div
-        className={clsx(
-          full && "mt-[45px] px-[70px] py-[60px] border border-medium-gray",
-        )}
-      >
-        {post.kind === "polls" && (
-          <a className="block mt-[22px] cursor-pointer" onClick={handleOpen}>
-            <h2 className={clsx("text-[36px] font-medium text-center")}>
-              {post.question}
-            </h2>
-          </a>
-        )}
-        {post.kind === "news" ? (
-          <NewsContent full={full} news={post} />
-        ) : (
-          <Poll full={full} poll={post} vote={vote} />
-        )}
-      </div>
+      <NewsContent full={full} news={news} />
     </article>
   );
 };
@@ -362,11 +341,7 @@ export default function Feed() {
             >
               {i > 0 && <Separator />}
               {post.kind === "news" ? (
-                <Post
-                  post={post}
-                  handleOpen={() => setOverlayPost(i)}
-                  vote={vote}
-                />
+                <News news={post} handleOpen={() => setOverlayPost(i)} />
               ) : (
                 <Poll
                   poll={post}
@@ -394,7 +369,7 @@ export default function Feed() {
                 }}
               >
                 {posts[overlayPost].kind === "news" ? (
-                  <Post full post={posts[overlayPost]} vote={vote} />
+                  <News full news={posts[overlayPost]} />
                 ) : (
                   <Poll full poll={posts[overlayPost]} vote={vote} />
                 )}
