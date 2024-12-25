@@ -37,3 +37,9 @@ export const formatDate = (date: Date) =>
     month: "short",
     day: "numeric",
   }).format(date);
+
+export const formatDateOfBirth = new Intl.DateTimeFormat(LOCALE, {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+}).format;

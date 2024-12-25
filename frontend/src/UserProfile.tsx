@@ -33,7 +33,12 @@ import { User, USER_STATUS, UserStatus } from "./types";
 import { useAuth } from "./auth/slice";
 import FileAttachment from "./FileAttachment";
 import { updateUser, useFetchColleagues, useFetchUser } from "./users/api";
-import { fullNameLong, fullNameShort, MonomorphFields } from "./util";
+import {
+  formatDateOfBirth,
+  fullNameLong,
+  fullNameShort,
+  MonomorphFields,
+} from "./util";
 import { AnimatePage, PageSkel } from "./Page.tsx";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -154,7 +159,7 @@ function EditableProperty({
   children: ReactNode;
 }) {
   return (
-    <div className={clsx("h-fit", wrap || "flex")}>
+    <div className={clsx("h-full", wrap ? "mt-[7.5px]" : "flex items-center")}>
       <img
         style={{ width: "30px", height: "30px" }}
         src={icon}
@@ -164,7 +169,7 @@ function EditableProperty({
       <span
         className={clsx(
           "inline-block",
-          "border-b-[1px] mb-[-1px] border-blue border-opacity-0 shrink-0 mr-[10px] text-dark-gray",
+          "shrink-0 mr-[10px] text-dark-gray",
           handleClick && "hover:underline cursor-pointer",
         )}
         onClick={handleClick}
@@ -181,28 +186,30 @@ function PropertyInput({
   editing,
   pattern,
   value,
+  text,
   handleChange,
 }: {
   type?: HTMLInputTypeAttribute;
   editing: boolean;
   pattern?: string;
   value: string;
+  text?: string;
   handleChange: (value: string) => void;
 }) {
-  return (
+  return editing ? (
     <input
       type={type}
       pattern={pattern}
       className={clsx(
-        "min-w-0 border-b-[1px] mb-[-1px]",
-        "outline-none border-opacity-0 border-blue",
-        "valid:border-excel invalid:border-[#f00]",
-        editing && "border-opacity-100",
+        "w-full min-w-0 py-[6px] px-[10px]",
+        "border rounded outline-none border-black",
+        "invalid:border-[#f00]",
       )}
       value={value}
       onChange={(e) => handleChange(e.target.value)}
-      disabled={!editing}
     />
+  ) : (
+    <span>{text || value}</span>
   );
 }
 
@@ -217,17 +224,19 @@ function PropertySelect({
   options?: [string, string][];
   handleSelect: (value: string, text: string) => void;
 }) {
-  return (
+  let text = undefined;
+  for (const [v, t] of options || []) {
+    if (v === value) text = t;
+  }
+
+  return editing ? (
     <select
       className={clsx(
-        "w-full px-2 border-b-[1px] mb-[-1px]",
-        "outline-none border-opacity-0 border-blue",
-        "valid:border-excel",
-        editing && "border-opacity-100",
+        "w-full px-[10px] py-[6px]",
+        "outline-none border rounded bg-white border-black",
       )}
       value={value}
       onChange={(e) => handleChange(e.target.value, e.target.textContent || "")}
-      disabled={!editing}
     >
       {options &&
         options.map(([value, text]) => (
@@ -236,6 +245,8 @@ function PropertySelect({
           </option>
         ))}
     </select>
+  ) : (
+    <span>{text}</span>
   );
 }
 
@@ -259,7 +270,11 @@ export function ProfileCard({
 
   const changeField =
     (key: MonomorphFields<User, string | null>) => (value: string) => {
-      setUserState({ ...userState, [key]: value });
+      let v: string | null = value;
+      if (key === "dateOfBirth" && !value) {
+        v = null;
+      }
+      setUserState({ ...userState, [key]: v });
     };
 
   const handleSubmit: FormEventHandler = (event) => {
@@ -305,6 +320,11 @@ export function ProfileCard({
         pattern={pattern}
         editing={editable && editing}
         value={userState[field] || ""}
+        text={
+          field === "dateOfBirth" && userState[field]
+            ? formatDateOfBirth(new Date(userState[field]))
+            : undefined
+        }
         handleChange={changeField(field)}
       />
     </EditableProperty>
@@ -345,8 +365,8 @@ export function ProfileCard({
         </div>
         <div
           className={clsx(
-            "grid grid-flow-col grid-rows-5 grid-cols-2",
-            "gap-y-[1.2em] gap-x-[1em]",
+            "grid grid-flow-col grid-rows-[repeat(5,45px)] grid-cols-2",
+            "gap-y-[15px] gap-x-[1em]",
           )}
         >
           <EditableProperty key="status" name="Статус" icon={brightnessIcon}>
@@ -373,12 +393,9 @@ export function ProfileCard({
               type: "tel",
               pattern: "\\+7[0-9]{10}",
             }),
-            field({
-              field: "email",
-              name: "Почта",
-              icon: atIcon,
-              type: "email",
-            }),
+            <EditableProperty key="email" name="Почта" icon={atIcon}>
+              {userState.email}
+            </EditableProperty>,
             field({
               field: "position",
               name: "Должность",
@@ -390,12 +407,13 @@ export function ProfileCard({
               icon: awardIcon,
             }),
           ]}
-          <Property
+          <EditableProperty
             key="organization"
             name="Организация"
             icon={pinIcon}
-            value={userState.organization?.name}
-          />
+          >
+            {userState.organization?.name}
+          </EditableProperty>
           <div className="row-span-3">
             <EditableProperty
               key="unit"
