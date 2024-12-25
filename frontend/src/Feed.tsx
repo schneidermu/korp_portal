@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import Gallery from "./Gallery";
-import { useFeed, useVote } from "./feed/api";
+import { useFeed } from "./feed/api";
 import * as types from "./feed/types";
 import { formatDate } from "./util";
 import { useAuth } from "./auth/slice";
@@ -107,7 +107,7 @@ const Choice = ({
 
   let pollVotes = poll.votes;
   let votes = choice.votes;
-  if (isSelected && !choice.voters.includes(userId)) {
+  if (isSelected && !choice.voters.has(userId)) {
     votes += 1;
     pollVotes += 1;
   }
@@ -163,34 +163,33 @@ const Choice = ({
 const Poll = ({
   poll,
   full = false,
+  vote,
   handleOpen,
 }: {
   poll: types.Poll;
   full?: boolean;
+  vote: (poll: types.Poll, choiceIds: Set<number>) => void;
   handleOpen?: () => void;
 }) => {
   const { userId } = useAuth();
-  const vote = useVote();
   const [choiceIds, setChoiceIds] = useState<Set<number> | undefined>();
   const [voted, setVoted] = useState(false);
 
   useEffect(() => {
     const ids = new Set(
       poll.choices
-        .filter(({ voters }) => voters.includes(userId))
+        .filter(({ voters }) => voters.has(userId))
         .map(({ id }) => id),
     );
     setChoiceIds(ids);
     setVoted(ids.size > 0);
   }, [userId, poll.choices]);
 
-  if (choiceIds === undefined) {
+  if (choiceIds === undefined || vote === undefined) {
     return;
   }
 
-  const voteIsSaved = poll.choices.some(({ voters }) =>
-    voters.includes(userId),
-  );
+  const voteIsSaved = poll.choices.some(({ voters }) => voters.has(userId));
 
   const choices = poll.choices.map((choice) => (
     <Choice
@@ -262,7 +261,7 @@ const Poll = ({
                 if (choiceIds.size === 0) {
                   return;
                 }
-                vote(poll.id, [...choiceIds]);
+                vote(poll, choiceIds);
                 setVoted(true);
               }}
             >
@@ -281,10 +280,12 @@ const Poll = ({
 const Post = ({
   post,
   full = false,
+  vote,
   handleOpen,
 }: {
   post: types.Post;
   full?: boolean;
+  vote: (poll: types.Poll, choiceIds: Set<number>) => void;
   handleOpen?: () => void;
 }) => {
   return (
@@ -319,7 +320,7 @@ const Post = ({
         {post.kind === "news" ? (
           <NewsContent full={full} news={post} />
         ) : (
-          <Poll full={full} poll={post} />
+          <Poll full={full} poll={post} vote={vote} />
         )}
       </div>
     </article>
@@ -333,7 +334,7 @@ function Separator() {
 }
 
 export default function Feed() {
-  const { data: posts, loadMore } = useFeed();
+  const { data: posts, vote, loadMore } = useFeed();
   const [overlayPost, setOverlayPost] = useState<number | null>(null);
 
   const refs = useRef<(HTMLDivElement | null)[]>(Array(posts?.length));
@@ -361,9 +362,17 @@ export default function Feed() {
             >
               {i > 0 && <Separator />}
               {post.kind === "news" ? (
-                <Post post={post} handleOpen={() => setOverlayPost(i)} />
+                <Post
+                  post={post}
+                  handleOpen={() => setOverlayPost(i)}
+                  vote={vote}
+                />
               ) : (
-                <Poll poll={post} handleOpen={() => setOverlayPost(i)} />
+                <Poll
+                  poll={post}
+                  handleOpen={() => setOverlayPost(i)}
+                  vote={vote}
+                />
               )}
             </div>
           ))}
@@ -385,9 +394,9 @@ export default function Feed() {
                 }}
               >
                 {posts[overlayPost].kind === "news" ? (
-                  <Post full post={posts[overlayPost]} />
+                  <Post full post={posts[overlayPost]} vote={vote} />
                 ) : (
-                  <Poll full poll={posts[overlayPost]} />
+                  <Poll full poll={posts[overlayPost]} vote={vote} />
                 )}
               </Gallery>
             )}

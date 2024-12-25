@@ -2,7 +2,7 @@ import useSWRInfinite from "swr/infinite";
 import { Paged } from "../common/types";
 import { FEED_PAGE_LIMIT } from "../const";
 import { Post, News, Poll } from "./types";
-import { useTokenFetcher } from "../auth/slice";
+import { useAuth, useTokenFetcher } from "../auth/slice";
 import { useMemo, useState } from "react";
 
 interface NewsData {
@@ -50,7 +50,7 @@ const toPoll = (data: PollData): Poll => ({
   choices: data.choices.map(({ id, choice_text, who_voted, voted }) => ({
     id,
     text: choice_text,
-    voters: who_voted,
+    voters: new Set(who_voted),
     votes: voted,
   })),
   votes: data.choices.reduce((acc, { voted }) => acc + voted, 0),
@@ -61,10 +61,11 @@ const toPoll = (data: PollData): Poll => ({
 
 const usePosts = <P extends Post, Data>(
   kind: P["kind"],
-  toPost: (data: Data) => P,
+  toPost: (data: Data, offset: number) => P,
   limit: number,
 ) => {
   const fetcher = useTokenFetcher();
+  const { userId } = useAuth();
 
   const getKey = (index: number, prevPage: Paged<Data>) => {
     if (index === 0) return `/${kind}/?limit=${limit}`;
@@ -73,9 +74,19 @@ const usePosts = <P extends Post, Data>(
     return `/${kind}/?limit=${limit}&offset=${offset}`;
   };
 
-  const { data: pages, ...rest } = useSWRInfinite<Paged<Data>>(
+  const {
+    data: pages,
+    mutate,
+    ...rest
+  } = useSWRInfinite<Paged<P>>(
     getKey,
-    (key: string) => fetcher(key).then((res) => res.json()),
+    (key: string) =>
+      fetcher(key)
+        .then((res) => res.json())
+        .then((page: Paged<Data>) => ({
+          ...page,
+          results: page.results.map(toPost),
+        })),
     {
       revalidateFirstPage: false,
       revalidateOnFocus: false,
@@ -84,11 +95,46 @@ const usePosts = <P extends Post, Data>(
     },
   );
 
+  const vote = (oldPoll: Poll, choiceIds: Set<number>) => {
+    mutate(
+      (pages?: Paged<P>[]) => {
+        for (const { results } of pages || []) {
+          for (const post of results) {
+            if (post.kind === "polls" && post.id === oldPoll.id) {
+              for (const choice of post.choices) {
+                if (choiceIds.has(choice.id)) {
+                  choice.voters.add(userId);
+                  choice.votes += 1;
+                }
+              }
+              post.votes += 1;
+            }
+          }
+        }
+
+        fetcher("/polls/vote/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            poll_id: oldPoll.id,
+            choice_ids: [...choiceIds],
+          }),
+        });
+
+        return pages;
+      },
+      { revalidate: false },
+    );
+  };
+
   const allAreLoaded = pages ? pages[pages.length - 1]?.next === null : false;
 
   return {
-    data: pages?.flatMap((page) => page.results.map(toPost)),
+    data: pages?.flatMap((page) => page.results),
     allAreLoaded,
+    vote,
     ...rest,
   };
 };
@@ -141,18 +187,7 @@ export const useFeed = () => {
     isValidating: news.isValidating || polls.isValidating,
     error: news.error || polls.error,
     allAreLoaded: news.allAreLoaded && polls.allAreLoaded,
+    vote: polls.vote,
     loadMore,
   };
-};
-
-export const useVote = () => {
-  const fetch = useTokenFetcher();
-  return (pollId: number, choiceIds: number[]) =>
-    fetch("/polls/vote/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ poll_id: pollId, choice_ids: choiceIds }),
-    });
 };

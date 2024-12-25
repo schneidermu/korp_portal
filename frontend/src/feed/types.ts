@@ -12,7 +12,7 @@ export interface News {
 export interface Choice {
   id: number;
   text: string;
-  voters: string[];
+  voters: Set<string>;
   votes: number;
 }
 
