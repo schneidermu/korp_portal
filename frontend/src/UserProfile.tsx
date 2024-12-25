@@ -131,11 +131,11 @@ function EditControls({
 }) {
   return editing ? (
     <>
-      <button key="reset" type="submit">
         <img style={{ width: "36px", height: "36px" }} src={checkmarkIcon} />
+      <button key="save" type="submit">
       </button>
-      <button key="save" type="button" onClick={reset}>
         <img style={{ width: "36px", height: "36px" }} src={closeIcon} />
+      <button key="reset" type="button" onClick={reset}>
       </button>
     </>
   ) : (
