@@ -110,8 +110,8 @@ const toUser = (data: UserData): User => {
   };
 };
 
-const fromUser = (user: User): UserData => {
-  return {
+const fromUser = (user: User): Partial<UserData> => {
+  const data: UserData = {
     id: user.id,
     email: user.email,
     username: user.username,
@@ -163,6 +163,11 @@ const fromUser = (user: User): UserData => {
       })),
     },
   };
+  const partial: Partial<UserData> = data;
+  if (partial.avatar !== null) {
+    delete partial.avatar;
+  }
+  return partial;
 };
 
 export const useFetchUsers = () => {
@@ -248,25 +253,8 @@ export const useFetchUser = (userId: string | null) => {
   };
 };
 
-type Partial2<T> = {
-  [P in keyof T]?: T[P] extends object ? Partial<T[P]> : T[P];
-};
-
-export const updateUser = async (
-  token: string,
-  userId: string,
-  diff: Partial<User>,
-) => {
-  const data: Partial<UserData> = {
-    status: diff.status,
-    birth_date: diff.dateOfBirth,
-    telephone_number: diff.phoneNumber,
-    email: diff.email,
-    job_title: diff.position,
-    class_rank: diff.serviceRank,
-    structural_division: diff.unit,
-    organization: diff.organization,
-  };
+export const updateUser = async (token: string, userId: string, user: User) => {
+  const data = fromUser(user);
   return tokenFetch(token, `/colleagues/${userId}/`, {
     method: "PATCH",
     headers: {

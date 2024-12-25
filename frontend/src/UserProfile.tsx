@@ -252,21 +252,14 @@ function PropertySelect({
 
 export function ProfileCard({
   user,
-  editable = false,
+  setUser,
+  editing,
 }: {
   user: User;
-  editable?: boolean;
+  setUser: (user: User) => void;
+  editing: boolean;
 }) {
   const navigate = useNavigate();
-  const auth = useAuth();
-
-  const [editing, setEditing] = useState(false);
-  const [userState, setUserState] = useState(user);
-
-  // TODO: lift state up
-  useEffect(() => {
-    setUserState(user);
-  }, [user.id]);
 
   const changeField =
     (key: MonomorphFields<User, string | null>) => (value: string) => {
@@ -274,19 +267,8 @@ export function ProfileCard({
       if (key === "dateOfBirth" && !value) {
         v = null;
       }
-      setUserState({ ...userState, [key]: v });
+      setUser({ ...user, [key]: v });
     };
-
-  const handleSubmit: FormEventHandler = (event) => {
-    console.log("submit");
-    event.preventDefault();
-    if (editing) {
-      updateUser(auth.token, user.id, userState).catch(() =>
-        setUserState(user),
-      );
-    }
-    setEditing(false);
-  };
 
   const viewUnit = () => {
     console.log("view unit");
@@ -318,11 +300,11 @@ export function ProfileCard({
       <PropertyInput
         type={type}
         pattern={pattern}
-        editing={editable && editing}
-        value={userState[field] || ""}
+        editing={editing}
+        value={user[field] || ""}
         text={
-          field === "dateOfBirth" && userState[field]
-            ? formatDateOfBirth(new Date(userState[field]))
+          field === "dateOfBirth" && user[field]
+            ? formatDateOfBirth(new Date(user[field]))
             : undefined
         }
         handleChange={changeField(field)}
@@ -338,11 +320,7 @@ export function ProfileCard({
       >
         <Picture width="260px" height="100%" url={user.photo || undefined} />
       </Link>
-      <form
-        spellCheck
-        className="w-full flex flex-col justify-between"
-        onSubmit={handleSubmit}
-      >
+      <div className="w-full flex flex-col justify-between">
         <div className="flex">
           <img src={personIcon} alt="" className="w-[33px]" />
           <Link
@@ -351,17 +329,6 @@ export function ProfileCard({
           >
             <h2>{fullNameLong(user)}</h2>
           </Link>
-          <div className="grow"></div>
-          {editable && (
-            <EditControls
-              editing={editing}
-              edit={() => setEditing(true)}
-              reset={() => {
-                setEditing(false);
-                setUserState(user);
-              }}
-            />
-          )}
         </div>
         <div
           className={clsx(
@@ -371,11 +338,11 @@ export function ProfileCard({
         >
           <EditableProperty key="status" name="Статус" icon={brightnessIcon}>
             <PropertySelect
-              editing={editable && editing}
-              value={userState.status}
+              editing={editing}
+              value={user.status}
               options={USER_STATUS.map((status) => [status, status])}
               handleSelect={(value) => {
-                setUserState({ ...userState, status: value as UserStatus });
+                setUser({ ...user, status: value as UserStatus });
               }}
             ></PropertySelect>
           </EditableProperty>
@@ -394,7 +361,7 @@ export function ProfileCard({
               pattern: "\\+7[0-9]{10}",
             }),
             <EditableProperty key="email" name="Почта" icon={atIcon}>
-              {userState.email}
+              {user.email}
             </EditableProperty>,
             field({
               field: "position",
@@ -412,7 +379,7 @@ export function ProfileCard({
             name="Организация"
             icon={pinIcon}
           >
-            {userState.organization?.name}
+            {user.organization?.name}
           </EditableProperty>
           <div className="row-span-3">
             <EditableProperty
@@ -422,11 +389,11 @@ export function ProfileCard({
               wrap
               handleClick={editing ? undefined : viewUnit}
             >
-              {userState.unit?.name}
+              {user.unit?.name}
             </EditableProperty>
           </div>
         </div>
-      </form>
+      </div>
     </section>
   );
 }
@@ -674,38 +641,24 @@ function AwardsSection({ userId }: { userId: string }) {
   );
 }
 
-function AboutMeSection({ user }: { user: User }) {
-  const auth = useAuth();
-  const [text, setText] = useState(user.about);
-  const [editing, setEditing] = useState(false);
-
+function AboutMeSection({
+  user,
+  setUser,
+  editing,
+}: {
+  user: User;
+  setUser: (user: User) => void;
+  editing: boolean;
+}) {
   return (
     <section className="relative">
       <SectionTitle editable={false} title="Обо мне" />
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          updateUser(auth.token, auth.userId, { ...user, about: text });
-          setEditing(false);
-        }}
-      >
-        <div className="absolute top-0 right-0">
-          <EditControls
-            editing={editing}
-            edit={() => setEditing(true)}
-            reset={() => {
-              setEditing(false);
-              setText(user.about);
-            }}
-          />
-        </div>
-        <textarea
-          disabled={!editing}
-          value={text}
-          className="w-full"
-          onChange={(event) => setText(event.target.value)}
-        />
-      </form>
+      <textarea
+        disabled={!editing}
+        value={user.about}
+        className="w-full"
+        onChange={(event) => setUser({ ...user, about: event.target.value })}
+      />
     </section>
   );
 }
@@ -752,7 +705,18 @@ export function UserProfile() {
   const { user } = useFetchUser(userId);
   const auth = useAuth();
 
-  if (!user) {
+  const [editing, setEditing] = useState(false);
+  const [baseUserState, setBaseUserState] = useState<User | undefined>(
+    undefined,
+  );
+  const [userState, setUserState] = useState<User | undefined>(undefined);
+
+  useEffect(() => {
+    setBaseUserState(user);
+    setUserState(user);
+  }, [user]);
+
+  if (!user || !userState || !baseUserState) {
     return <div>Loading...</div>;
   }
 
@@ -760,15 +724,53 @@ export function UserProfile() {
     userId == "me" || auth.userId === userId ? "Мой профиль" : user.firstName;
   console.log(auth, { userId });
 
+  const handleSubmit: FormEventHandler = (event) => {
+    console.log("submit");
+    event.preventDefault();
+    if (editing) {
+      updateUser(auth.token, user.id, userState).catch(() =>
+        setUserState(user),
+      );
+    }
+    setBaseUserState(userState);
+    setEditing(false);
+  };
+
+  const editable = userId === "me" || userId === auth.userId;
+
   return (
     <AnimatePage id={user.id}>
       <PageSkel title={title} heading="Основные сведения">
-        <div className="mr-[36px] ml-[64px] pb-[155px]">
+        <form
+          spellCheck
+          className={clsx("mr-[36px] ml-[64px] pb-[155px]", "relative")}
+          onSubmit={handleSubmit}
+        >
+          {editable && (
+            <div className="absolute right-0">
+              <EditControls
+                editing={editing}
+                edit={() => setEditing(true)}
+                reset={() => {
+                  setUserState(baseUserState);
+                  setEditing(false);
+                }}
+              />
+            </div>
+          )}
           {user !== undefined && (
             <>
-              <ProfileCard user={user} editable={user.id == auth.userId} />
+              <ProfileCard
+                user={userState}
+                setUser={setUserState}
+                editing={editing}
+              />
               <SectionSep />
-              <AboutMeSection user={user} />
+              <AboutMeSection
+                user={userState}
+                setUser={setUserState}
+                editing={editing}
+              />
               <SectionSep />
             </>
           )}
@@ -789,7 +791,7 @@ export function UserProfile() {
           <AwardsSection userId={userId} />
           <SectionSep />
           <FeedbackSection userId={userId} />
-        </div>
+        </form>
       </PageSkel>
     </AnimatePage>
   );
