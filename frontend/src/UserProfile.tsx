@@ -743,32 +743,24 @@ export function UserProfile() {
               />
             </div>
           )}
-          {user !== undefined && (
-            <>
-              <ProfileCard
-                user={userState}
-                setUser={setUserState}
-                editing={editing}
-              />
-              <SectionSep />
-              <AboutMeSection
-                user={userState}
-                setUser={setUserState}
-                editing={editing}
-              />
-              <SectionSep />
-            </>
-          )}
+          <ProfileCard
+            user={userState}
+            setUser={setUserState}
+            editing={editing}
+          />
+          <SectionSep />
+          <AboutMeSection
+            user={userState}
+            setUser={setUserState}
+            editing={editing}
+          />
+          <SectionSep />
           <EducationSection userId={userId} />
           <SectionSep />
           <CareerSection userId={userId} />
           <SectionSep />
-          {user !== undefined && (
-            <>
-              <TeamSection user={user} />
-              <SectionSep />
-            </>
-          )}
+          <TeamSection user={user} />
+          <SectionSep />
           {/*
         <CommunityWorkSection userId={userId} />
         <SectionSep />
