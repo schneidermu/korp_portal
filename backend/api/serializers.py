@@ -81,6 +81,7 @@ class PollSerializer(serializers.ModelSerializer):
         many=True,
         required=True
     )
+    voted_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Poll
@@ -92,6 +93,7 @@ class PollSerializer(serializers.ModelSerializer):
             "is_multiple_choice",
             "organization",
             "pub_date",
+            "voted_count",
         )
         extra_kwargs = {
             "id": {
@@ -120,6 +122,13 @@ class PollSerializer(serializers.ModelSerializer):
 
         return poll
 
+    def get_voted_count(self, obj):
+        users = []
+
+        for choice in obj.choices.all():
+            users.extend([user.id for user in choice.voted.all()])
+
+        return len(set(users))
 
 class VoteCreateSerializer(serializers.Serializer):
     '''Сериализатор для голосования'''
