@@ -573,6 +573,12 @@ class ProfileSerializer(UserSerializer):
             }
         }
 
+    def validate_avatar(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
+
     def get_supervizor(self, object):
         try:
             supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()

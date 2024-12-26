@@ -114,9 +114,8 @@ class Employee(AbstractUser):
         null=True,
     )
 
-    avatar = models.ImageField(
+    avatar = models.CharField(
         verbose_name='Аватар',
-        upload_to='employees/avatars/',
         null=True,
         blank=True,
         default=None
@@ -187,19 +186,11 @@ class AbstractWithPhotoNameModel(models.Model):
         blank=True
     )
 
-    file = models.FileField(
+    file = models.CharField(
         verbose_name='Документ',
-        upload_to=return_name,
         blank=True,
         null=True,
         default=None,
-        validators=[FileExtensionValidator(
-            allowed_extensions=[
-                'doc', 'docx',
-                'xlsx', 'xls', 'csv', 'pdf',
-                'jpg', 'png', 'jpeg'
-            ]
-        )]
     )
 
     class Meta:
