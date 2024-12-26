@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import PollViewset, NewsViewSet, ColleagueProfileViewset, OrgStructureViewset, OrganizationViewSet
+from .views import PollViewset, NewsViewSet, ColleagueProfileViewset, OrgStructureViewset, OrganizationViewSet, FileUploadAPIView
 
 router_version1 = DefaultRouter()
 router_version1.register("polls", PollViewset, basename="poll")
@@ -26,4 +26,5 @@ router_version1.register(
 urlpatterns = [
     path("", include(router_version1.urls)),
     path("auth/", include("djoser.urls.authtoken")),
+    path("upload-file/", FileUploadAPIView.as_view(), name='upload-file'),
 ]

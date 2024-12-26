@@ -1,12 +1,22 @@
-from rest_framework import serializers
 from django.db import transaction
-from djoser.serializers import UserSerializer, UserCreateSerializer
-from rest_framework.validators import UniqueValidator
-
-from homepage.models import Poll, News, Choice, Attachment
-from homepage.constants import CHARFIELD_LENGTH
-from employees.models import University, Employee, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, Characteristic, Rating, Organization, StructuralSubdivision, Diploma
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+from employees.models import (Career, Characteristic, Competence, Conference,
+                              Course, Diploma, Employee, Hobby, Organization,
+                              Performance, Rating, Reward, Sport,
+                              StructuralSubdivision, Training, University,
+                              Victory, Volunteer, UploadedFile)
+from homepage.constants import CHARFIELD_LENGTH
+from homepage.models import Attachment, Choice, News, Poll
+import os.path
+
+
+class FileUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UploadedFile
+        fields = ('file',)
 
 
 ATTRIBUTE_MODEL = (
@@ -257,96 +267,209 @@ class NewsSerializer(serializers.ModelSerializer):
 class CourseSerializer(serializers.ModelSerializer):
     '''Сериализатор для курса'''
 
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Course
         exclude = ("characteristic",)
+
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
 
 
 class DiplomaSerializer(serializers.ModelSerializer):
     '''Сериализатор для диплома'''
 
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Diploma
         exclude = ("characteristic",)
+
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
 
 
 class UniversitySerializer(serializers.ModelSerializer):
     '''Сериализатор для университета'''
 
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = University
         exclude = ("characteristic",)
+
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
 
 
 class CareerSerializer(serializers.ModelSerializer):
     '''Сериализатор для карьерного роста'''
 
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Career
         exclude = ("characteristic",)
 
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
+
 
 class CompetenceSerializer(serializers.ModelSerializer):
     '''Сериализатор для компетенций'''
+
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Competence
         exclude = ("characteristic",)
 
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
+
 
 class TrainingSerializer(serializers.ModelSerializer):
     '''Сериализатор повышения квалификации'''
+
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Training
         exclude = ("characteristic",)
 
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
+
 
 class HobbySerializer(serializers.ModelSerializer):
     '''Сериализатор хобби'''
+
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Hobby
         exclude = ("characteristic",)
 
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
+
 
 class RewardSerializer(serializers.ModelSerializer):
     '''Сериализатор наград'''
+
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Reward
         exclude = ("characteristic",)
 
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
+
 
 class ConferenceSerializer(serializers.ModelSerializer):
     '''Сериализатор конференций'''
+
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Conference
         exclude = ("characteristic",)
 
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
+
 
 class VictorySerializer(serializers.ModelSerializer):
     '''Сериализатор победы в конкурсе'''
+
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Victory
         exclude = ("characteristic",)
 
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
+
 
 class PerformanceSerializer(serializers.ModelSerializer):
     '''Сериализатор выступления'''
+
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Performance
         exclude = ("characteristic",)
 
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
+
 
 class SportSerializer(serializers.ModelSerializer):
     '''Сериализатор спортивного мероприятия'''
+
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Sport
         exclude = ("characteristic",)
 
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
+
 
 class VolunteerSerializer(serializers.ModelSerializer):
     '''Сериализатор волонтерства'''
+
+    file = serializers.CharField(required=False)
+
     class Meta:
         model = Volunteer
         exclude = ("characteristic",)
+
+    def validate_file(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
 
 
 class CharacteristicSerializer(serializers.ModelSerializer):
@@ -449,6 +572,12 @@ class ProfileSerializer(UserSerializer):
                 "read_only": True
             }
         }
+
+    def validate_avatar(self, value):
+        if os.path.isfile(value):
+            return value
+        else:
+            raise serializers.ValidationError(f"Incorrect filename {value}")
 
     def get_supervizor(self, object):
         try:

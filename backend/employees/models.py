@@ -1,7 +1,6 @@
 import uuid
 from django.db import models
 from homepage.constants import CHARFIELD_LENGTH
-from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import Avg
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
@@ -23,6 +22,11 @@ POSITIONS = (
     ('Руководитель', 'Руководитель'),
     ('Тестировщик', 'Тестировщик')
 )
+
+
+class UploadedFile(models.Model):
+
+    file = models.FileField()
 
 
 class Employee(AbstractUser):
@@ -110,9 +114,8 @@ class Employee(AbstractUser):
         null=True,
     )
 
-    avatar = models.ImageField(
+    avatar = models.CharField(
         verbose_name='Аватар',
-        upload_to='employees/avatars/',
         null=True,
         blank=True,
         default=None
@@ -183,19 +186,11 @@ class AbstractWithPhotoNameModel(models.Model):
         blank=True
     )
 
-    file = models.FileField(
+    file = models.CharField(
         verbose_name='Документ',
-        upload_to=return_name,
         blank=True,
         null=True,
         default=None,
-        validators=[FileExtensionValidator(
-            allowed_extensions=[
-                'doc', 'docx',
-                'xlsx', 'xls', 'csv', 'pdf',
-                'jpg', 'png', 'jpeg'
-            ]
-        )]
     )
 
     class Meta:
