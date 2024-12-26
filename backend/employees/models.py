@@ -76,11 +76,10 @@ class Employee(AbstractUser):
         blank=True,
         null=True,
     )
-    telephone_number = PhoneNumberField(
+    telephone_number = models.CharField(
         verbose_name='Номер телефона',
         blank=True,
         null=True,
-        unique=True
     )
     job_title = models.CharField(
         verbose_name='Должность',
@@ -256,8 +255,8 @@ class Characteristic(models.Model):
 
     # Курсы через class Course
 
-    experience = models.PositiveSmallIntegerField(
-        verbose_name='Стаж работы (лет)',
+    experience = models.CharField(
+        verbose_name='Стаж работы',
         blank=True,
         null=True,
     )
