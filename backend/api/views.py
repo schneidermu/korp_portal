@@ -5,15 +5,37 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
+from rest_framework.parsers import FormParser, MultiPartParser
 from django.db import transaction
 from djoser.views import UserViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from rest_framework.views import APIView
 
 from homepage.models import Poll, News
 from employees.models import Employee, Rating, Organization
-from .serializers import VoteCreateSerializer, VoteDeleteSerializer, PollSerializer, NewsSerializer, ProfileSerializer, RatingPOSTSerializer, RatingDELETESerializer, OrgStructureSerializer, OrganizationSerializer, ProfileInOrganizationSerializer
+from .serializers import VoteCreateSerializer, PollSerializer, NewsSerializer, RatingPOSTSerializer, RatingDELETESerializer, OrgStructureSerializer, OrganizationSerializer, ProfileInOrganizationSerializer, FileUploadSerializer
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
+
+
+class FileUploadAPIView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+    serializer_class = FileUploadSerializer
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class PollViewset(viewsets.ModelViewSet):

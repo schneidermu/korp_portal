@@ -1,7 +1,6 @@
 import uuid
 from django.db import models
 from homepage.constants import CHARFIELD_LENGTH
-from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import Avg
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
@@ -23,6 +22,11 @@ POSITIONS = (
     ('Руководитель', 'Руководитель'),
     ('Тестировщик', 'Тестировщик')
 )
+
+
+class UploadedFile(models.Model):
+
+    file = models.FileField()
 
 
 class Employee(AbstractUser):
