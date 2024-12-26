@@ -4,12 +4,15 @@ function extention(filename: string): string | undefined {
 }
 
 function filetype(filename: string): string | undefined {
-  const ext = extention(filename);
+  const ext = extention(filename)?.toLowerCase();
   if (ext === "doc" || ext === "docx") {
     return "word";
   }
   if (ext === "xls" || ext === "xlsx") {
     return "excel";
+  }
+  if (ext === "pdf") {
+    return "pdf";
   }
 }
 

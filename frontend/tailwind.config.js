@@ -3,7 +3,7 @@ export default {
   ...(process.env.NODE_ENV === "production"
     ? { important: ".korp-portal-portlet" }
     : {}),
-  safelist: ["text-excel", "text-word"],
+  safelist: ["text-excel", "text-word", "text-pdf"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     fontWeight: {
@@ -22,6 +22,7 @@ export default {
       "dark-gray": "#8C8C8C",
       word: "#2F80ED",
       excel: "#5AC75C",
+      pdf: "#b30b00",
       date: "#2F80ED",
       "nav-link": "#004199",
       modal: "#d9d9d97a",
