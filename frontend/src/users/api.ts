@@ -26,7 +26,7 @@ type UserData = {
   average_rating: number | null;
   avatar: string | null; // URI
   characteristic: null | {
-    experience: number | null;
+    experience: string | null;
     about: string | null;
     competences: { name: string }[];
     careers: {

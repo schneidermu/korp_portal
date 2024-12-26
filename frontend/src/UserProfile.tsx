@@ -467,7 +467,7 @@ function CareerSection({ userId }: { userId: string }) {
         <Property
           icon={creditCardIcon}
           name="Стаж"
-          value={user.workExperience?.toString() || "?"}
+          value={user.workExperience || "?"}
         />
 
         <Property icon={externalIcon} name="Карьерный рост" />

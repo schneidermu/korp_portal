@@ -19,7 +19,7 @@ export type User = {
   status: UserStatus;
   dateOfBirth: string | null;
   phoneNumber: string;
-  workExperience: number | null;
+  workExperience: string | null;
   about: string;
   skills: string;
   photo: string | null;
