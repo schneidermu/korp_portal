@@ -343,7 +343,6 @@ export function ProfileCard({
               name: "Телефон",
               icon: phoneIcon,
               type: "tel",
-              pattern: "\\+7[0-9]{10}",
             }),
             <EditableProperty key="email" name="Почта" icon={atIcon}>
               {user.email}
