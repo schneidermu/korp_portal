@@ -22,7 +22,7 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
         className={clsx(
           "relative z-20",
           "h-full pl-[60px] pr-[110px]",
-          "bg-blue",
+          "bg-blue2",
           position === "left" && "rounded-l",
           position === "right" && "rounded-r",
           "flex justify-center items-center",
@@ -62,7 +62,7 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
 
 export default function NavBar() {
   return (
-    <nav className="flex justify-between items-center h-[76px] bg-blue rounded text-[32px] text-white">
+    <nav className="flex justify-between items-center h-[76px] bg-blue2 rounded text-[32px] text-white">
       <Link to="/feed" className="hover:underline mx-[120px]">
         Рабочий стол
       </Link>
