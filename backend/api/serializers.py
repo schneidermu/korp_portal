@@ -274,6 +274,9 @@ class CourseSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -290,6 +293,9 @@ class DiplomaSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -306,6 +312,9 @@ class UniversitySerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -322,6 +331,9 @@ class CareerSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -338,6 +350,9 @@ class CompetenceSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -354,6 +369,9 @@ class TrainingSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -370,6 +388,9 @@ class HobbySerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -386,6 +407,9 @@ class RewardSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -402,6 +426,9 @@ class ConferenceSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -418,6 +445,9 @@ class VictorySerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -434,6 +464,9 @@ class PerformanceSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -450,6 +483,9 @@ class SportSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -466,6 +502,9 @@ class VolunteerSerializer(serializers.ModelSerializer):
         exclude = ("characteristic",)
 
     def validate_file(self, value):
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
@@ -574,6 +613,10 @@ class ProfileSerializer(UserSerializer):
         }
 
     def validate_avatar(self, value):
+
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
