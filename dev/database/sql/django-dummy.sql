@@ -20,21 +20,21 @@ COPY public.employees_structuralsubdivision (organization_id, id, parent_structu
 \.
 
 COPY public.employees_employee (structural_division_id, id, chief_id, birth_date, telephone_number, username, email, last_name, first_name, surname, name, patronym, job_title, class_rank, status, is_superuser, is_staff, is_active, date_joined, avatar, password) FROM stdin;
-1	361cf4a7-3cc5-49a5-b962-fd134bde2ba6	\N	1980-01-01	+78009990003	ivanov	ivanov@voda.gov.ru	Иванов	Иван	Иванов	Иван	Иванович	Руководитель	1 чин	На рабочем месте	t	t	t	2024-01-01	employees/avatars/1.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-1	be0313f8-9e9a-4629-8d67-bc38e8ad4de9	361cf4a7-3cc5-49a5-b962-fd134bde2ba6	1980-01-02	+78009990004	smirnov	smirnov@voda.gov.ru	Смирнов	Сергей	Смирнов	Сергей	Сергеевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/2.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-2	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	361cf4a7-3cc5-49a5-b962-fd134bde2ba6	1980-01-03	+78009990005	kuznetsov	kuznetsov@voda.gov.ru	Кузнецов	Алексей	Кузнецов	Алексей	Алексеевич	Руководитель	1 чин	На рабочем месте	t	t	t	2024-01-01	employees/avatars/3.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-2	77b57065-447d-4b2e-9f50-d471f94cafb6	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	1980-01-04	+78009990006	popov	popov@voda.gov.ru	Попов	Андрей	Попов	Андрей	Андреевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/4.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-2	245ef7c6-ea94-447b-a4b4-e91904a61190	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	1980-01-05	+78009990007	vasiliev	vasiliev@voda.gov.ru	Васильев	Дмитрий	Васильев	Дмитрий	Дмитриевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/5.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-2	1f573386-d5ff-4a61-aa82-845e5f7ae9f6	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	1980-01-06	+78009990008	sokolov	sokolov@voda.gov.ru	Соколов	Евгений	Соколов	Евгений	Евгеньевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/6.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-2	51be9555-4783-48e6-8a3f-fd7956435bfb	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	1980-01-07	+78009990009	morozov	morozov@voda.gov.ru	Морозов	Михаил	Морозов	Михаил	Михайлович	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/7.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-2	89229392-6676-4788-b2a7-e4149d92b1c2	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	1980-01-08	+78009990010	fedorov	fedorov@voda.gov.ru	Федоров	Николай	Федоров	Николай	Николаевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/8.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-3	946080d9-96fd-4284-8cf3-1a218b2922f2	361cf4a7-3cc5-49a5-b962-fd134bde2ba6	1980-01-09	+78009990011	volkov	volkov@voda.gov.ru	Волков	Александр	Волков	Александр	Александрович	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/9.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-3	d1154e27-941e-4cae-88b1-85dcac06624e	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-10	+78009990012	kozlov	kozlov@voda.gov.ru	Козлов	Владимир	Козлов	Владимир	Владимирович	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/10.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-3	16ed161f-baaf-409a-a5ec-c9c90ba66abd	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-11	+78009990013	stefanov	stefanov@voda.gov.ru	Стефанов	Георгий	Стефанов	Георгий	Георгиевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/11.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-3	019a8c0e-8bc5-4567-91fc-e9e48d868c26	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-12	+78009990014	smirnova	smirnova@voda.gov.ru	Смирнова	Екатерина	Смирнова	Екатерина	Екатериновна	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/12.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-3	86b0fbe9-ceeb-43ce-9eea-293e218d1242	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-13	+78009990015	petrova	petrova@voda.gov.ru	Петрова	Анна	Петрова	Анна	Анновна	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/13.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-3	20603bd3-7321-417a-a930-b8a9fae19e2b	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-14	+78009990016	ivanova	ivanova@voda.gov.ru	Иванова	Мария	Иванова	Мария	Мариевна	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/14.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
-3	993d4ff4-f820-45b5-a1f1-4c845aae2c17	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-15	+78009990017	kuznetsova	kuznetsova@voda.gov.ru	Кузнецова	Ольга	Кузнецова	Ольга	Ольговна	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	employees/avatars/15.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+1	361cf4a7-3cc5-49a5-b962-fd134bde2ba6	\N	1980-01-01	+78009990003	ivanov	ivanov@voda.gov.ru	Иванов	Иван	Иванов	Иван	Иванович	Руководитель	1 чин	На рабочем месте	t	t	t	2024-01-01	/media/1.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+1	be0313f8-9e9a-4629-8d67-bc38e8ad4de9	361cf4a7-3cc5-49a5-b962-fd134bde2ba6	1980-01-02	+78009990004	smirnov	smirnov@voda.gov.ru	Смирнов	Сергей	Смирнов	Сергей	Сергеевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/2.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+2	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	361cf4a7-3cc5-49a5-b962-fd134bde2ba6	1980-01-03	+78009990005	kuznetsov	kuznetsov@voda.gov.ru	Кузнецов	Алексей	Кузнецов	Алексей	Алексеевич	Руководитель	1 чин	На рабочем месте	t	t	t	2024-01-01	/media/3.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+2	77b57065-447d-4b2e-9f50-d471f94cafb6	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	1980-01-04	+78009990006	popov	popov@voda.gov.ru	Попов	Андрей	Попов	Андрей	Андреевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/4.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+2	245ef7c6-ea94-447b-a4b4-e91904a61190	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	1980-01-05	+78009990007	vasiliev	vasiliev@voda.gov.ru	Васильев	Дмитрий	Васильев	Дмитрий	Дмитриевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/5.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+2	1f573386-d5ff-4a61-aa82-845e5f7ae9f6	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	1980-01-06	+78009990008	sokolov	sokolov@voda.gov.ru	Соколов	Евгений	Соколов	Евгений	Евгеньевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/6.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+2	51be9555-4783-48e6-8a3f-fd7956435bfb	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	1980-01-07	+78009990009	morozov	morozov@voda.gov.ru	Морозов	Михаил	Морозов	Михаил	Михайлович	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/7.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+2	89229392-6676-4788-b2a7-e4149d92b1c2	dcc15437-8181-4e9a-89bd-2eadcf55e6d4	1980-01-08	+78009990010	fedorov	fedorov@voda.gov.ru	Федоров	Николай	Федоров	Николай	Николаевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/8.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+3	946080d9-96fd-4284-8cf3-1a218b2922f2	361cf4a7-3cc5-49a5-b962-fd134bde2ba6	1980-01-09	+78009990011	volkov	volkov@voda.gov.ru	Волков	Александр	Волков	Александр	Александрович	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/9.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+3	d1154e27-941e-4cae-88b1-85dcac06624e	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-10	+78009990012	kozlov	kozlov@voda.gov.ru	Козлов	Владимир	Козлов	Владимир	Владимирович	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/10.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+3	16ed161f-baaf-409a-a5ec-c9c90ba66abd	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-11	+78009990013	stefanov	stefanov@voda.gov.ru	Стефанов	Георгий	Стефанов	Георгий	Георгиевич	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/11.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+3	019a8c0e-8bc5-4567-91fc-e9e48d868c26	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-12	+78009990014	smirnova	smirnova@voda.gov.ru	Смирнова	Екатерина	Смирнова	Екатерина	Екатериновна	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/12.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+3	86b0fbe9-ceeb-43ce-9eea-293e218d1242	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-13	+78009990015	petrova	petrova@voda.gov.ru	Петрова	Анна	Петрова	Анна	Анновна	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/13.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+3	20603bd3-7321-417a-a930-b8a9fae19e2b	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-14	+78009990016	ivanova	ivanova@voda.gov.ru	Иванова	Мария	Иванова	Мария	Мариевна	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/14.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
+3	993d4ff4-f820-45b5-a1f1-4c845aae2c17	946080d9-96fd-4284-8cf3-1a218b2922f2	1980-01-15	+78009990017	kuznetsova	kuznetsova@voda.gov.ru	Кузнецова	Ольга	Кузнецова	Ольга	Ольговна	Разработчик	2 чин	На рабочем месте	f	f	t	2024-01-01	/media/15.png	pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp3YVFjydPoi7O/aYhSRQ=
 \.
 
 COPY public.employees_characteristic (id, employee_id, experience, about) FROM stdin;
@@ -127,7 +127,7 @@ COPY public.employees_conference (id, name, characteristic_id, file) FROM stdin;
 \.
 
 COPY public.employees_course (id, characteristic_id, year, name, file) FROM stdin;
-1	1	2025	Академия Кулинарии в Челябинке	employees/%(class)s/согласие_dk00rnh.doc
+1	1	2025	Академия Кулинарии в Челябинке	/media/согласие_dk00rnh.doc
 \.
 
 COPY public.employees_diploma (id, name, file, year, characteristic_id) FROM stdin;
@@ -194,14 +194,14 @@ COPY public.employees_rating (id, rate, employee_id, user_id) FROM stdin;
 \.
 
 COPY public.employees_reward (id, name, characteristic_id, file) FROM stdin;
-1	Сертификат по стрельбе	1	employees/%(class)s/3cf67d9484e5bf2aa0a33f1f3198501c_oUSf1FX.png
+1	Сертификат по стрельбе	1	/media/3cf67d9484e5bf2aa0a33f1f3198501c_oUSf1FX.png
 \.
 
 COPY public.employees_sport (id, name, characteristic_id, file) FROM stdin;
 \.
 
 COPY public.employees_training (id, name, characteristic_id, file) FROM stdin;
-1	Курсы по excel	1	employees/%(class)s/образец_V39Wxon.docx
+1	Курсы по excel	1	/media/образец_V39Wxon.docx
 \.
 
 COPY public.employees_university (id, characteristic_id, year, name, faculty, file) FROM stdin;
