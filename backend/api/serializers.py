@@ -574,6 +574,10 @@ class ProfileSerializer(UserSerializer):
         }
 
     def validate_avatar(self, value):
+
+        if value is None:
+            return
+
         if os.path.isfile(value):
             return value
         else:
