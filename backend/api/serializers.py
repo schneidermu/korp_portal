@@ -920,3 +920,13 @@ class ProfileInOrganizationSerializer(UserSerializer):
         super().update(instance=instance, validated_data=validated_data)
 
         return instance
+
+
+class HierarchySerializer(UserSerializer):
+
+    class Meta(UserSerializer.Meta):
+        model = Employee
+        fields = (
+            "id",
+            "subordinates",
+        )

@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 
 from homepage.models import Poll, News
 from employees.models import Employee, Rating, Organization
-from .serializers import VoteCreateSerializer, PollSerializer, NewsSerializer, RatingPOSTSerializer, RatingDELETESerializer, OrgStructureSerializer, OrganizationSerializer, ProfileInOrganizationSerializer, FileUploadSerializer
+from .serializers import VoteCreateSerializer, PollSerializer, NewsSerializer, RatingPOSTSerializer, RatingDELETESerializer, OrgStructureSerializer, OrganizationSerializer, ProfileInOrganizationSerializer, FileUploadSerializer, HierarchySerializer
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 
 
@@ -224,3 +224,21 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         'structural_subdivisions__positions__status'
     )
     search_fields = ('structural_subdivisions__positions__name','structural_subdivisions__positions__surname', 'structural_subdivisions__positions__patronym')
+
+
+class HierarchyViewSet(
+    ListModelMixin,
+    RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    '''Вьюсет для иерархии.'''
+
+    filter_backends = (DjangoFilterBackend,)
+
+    filterset_fields = (
+        'structural_division__organization__id',
+    )
+
+    serializer_class = HierarchySerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Employee.objects.all()
