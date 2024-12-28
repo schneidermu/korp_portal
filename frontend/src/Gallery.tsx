@@ -4,6 +4,7 @@ import Overlay from "./Overlay";
 import { motion } from "motion/react";
 import { ReactNode } from "react";
 import SlideButton from "./SlideButton";
+import { noop } from "./util";
 
 const CloseButton = ({ onClick }: { onClick: () => void }) => {
   return (
@@ -19,8 +20,8 @@ const Gallery = ({
   close,
   children,
 }: {
-  left: () => void;
-  right: () => void;
+  left?: () => void;
+  right?: () => void;
   close: () => void;
   children?: ReactNode;
 }) => {
@@ -34,14 +35,18 @@ const Gallery = ({
       >
         <div className="grid grid-cols-[83px,1fr,83px] gap-[35px] w-full h-fit">
           <div className="flex items-center">
-            <SlideButton direction="left" onClick={left} />
+            <SlideButton direction="left" onClick={left || noop} hide={!left} />
           </div>
           <div className="bg-white">{children}</div>
           <div className="relative flex items-center">
             <div className="absolute right-[31px] top-[7px]">
               <CloseButton onClick={close} />
             </div>
-            <SlideButton direction="right" onClick={right} />
+            <SlideButton
+              direction="right"
+              onClick={right || noop}
+              hide={!right}
+            />
           </div>
         </div>
       </motion.div>

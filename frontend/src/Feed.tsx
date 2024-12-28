@@ -63,17 +63,22 @@ const NewsContent = ({
         {overlayImg !== null && (
           <Gallery
             close={() => setOverlayImg(null)}
-            left={() => {
-              if (overlayImg > 0) {
-                setOverlayImg(overlayImg - 1);
-              }
-            }}
-            right={() => {
-              if (overlayImg < images.length - 1) {
-                setOverlayImg(overlayImg + 1);
-              }
-            }}
+            left={
+              overlayImg <= 0
+                ? undefined
+                : () => {
+                    setOverlayImg(overlayImg - 1);
+                  }
+            }
+            right={
+              overlayImg >= images.length - 1
+                ? undefined
+                : () => {
+                    setOverlayImg(overlayImg + 1);
+                  }
+            }
           >
+            {overlayImg}/{images.length}
             <img
               src={images[overlayImg]}
               className="w-full h-full object-cover"
@@ -355,18 +360,22 @@ export default function Feed() {
             {overlayPost !== null && (
               <Gallery
                 close={() => setOverlayPost(null)}
-                left={() => {
-                  if (overlayPost > 0) {
-                    setOverlayPost(overlayPost - 1);
-                    scrollToCard(overlayPost - 1);
-                  }
-                }}
-                right={() => {
-                  if (overlayPost < posts.length - 1) {
-                    setOverlayPost(overlayPost + 1);
-                    scrollToCard(overlayPost + 1);
-                  }
-                }}
+                left={
+                  overlayPost <= 0
+                    ? undefined
+                    : () => {
+                        setOverlayPost(overlayPost - 1);
+                        scrollToCard(overlayPost - 1);
+                      }
+                }
+                right={
+                  overlayPost >= posts.length - 1
+                    ? undefined
+                    : () => {
+                        setOverlayPost(overlayPost + 1);
+                        scrollToCard(overlayPost + 1);
+                      }
+                }
               >
                 {posts[overlayPost].kind === "news" ? (
                   <News full news={posts[overlayPost]} />

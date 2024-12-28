@@ -61,3 +61,5 @@ export const userPhotoPath = (user: User) =>
   user.photo?.startsWith("/media")
     ? STATIC_BASE_URL + user.photo
     : user.photo || personIcon;
+
+export const noop = () => ({});
