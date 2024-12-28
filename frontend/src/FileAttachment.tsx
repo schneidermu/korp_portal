@@ -1,10 +1,8 @@
-function extention(filename: string): string | undefined {
-  const parts = filename.split(".");
-  return parts[parts.length - 1];
-}
+import clsx from "clsx";
+import { STATIC_BASE_URL } from "./const";
+import { fileExtention } from "./util";
 
-function filetype(filename: string): string | undefined {
-  const ext = extention(filename)?.toLowerCase();
+function filetype(ext: string): string | undefined {
   if (ext === "doc" || ext === "docx") {
     return "word";
   }
@@ -16,19 +14,23 @@ function filetype(filename: string): string | undefined {
   }
 }
 
-export default function FileAttachment({
-  filename,
-  url,
-}: {
-  filename: string;
-  url: string;
-}) {
-  const ext = extention(filename);
-  const ft = filetype(filename);
+export default function FileAttachment({ url }: { url: string }) {
+  const ext = fileExtention(url);
+  const ft = ext && filetype(ext);
   const color = ft ? `text-${ft}` : "";
+  let text = "";
+  if (url) {
+    text += "Документ";
+  }
+  if (ext) {
+    text += "." + ext;
+  }
+  if (!url.startsWith("blob://")) {
+    url = STATIC_BASE_URL + url;
+  }
   return (
-    <a href={url} className={`underline ${color}`}>
-      Приложение.{ext}
+    <a href={url} className={clsx("underline", color)}>
+      {text}
     </a>
   );
 }

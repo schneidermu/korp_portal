@@ -1,28 +1,9 @@
-import clsx from "clsx";
-import arrow from "/arrow.png";
 import cross from "/cross.png";
 import Overlay from "./Overlay";
 
 import { motion } from "motion/react";
 import { ReactNode } from "react";
-
-const SlideButton = ({
-  direction,
-  onClick,
-}: {
-  direction: "left" | "right";
-  onClick: () => void;
-}) => {
-  return (
-    <button className="py-[40px]" onClick={onClick}>
-      <img
-        style={{ width: "83px", height: "83px" }}
-        className={clsx(direction === "left" && "rotate-180")}
-        src={arrow}
-      />
-    </button>
-  );
-};
+import SlideButton from "./SlideButton";
 
 const CloseButton = ({ onClick }: { onClick: () => void }) => {
   return (

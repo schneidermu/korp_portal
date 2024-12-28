@@ -28,6 +28,7 @@ export type User = {
   bossId: string | null;
   unit: null | { id: number; name: string };
   organization: null | { id: number; name: string };
+  avgRating: number | null;
   career: {
     position: string;
     year_start: number;
@@ -51,10 +52,10 @@ export type User = {
   }[];
   communityWork: {
     name: string;
-    picture: string;
+    attachment: string | null;
   }[];
   awards: {
-    title: string;
-    image: string;
+    name: string;
+    attachment: string | null;
   }[];
 };

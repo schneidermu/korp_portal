@@ -1,10 +1,20 @@
-import { LOCALE } from "./const";
+import { LOCALE, STATIC_BASE_URL } from "./const";
 import { User } from "./types";
+
+import personIcon from "/person.svg";
 
 export function urlBasename(url: string): string {
   const parts = decodeURI(url).split("/");
   return parts[parts.length - 1];
 }
+
+export const fileExtention = (url: string): string | undefined => {
+  const parts = decodeURI(url).split(".");
+  if (parts.length < 2) {
+    return;
+  }
+  return parts[parts.length - 1].toLowerCase();
+};
 
 function nameParts(user: User): string[] {
   const parts = [user.lastName, user.firstName];
@@ -43,3 +53,11 @@ export const formatDateOfBirth = new Intl.DateTimeFormat(LOCALE, {
   month: "short",
   day: "numeric",
 }).format;
+
+export const fullImagePath = (path: string) =>
+  path.startsWith("/media") ? STATIC_BASE_URL + path : path;
+
+export const userPhotoPath = (user: User) =>
+  user.photo?.startsWith("/media")
+    ? STATIC_BASE_URL + user.photo
+    : user.photo || personIcon;

@@ -5,7 +5,7 @@ import { User, UserStatus } from "../types";
 import { tokenFetch, useTokenFetcher } from "../auth/slice";
 
 import { produce } from "immer";
-import { fullNameLong } from "../util";
+import { fileExtention, fullNameLong } from "../util";
 
 type UserData = {
   id: string; // UUID
@@ -41,21 +41,25 @@ type UserData = {
       faculty: string | null;
       year: number | null;
       month: number | null;
-      file: string | null; // URI
+      file?: string | null; // URI
     }[];
     courses: {
       name: string;
       year: number | null;
       month: number | null;
-      file: string | null; // URI
+      file?: string | null; // URI
     }[];
     rewards: {
       name: string;
-      file: string | null; // URI
+      file?: string | null; // URI
     }[];
     trainings: {
       name: string;
-      file: string | null; // URI
+      file?: string | null; // URI
+    }[];
+    volunteers: {
+      name: string;
+      file?: string | null;
     }[];
   };
 };
@@ -76,12 +80,13 @@ const toUser = (data: UserData): User => {
     workExperience: char?.experience || null,
     about: char?.about || "",
     skills: char?.competences[0]?.name || "",
-    photo: data.avatar,
+    photo: data.avatar || null,
     position: data.job_title || "",
     serviceRank: data.class_rank || "",
     bossId: data.chief,
     unit: data.structural_division,
     organization: data.organization,
+    avgRating: data.average_rating,
     career:
       char?.careers.map((c) => ({
         position: c.name,
@@ -91,7 +96,10 @@ const toUser = (data: UserData): User => {
         month_leave: c.month_finish,
       })) || [],
     training:
-      char?.trainings.map((t) => ({ name: t.name, attachment: t.file })) || [],
+      char?.trainings.map((t) => ({
+        name: t.name,
+        attachment: t.file || null,
+      })) || [],
     education:
       char?.universitys.map((u) => ({
         year: u.year || 9999,
@@ -102,82 +110,92 @@ const toUser = (data: UserData): User => {
       char?.courses.map((c) => ({
         year: c.year || 9999,
         name: c.name,
-        attachment: c.file,
+        attachment: c.file || null,
       })) || [],
-    communityWork: [],
+    communityWork:
+      char?.volunteers.map(({ name, file }) => ({
+        name,
+        attachment: file || null,
+      })) || [],
     awards:
-      char?.rewards.map((r) => ({ title: r.name, image: r.file || "" })) || [],
+      char?.rewards.map(({ name, file }) => ({
+        name,
+        attachment: file || null,
+      })) || [],
   };
 };
 
-const fromUser = (user: User): Partial<UserData> => {
-  const data: UserData = {
-    id: user.id,
-    email: user.email,
-    username: user.username,
-    is_superuser: user.isAdmin,
-    surname: user.lastName,
-    name: user.firstName,
-    patronym: user.patronym,
-    status: user.status,
-    birth_date: user.dateOfBirth,
-    telephone_number: user.phoneNumber,
-    job_title: user.position,
-    class_rank: user.serviceRank,
-    chief: user.bossId,
-    structural_division: user.unit,
-    organization: user.organization,
-    average_rating: null,
-    avatar: user.photo,
-    characteristic: {
-      experience: user.workExperience,
-      about: user.about,
-      competences: user.skills === null ? [] : [{ name: user.skills }],
-      careers: user.career.map((c) => ({
-        name: c.position,
-        year_start: c.year_start,
-        month_start: c.month_start,
-        year_finish: c.year_leave,
-        month_finish: c.month_leave,
-      })),
-      universitys: user.education.map((e) => ({
-        name: e.university,
-        faculty: e.major,
-        year: e.year,
-        month: null,
-        file: null,
-      })),
-      courses: user.courses.map((c) => ({
-        name: c.name,
-        year: c.year,
-        month: null,
-        file: c.attachment,
-      })),
-      rewards: user.awards.map((a) => ({
-        name: a.title,
-        file: a.image,
-      })),
-      trainings: user.training.map((t) => ({
-        name: t.name,
-        file: t.attachment,
-      })),
-    },
-  };
-  const partial: Partial<UserData> = data;
-  if (partial.avatar !== null) {
-    delete partial.avatar;
-  }
-  return partial;
-};
+const fromUser = (user: User): UserData => ({
+  id: user.id,
+  email: user.email,
+  username: user.username,
+  is_superuser: user.isAdmin,
+  surname: user.lastName,
+  name: user.firstName,
+  patronym: user.patronym,
+  status: user.status,
+  birth_date: user.dateOfBirth,
+  telephone_number: user.phoneNumber,
+  job_title: user.position,
+  class_rank: user.serviceRank,
+  chief: user.bossId,
+  structural_division: user.unit,
+  organization: user.organization,
+  average_rating: user.avgRating,
+  avatar: user.photo,
+  characteristic: {
+    experience: user.workExperience,
+    about: user.about,
+    competences: user.skills === null ? [] : [{ name: user.skills }],
+    careers: user.career.map((c) => ({
+      name: c.position,
+      year_start: c.year_start,
+      month_start: c.month_start,
+      year_finish: c.year_leave,
+      month_finish: c.month_leave,
+    })),
+    universitys: user.education.map((e) => ({
+      name: e.university,
+      faculty: e.major,
+      year: e.year,
+      month: null,
+      file: undefined,
+    })),
+    courses: user.courses.map((c) => ({
+      name: c.name,
+      year: c.year,
+      month: null,
+      file: c.attachment || undefined,
+    })),
+    rewards: user.awards.map((a) => ({
+      name: a.name,
+      file: a.attachment || undefined,
+    })),
+    trainings: user.training.map((t) => ({
+      name: t.name,
+      file: t.attachment || undefined,
+    })),
+    volunteers: user.communityWork.map(({ name, attachment: image }) => ({
+      name,
+      file: image || undefined,
+    })),
+  },
+});
 
 export const useFetchUsers = () => {
   const tokenFetcher = useTokenFetcher();
 
-  return useSWR("/colleagues/", async (path: string) =>
-    tokenFetcher(path)
-      .then((res) => res.json())
-      .then((usersData: UserData[]) => usersData.map(toUser))
-      .then((users: User[]) => new Map(users.map((user) => [user.id, user]))),
+  return useSWR(
+    "/colleagues/",
+    async (path: string) =>
+      tokenFetcher(path)
+        .then((res) => res.json())
+        .then((usersData: UserData[]) => usersData.map(toUser))
+        .then((users: User[]) => new Map(users.map((user) => [user.id, user]))),
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    },
   );
 };
 
@@ -208,17 +226,23 @@ export const useFetchUsersSubset = ({
   const uri = "/colleagues/?" + query.join("&");
   const key = query.length === 0 ? null : uri;
 
-  return useSWR(key, async (path: string) =>
-    tokenFetcher(path)
-      .then((res) => res.json())
-      .then((usersData: UserData[]) => {
-        const users = usersData.map(toUser);
-        users.sort(cmpUsers);
-        for (const user of users.values()) {
-          mutate(`/colleagues/${user.id}/`, user, { revalidate: false });
-        }
-        return users;
-      }),
+  return useSWR(
+    key,
+    async (path: string) =>
+      tokenFetcher(path)
+        .then((res) => res.json())
+        .then((usersData: UserData[]) => {
+          const users = usersData.map(toUser);
+          users.sort(cmpUsers);
+          for (const user of users.values()) {
+            mutate(`/colleagues/${user.id}/`, user, { revalidate: false });
+          }
+          return users;
+        }),
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    },
   );
 };
 
@@ -242,9 +266,12 @@ export const useFetchUser = (userId: string | null) => {
       tokenFetcher(path)
         .then((data) => data.json())
         .then((data) => {
-          console.log("user data", { path, data });
           return toUser(data);
         }),
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    },
   );
 
   return {
@@ -253,9 +280,53 @@ export const useFetchUser = (userId: string | null) => {
   };
 };
 
-export const updateUser = async (token: string, userId: string, user: User) => {
+export const uploadFile = async (token: string, uri: string | null) => {
+  if (!uri?.startsWith("blob:")) {
+    return uri || undefined;
+  }
+  const ext = fileExtention(uri);
+  if (ext) {
+    uri = uri.replace(/\.[a-z0-9]*$/, "");
+  }
+  const blob = await fetch(uri).then((res) => res.blob());
+  const formData = new FormData();
+  formData.append("file", blob);
+  return tokenFetch(token, `/upload-file/`, {
+    method: "POST",
+    body: formData,
+  })
+    .then((res) => res.json())
+    .then(({ file }) => decodeURI(file));
+};
+
+export const updateUser = async (token: string, user: User) => {
   const data = fromUser(user);
-  return tokenFetch(token, `/colleagues/${userId}/`, {
+
+  const attrs = [
+    ["courses", "courses"],
+    ["training", "trainings"],
+    ["awards", "rewards"],
+    ["communityWork", "volunteers"],
+  ] as const;
+
+  await Promise.all([
+    uploadFile(token, user.photo).then((file) => {
+      data.avatar = file || null;
+    }),
+    ...attrs.flatMap(([attr, apiAttr]) =>
+      (user[attr] || []).map(({ attachment }, i) =>
+        uploadFile(token, attachment)
+          .then((file) => {
+            if (data.characteristic) {
+              data.characteristic[apiAttr][i].file = file;
+            }
+          })
+          .catch(console.error),
+      ),
+    ),
+  ]);
+
+  return tokenFetch(token, `/colleagues/${user.id}/`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -271,20 +342,21 @@ export const updateUser = async (token: string, userId: string, user: User) => {
     })
     .then((userData) => {
       console.log({ userData });
-      return mutate(
-        `/colleagues/`,
-        (users: Map<string, User> | undefined) => {
-          console.log("users are", { users });
-          if (users === undefined) return undefined;
-          console.log("here");
-          const user = toUser(userData);
-          console.log("user is", { user });
-          return produce(users, (draft) => {
-            console.log("set to", { user });
-            draft.set(user.id, user);
+      const user = toUser(userData);
+      const opt = {
+        revalidate: false,
+      };
+      mutate(`/colleagues/${user.id}/`, user, opt);
+      mutate(`/colleagues/me/`, user, opt);
+      mutate(
+        "/colleagues/",
+        (users?: Map<string, User>) => {
+          if (!users) return undefined;
+          return produce(users, (users) => {
+            users.set(user.id, user);
           });
         },
-        { revalidate: false },
+        opt,
       );
     });
 };
