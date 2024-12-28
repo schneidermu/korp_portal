@@ -13,31 +13,42 @@ html {
   line-height: 1.2;
 }
 
-.rounded-table {
+.korp-portal-portlet a:hover,
+.korp-portal-portlet a:focus {
+  color: inherit;
+}
+
+.korp-portal-portlet label,
+.korp-portal-portlet table {
+  font: inherit;
+  color: inherit;
+}
+
+.korp-portal-portlet .rounded-table {
   --radius: 10px;
   border-radius: var(--radius);
   border-spacing: 0;
   border-collapse: separate;
 }
-.rounded-table tr > * {
+.korp-portal-portlet .rounded-table tr > * {
   border-top-width: 0;
   border-left-width: 0;
 }
-.rounded-table tr:last-child > * {
+.korp-portal-portlet .rounded-table tr:last-child > * {
   border-bottom-width: 0;
 }
-.rounded-table tr > :last-child {
+.korp-portal-portlet .rounded-table tr > :last-child {
   border-right-width: 0;
 }
-.rounded-table tr:first-child > :first-child {
+.korp-portal-portlet .rounded-table tr:first-child > :first-child {
   border-top-left-radius: var(--radius);
 }
-.rounded-table tr:first-child > :last-child {
+.korp-portal-portlet .rounded-table tr:first-child > :last-child {
   border-top-right-radius: var(--radius);
 }
-.rounded-table tr:last-child > :first-child {
+.korp-portal-portlet .rounded-table tr:last-child > :first-child {
   border-bottom-left-radius: var(--radius);
 }
-.rounded-table tr:last-child > :last-child {
+.korp-portal-portlet .rounded-table tr:last-child > :last-child {
   border-bottom-right-radius: var(--radius);
 }
