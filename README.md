@@ -26,12 +26,12 @@ docker compose -p kp logs -f
 
 ```sh
 # Start React dev server:
-docker build -t kp-frontend-dev --target dev frontend/
-docker run --rm -it -p 3000:3000 -v ./frontend:/app kp-frontend-dev
+docker build -t kp-react-dev --target dev react/
+docker run --rm -it -p 3000:3000 -v ./react:/app kp-react-dev
 
 # Or build and deploy a WAR to Liferay:
-docker build -t kp-frontend-war --target war frontend/
-docker run --rm -it -v ./frontend:/app kp-frontend-war
+docker build -t kp-react-war --target war react/
+docker run --rm -it -v ./react:/app kp-react-war
 cp pkg/*.war ./dev/volumes/deploy
 ```
 
@@ -77,7 +77,7 @@ See also `liferay-gui-develop/README.development.md`.
 ## Разворачивание бэка
 
 ```sh
-cd backend
+cd django
 
 python -m venv venv
 

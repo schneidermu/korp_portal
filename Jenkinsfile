@@ -5,8 +5,8 @@ pipeline {
         stage('Copy ENV File') {
             steps {
             	sh 'echo "env file: {$ENV_FILE}" > .env'
-		sh 'cp .env backend/./'
-		sh 'cat backend/.env'
+		sh 'cp .env django/./'
+		sh 'cat django/.env'
             }
         }
 	stage('Docker-compsoe up'){

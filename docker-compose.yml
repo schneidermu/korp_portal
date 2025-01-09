@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 volumes:
   pg_data:
@@ -8,19 +8,20 @@ volumes:
 services:
   db:
     image: postgres:13
-    env_file: ./backend/.env
+    env_file: ./django/.env
     volumes:
       - pg_data:/var/lib/postgresql/data
-  backend:
-    build: ./backend/
-    env_file: ./backend/.env
+
+  django:
+    build: ./django/
+    env_file: ./django/.env
     volumes:
       - static:/app/collected_static/
       - media:/media/
 
   gateway:
     build: ./gateway/
-    env_file: ./backend/.env
+    env_file: ./django/.env
     volumes:
       - static:/staticfiles
       - media:/media
