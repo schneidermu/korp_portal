@@ -1,6 +1,7 @@
 volumes:
   data:
   static:
+  openldap_data:
 
 services:
   database:
@@ -66,3 +67,14 @@ services:
       - "${DJANGO_PORT}:80"
     depends_on:
       - django
+
+  openldap:
+    image: bitnami/openldap:2.6.9
+    environment:
+      LDAP_ROOT: dc=example,dc=org
+      LDAP_USERS: "${LDAP_USER}"
+      LDAP_PASSWORDS: "${LDAP_PASSWORD}"
+    volumes:
+      - openldap_data:/bitnami/openldap
+    ports:
+      - "${LDAP_PORT}:1389"
