@@ -1,0 +1,7 @@
+/.vite/
+/.yarn/
+/dist/
+/node_modules/
+/pkg/
+
+/*.tsbuildinfo
