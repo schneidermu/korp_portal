@@ -1,8 +1,9 @@
-import clsx from "clsx";
-import { motion } from "motion/react";
 import { ReactNode } from "react";
 
-const Overlay = ({ children }: { children: ReactNode }) => {
+import clsx from "clsx/lite";
+import { motion } from "motion/react";
+
+export const Overlay = ({ children }: { children: ReactNode }) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -18,5 +19,3 @@ const Overlay = ({ children }: { children: ReactNode }) => {
     </motion.div>
   );
 };
-
-export default Overlay;

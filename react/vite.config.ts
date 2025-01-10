@@ -1,10 +1,17 @@
-import { defineConfig, UserConfig } from "vite";
+import path from "node:path";
+
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
 export default defineConfig(({ mode }) => {
   const conf = {
     plugins: [react()],
-  } as UserConfig;
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
+  };
 
   if (mode === "development") return conf;
 

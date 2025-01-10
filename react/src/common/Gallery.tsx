@@ -1,10 +1,13 @@
-import cross from "/cross.png";
-import Overlay from "./Overlay";
+import { ReactNode } from "react";
 
 import { motion } from "motion/react";
-import { ReactNode } from "react";
-import SlideButton from "./SlideButton";
+
 import { noop } from "./util";
+
+import { Overlay } from "./Overlay";
+import { SlideButton } from "./SlideButton";
+
+import cross from "/cross.png";
 
 const CloseButton = ({ onClick }: { onClick: () => void }) => {
   return (
@@ -14,7 +17,7 @@ const CloseButton = ({ onClick }: { onClick: () => void }) => {
   );
 };
 
-const Gallery = ({
+export const Gallery = ({
   left,
   right,
   close,
@@ -53,5 +56,3 @@ const Gallery = ({
     </Overlay>
   );
 };
-
-export default Gallery;

@@ -1,5 +1,6 @@
 import useSWR from "swr";
-import { fetcher } from "../auth/slice";
+
+import { fetcher } from "@/auth/slice";
 import { Organization } from "./types";
 
 interface OrganizationData {

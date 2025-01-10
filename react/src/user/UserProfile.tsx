@@ -1,52 +1,39 @@
-import {
-  FormEventHandler,
-  HTMLInputTypeAttribute,
-  ReactNode,
-  useEffect,
-  useState,
-} from "react";
+import { FormEventHandler, ReactNode, useEffect, useState } from "react";
 
 import clsx from "clsx/lite";
+import { produce, WritableDraft } from "immer";
+import { Link, useParams } from "react-router-dom";
 
-import atIcon from "/at.svg";
-import awardIcon from "/award.svg";
-import bookIcon from "/book.svg";
-import brightnessIcon from "/brightness.svg";
-import creditCardIcon from "/credit-card.svg";
-import editIcon from "/edit.svg";
-import externalIcon from "/external.svg";
-import giftIcon from "/gift.svg";
-import layersIcon from "/layers.svg";
-import layoutIcon from "/layout.svg";
-import peopleIcon from "/people.svg";
-import personIcon from "/person.svg";
-import phoneIcon from "/phone.svg";
-import pinIcon from "/pin.svg";
-import starIcon from "/star.svg";
-import starYellowIcon from "/star-yellow.svg";
-import upArrowIcon from "/up-arrow.svg";
-import crossIcon from "/cross.svg";
+import { User } from "./types";
 
-import { User, USER_STATUS, UserStatus } from "./types";
-
-import { tokenFetch, useAuth } from "./auth/slice";
-import FileAttachment from "./FileAttachment";
-import { updateUser, useFetchColleagues, useFetchUser } from "./users/api";
+import { tokenFetch, useAuth } from "@/auth/slice";
 import {
   fileExtention,
-  formatDateOfBirth,
   fullImagePath,
-  fullNameLong,
   fullNameShort,
-  MonomorphFields,
   userPhotoPath,
-} from "./util";
-import { AnimatePage, PageSkel } from "./Page.tsx";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { produce, WritableDraft } from "immer";
-import SlideButton from "./SlideButton.tsx";
+} from "@/common/util";
+import { updateUser, useFetchColleagues, useFetchUser } from "./api";
 
-function SectionSep() {
+import { AnimatePage, PageSkel } from "@/app/Page";
+import { Attachment } from "@/common/Attachment";
+import { SlideButton } from "@/common/SlideButton";
+
+import { Picture } from "@/common/Picture";
+import { EditableProperty, PropertyInput } from "./common";
+import { ProfileCard } from "./ProfileCard";
+import bookIcon from "/book.svg";
+import creditCardIcon from "/credit-card.svg";
+import crossIcon from "/cross.svg";
+import editIcon from "/edit.svg";
+import externalIcon from "/external.svg";
+import layersIcon from "/layers.svg";
+import layoutIcon from "/layout.svg";
+import starYellowIcon from "/star-yellow.svg";
+import starIcon from "/star.svg";
+import upArrowIcon from "/up-arrow.svg";
+
+const SectionSep = () => {
   return (
     <hr
       className={clsx(
@@ -55,9 +42,9 @@ function SectionSep() {
       )}
     />
   );
-}
+};
 
-function Property({
+const Property = ({
   icon,
   name,
   value,
@@ -65,7 +52,7 @@ function Property({
   icon: string;
   name: string;
   value?: string;
-}) {
+}) => {
   return (
     <div>
       <img
@@ -78,34 +65,13 @@ function Property({
       {value}
     </div>
   );
-}
+};
 
-function SectionTitle({ title }: { title: string }) {
+const SectionTitle = ({ title }: { title: string }) => {
   return <h2 className="mb-[40px] font-medium text-[30px]">{title}</h2>;
-}
+};
 
-function Picture({
-  url,
-  width,
-  height,
-  alt = "",
-}: {
-  url?: string;
-  width: string;
-  height: string;
-  alt?: string;
-}) {
-  return (
-    <img
-      src={url}
-      alt={alt}
-      style={{ width, height }}
-      className="object-center object-cover"
-    />
-  );
-}
-
-function EditControls({
+const EditControls = ({
   editing,
   edit,
   reset,
@@ -113,7 +79,7 @@ function EditControls({
   editing: boolean;
   edit: () => void;
   reset: () => void;
-}) {
+}) => {
   const btn = clsx(
     "px-[30px] py-[6px] w-fit",
     "rounded bg-light-blue text-white",
@@ -134,324 +100,7 @@ function EditControls({
       <img style={{ width: "36px", height: "36px" }} src={editIcon} />
     </button>
   );
-}
-
-function EditableProperty({
-  icon,
-  name,
-  wrap = false,
-  handleClick,
-  children,
-}: {
-  icon: string;
-  name: string;
-  wrap?: boolean;
-  handleClick?: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <div className={clsx("h-full", wrap ? "mt-[7.5px]" : "flex items-center")}>
-      <img
-        style={{ width: "30px", height: "30px" }}
-        src={icon}
-        alt=""
-        className="inline-block mr-[20px]"
-      />
-      <span
-        className={clsx(
-          "inline-block",
-          "shrink-0 mr-[10px] text-dark-gray",
-          handleClick && "hover:underline cursor-pointer",
-        )}
-        onClick={handleClick}
-      >
-        {name}:
-      </span>
-      {children}
-    </div>
-  );
-}
-
-function PropertyInput({
-  type = "text",
-  editing,
-  pattern,
-  value,
-  text,
-  theme,
-  placeholder,
-  required,
-  handleChange,
-}: {
-  type?: HTMLInputTypeAttribute;
-  editing: boolean;
-  pattern?: string;
-  value: string;
-  text?: string;
-  theme?: string;
-  placeholder?: string;
-  required?: boolean;
-  handleChange: (value: string) => void;
-}) {
-  return editing ? (
-    <input
-      type={type}
-      pattern={pattern}
-      placeholder={placeholder}
-      required={required}
-      className={clsx(
-        "w-full",
-        "border rounded border-black",
-        "invalid:border-[#f00]",
-        theme,
-      )}
-      value={value}
-      onChange={(e) => handleChange(e.target.value)}
-    />
-  ) : (
-    <span>{text || value}</span>
-  );
-}
-
-function PropertySelect({
-  editing,
-  value,
-  options,
-  handleSelect: handleChange,
-}: {
-  editing: boolean;
-  value?: string;
-  options?: [string, string][];
-  handleSelect: (value: string, text: string) => void;
-}) {
-  let text = undefined;
-  for (const [v, t] of options || []) {
-    if (v === value) text = t;
-  }
-
-  return editing ? (
-    <select
-      className={clsx(
-        "w-full px-[10px] py-[6px]",
-        "border rounded bg-white border-black",
-      )}
-      value={value}
-      onChange={(e) => handleChange(e.target.value, e.target.textContent || "")}
-    >
-      {options &&
-        options.map(([value, text]) => (
-          <option key={value} value={value}>
-            {text}
-          </option>
-        ))}
-    </select>
-  ) : (
-    <span>{text}</span>
-  );
-}
-
-const Avatar = ({
-  user,
-  setUser,
-  editing,
-}: {
-  user: User;
-  setUser: (user: User) => void;
-  editing: boolean;
-}) => {
-  return (
-    <Link
-      to={`/profile/${user.id}`}
-      className="shrink-0 rounded-photo overflow-hidden relative"
-    >
-      <Picture width="260px" height="100%" url={userPhotoPath(user)} />
-      {editing && (
-        <div className="w-full absolute bottom-0 text-[16px] bg-[#D9D9D9C0]">
-          <label
-            className="block w-full py-3 hover:underline text-center cursor-pointer"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <input
-              type="file"
-              name="avatar"
-              accept=".png,.jpg,.jpeg"
-              className="hidden"
-              onChange={({ target: { files } }) => {
-                if (!files || files.length < 1) {
-                  return;
-                }
-                if (user.photo?.startsWith("blob")) {
-                  URL.revokeObjectURL(user.photo);
-                  console.log("revoke", user.photo);
-                }
-                const file = files[0];
-                const url = URL.createObjectURL(file);
-                console.log("set photo", url);
-                setUser({ ...user, photo: url });
-              }}
-              onClick={(event) => event.stopPropagation()}
-            />
-            Загрузить фото
-          </label>
-          <hr className="text-[#cecece]" />
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              setUser({ ...user, photo: null });
-            }}
-            className="w-full py-3 hover:underline"
-            type="button"
-          >
-            Удалить фото
-          </button>
-        </div>
-      )}
-    </Link>
-  );
 };
-
-export function ProfileCard({
-  user,
-  setUser = () => ({}),
-  editing = false,
-}: {
-  user: User;
-  setUser?: (user: User) => void;
-  editing?: boolean;
-}) {
-  const navigate = useNavigate();
-
-  const changeField =
-    (key: MonomorphFields<User, string | null>) => (value: string) => {
-      let v: string | null = value;
-      if (key === "dateOfBirth" && !value) {
-        v = null;
-      }
-      setUser({ ...user, [key]: v });
-    };
-
-  const viewUnit = () => {
-    console.log("view unit");
-    if (user.unit === null) return;
-    navigate("/list/" + user.unit.name);
-  };
-
-  const field = ({
-    name,
-    icon,
-    field,
-    type = "text",
-    pattern,
-    handleClick,
-  }: {
-    name: string;
-    icon: string;
-    field: MonomorphFields<User, string | null>;
-    type?: string;
-    pattern?: string;
-    handleClick?: () => void;
-  }) => (
-    <EditableProperty
-      key={field}
-      icon={icon}
-      name={name}
-      handleClick={handleClick}
-    >
-      <PropertyInput
-        type={type}
-        pattern={pattern}
-        editing={editing}
-        value={user[field] || ""}
-        theme="py-[6px] px-[10px]"
-        text={
-          field === "dateOfBirth" && user[field]
-            ? formatDateOfBirth(new Date(user[field]))
-            : undefined
-        }
-        handleChange={changeField(field)}
-      />
-    </EditableProperty>
-  );
-
-  return (
-    <section className="-ml-[20px] flex gap-[64px] h-[340px]">
-      <Avatar editing={editing} user={user} setUser={setUser} />
-      <div className="w-full flex flex-col justify-between">
-        <div className="flex">
-          <img src={personIcon} alt="" className="w-[33px]" />
-          <Link
-            to={"/profile/" + user.id}
-            className="ml-[28px] text-[30px] hover:underline"
-          >
-            <h2>{fullNameLong(user)}</h2>
-          </Link>
-        </div>
-        <div
-          className={clsx(
-            "grid grid-flow-col grid-rows-[repeat(5,45px)] grid-cols-2",
-            "gap-y-[15px] gap-x-[1em]",
-          )}
-        >
-          <EditableProperty key="status" name="Статус" icon={brightnessIcon}>
-            <PropertySelect
-              editing={editing}
-              value={user.status}
-              options={USER_STATUS.map((status) => [status, status])}
-              handleSelect={(value) => {
-                setUser({ ...user, status: value as UserStatus });
-              }}
-            ></PropertySelect>
-          </EditableProperty>
-          {[
-            field({
-              field: "dateOfBirth",
-              name: "Дата рождения",
-              icon: giftIcon,
-              type: "date",
-            }),
-            field({
-              field: "phoneNumber",
-              name: "Телефон",
-              icon: phoneIcon,
-              type: "tel",
-            }),
-            <EditableProperty key="email" name="Почта" icon={atIcon}>
-              {user.email}
-            </EditableProperty>,
-            field({
-              field: "position",
-              name: "Должность",
-              icon: peopleIcon,
-            }),
-            field({
-              field: "serviceRank",
-              name: "Классный чин",
-              icon: awardIcon,
-            }),
-          ]}
-          <EditableProperty
-            key="organization"
-            name="Организация"
-            icon={pinIcon}
-          >
-            {user.organization?.name}
-          </EditableProperty>
-          <div className="row-span-3">
-            <EditableProperty
-              key="unit"
-              name="Структурное подразделение"
-              icon={peopleIcon}
-              wrap
-              handleClick={editing ? undefined : viewUnit}
-            >
-              {user.unit?.name}
-            </EditableProperty>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 const RowControls = ({ controls }: { controls: [string, () => void][] }) => {
   return (
@@ -593,7 +242,7 @@ const HigherEducationInfo = ({
   );
 };
 
-function EducationSection({
+const EducationSection = ({
   user,
   setUser,
   editing,
@@ -601,7 +250,7 @@ function EducationSection({
   user: User;
   setUser: (user: User) => void;
   editing: boolean;
-}) {
+}) => {
   const courses = (
     <Timeline
       editing={editing}
@@ -665,7 +314,7 @@ function EducationSection({
               />
               {attachment ? (
                 <div className="flex">
-                  <FileAttachment url={attachment || ""} />
+                  <Attachment url={attachment || ""} />
                   <button
                     className="hover:underline text-dark-gray ml-4 text-[20px]"
                     onClick={() => {
@@ -714,7 +363,7 @@ function EducationSection({
           ) : (
             <div>
               <div>{name}</div>
-              <FileAttachment url={attachment || ""} />
+              <Attachment url={attachment || ""} />
             </div>
           )}
         </>
@@ -732,7 +381,7 @@ function EducationSection({
       <div className={clsx(editing ? "my-6" : "my-12")}>{courses}</div>
     </section>
   );
-}
+};
 
 const TrainingInfo = ({
   user,
@@ -813,7 +462,7 @@ const TrainingInfo = ({
         {editing ? (
           attachment ? (
             <div className="">
-              <FileAttachment url={attachment} />
+              <Attachment url={attachment} />
               <button
                 type="button"
                 className="ml-4 hover:underline text-dark-gray text-[20px]"
@@ -836,7 +485,7 @@ const TrainingInfo = ({
           attachment && (
             <>
               {", "}
-              <FileAttachment url={attachment} />
+              <Attachment url={attachment} />
             </>
           )
         )}
@@ -862,7 +511,7 @@ const TrainingInfo = ({
   );
 };
 
-function CareerSection({
+const CareerSection = ({
   user,
   setUser,
   editing,
@@ -870,7 +519,7 @@ function CareerSection({
   user: User;
   setUser: (user: User) => void;
   editing: boolean;
-}) {
+}) => {
   const positions = user.career.map(
     ({ year_start, year_leave, position }, i) => (
       <tr key={i} className="h-[45px]">
@@ -1037,25 +686,27 @@ function CareerSection({
       </div>
     </section>
   );
-}
+};
 
-function ViewButton(props: {
+const ViewButton = ({
+  text,
+  active,
+  onClick,
+}: {
   text: string;
   active: boolean;
   onClick: () => void;
-}) {
+}) => {
   let style = "border border-light-blue rounded px-[38px] py-[12px] ";
-  style += props.active
-    ? "bg-light-blue text-white"
-    : "bg-white text-light-blue";
+  style += active ? "bg-light-blue text-white" : "bg-white text-light-blue";
   return (
-    <button type="button" className={style} onClick={props.onClick}>
-      {props.text}
+    <button type="button" className={style} onClick={onClick}>
+      {text}
     </button>
   );
-}
+};
 
-function UserAvatarLink({ user }: { user: User }) {
+const UserAvatarLink = ({ user }: { user: User }) => {
   return (
     <Link to={`/profile/${user.id}`} className="shrink-0 w-fit hover:underline">
       <div className="rounded-photo overflow-hidden">
@@ -1064,9 +715,9 @@ function UserAvatarLink({ user }: { user: User }) {
       <div className="text-center mt-[16px]">{fullNameShort(user)}</div>
     </Link>
   );
-}
+};
 
-function TeamSection({ user }: { user: User }) {
+const TeamSection = ({ user }: { user: User }) => {
   const [showBosses, setShowBosses] = useState(false);
 
   const colleagues = useFetchColleagues(user);
@@ -1107,7 +758,7 @@ function TeamSection({ user }: { user: User }) {
       </div>
     </section>
   );
-}
+};
 
 const Slides = ({
   window,
@@ -1155,7 +806,7 @@ const Slides = ({
   );
 };
 
-function GallerySection({
+const GallerySection = ({
   user,
   setUser,
   editing,
@@ -1173,7 +824,7 @@ function GallerySection({
   title: string;
   height: string | number;
   gap: string | number;
-}) {
+}) => {
   const pushItem = () =>
     setUser(
       produce(user, (user) => {
@@ -1290,7 +941,7 @@ function GallerySection({
       <Slides window={window} gap={gap} items={items} />
     </section>
   );
-}
+};
 
 const AwardsSection = ({
   user,
@@ -1334,7 +985,7 @@ const CommunityWorkSection = ({
   />
 );
 
-function AboutMeSection({
+const AboutMeSection = ({
   user,
   setUser,
   editing,
@@ -1342,7 +993,7 @@ function AboutMeSection({
   user: User;
   setUser: (user: User) => void;
   editing: boolean;
-}) {
+}) => {
   return (
     <section>
       <SectionTitle title="Обо мне" />
@@ -1363,9 +1014,9 @@ function AboutMeSection({
       )}
     </section>
   );
-}
+};
 
-function FeedbackSection({ user }: { user: User }) {
+const FeedbackSection = ({ user }: { user: User }) => {
   const auth = useAuth();
   const [mark, setMark] = useState<number | undefined>(undefined);
   const [hoverMark, setHoverMark] = useState<number | undefined>(undefined);
@@ -1425,9 +1076,9 @@ function FeedbackSection({ user }: { user: User }) {
       </div>
     </section>
   );
-}
+};
 
-export function UserProfile() {
+export const UserProfile = () => {
   const params = useParams();
   const userId = params.userId || "me";
   const { user } = useFetchUser(userId);
@@ -1511,6 +1162,4 @@ export function UserProfile() {
       </PageSkel>
     </AnimatePage>
   );
-}
-
-export default UserProfile;
+};

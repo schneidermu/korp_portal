@@ -1,12 +1,15 @@
-import clsx from "clsx";
-import { ProfileCard } from "./UserProfile";
-import { cmpUsers, useFetchUsers } from "./users/api";
-import { AnimatePage, PageSkel } from "./Page";
-import SearchBar from "./SearchBar";
 import { useEffect, useMemo, useState } from "react";
-import { User } from "./types";
-import { fullNameLong, fullNameShort } from "./util";
+
+import clsx from "clsx/lite";
 import { useNavigate, useParams } from "react-router-dom";
+
+import { fullNameLong, fullNameShort } from "@/common/util";
+import { cmpUsers, useFetchUsers } from "./api";
+import { User } from "./types";
+
+import { AnimatePage, PageSkel } from "@/app/Page";
+import { SearchBar } from "@/common/SearchBar";
+import { ProfileCard } from "./ProfileCard";
 
 const matchString = (q: string, s: string): boolean => {
   return s.toLowerCase().includes(q);
@@ -29,7 +32,7 @@ const filterUsers = (users: User[], term: string) => {
   });
 };
 
-export function UserList() {
+export const UserList = () => {
   const navigate = useNavigate();
   const params = useParams();
 
@@ -102,6 +105,4 @@ export function UserList() {
       </PageSkel>
     </AnimatePage>
   );
-}
-
-export default UserList;
+};

@@ -1,7 +1,9 @@
-import backArrowIcon from "/back-arrow.svg";
-import clsx from "clsx";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+
+import clsx from "clsx/lite";
+
+import backArrowIcon from "/back-arrow.svg";
 
 const DropdownArrow = () => {
   return (
@@ -60,7 +62,7 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
   );
 };
 
-export default function NavBar() {
+export const NavBar = () => {
   return (
     <nav className="flex justify-between items-center h-[76px] bg-blue2 rounded text-[32px] text-white">
       <Link to="/feed" className="hover:underline mx-[120px]">
@@ -72,4 +74,4 @@ export default function NavBar() {
       <DropdownMenu position="right" />
     </nav>
   );
-}
+};

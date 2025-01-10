@@ -1,9 +1,12 @@
-import clsx from "clsx/lite";
 import { ReactNode, useEffect } from "react";
 import { Outlet } from "react-router-dom";
-import { useLogin } from "./auth/login";
-import NavBar from "./NavBar";
+
+import clsx from "clsx/lite";
 import { motion } from "motion/react";
+
+import { useLogin } from "@/auth/login";
+
+import { NavBar } from "./NavBar";
 
 export const PageSkel = ({
   title,

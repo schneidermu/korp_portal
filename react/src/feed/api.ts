@@ -1,9 +1,12 @@
-import useSWRInfinite from "swr/infinite";
-import { Paged } from "../common/types";
-import { FEED_PAGE_LIMIT } from "../const";
-import { Post, News, Poll } from "./types";
-import { useAuth, useTokenFetcher } from "../auth/slice";
 import { useMemo, useState } from "react";
+
+import useSWRInfinite from "swr/infinite";
+
+import { FEED_PAGE_LIMIT } from "@/app/const";
+
+import { useAuth, useTokenFetcher } from "@/auth/slice";
+import { Paged } from "@/common/types";
+import { News, Poll, Post } from "./types";
 
 interface NewsData {
   id: number;

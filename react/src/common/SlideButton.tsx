@@ -1,7 +1,8 @@
-import clsx from "clsx";
+import clsx from "clsx/lite";
+
 import arrow from "/arrow.png";
 
-const SlideButton = ({
+export const SlideButton = ({
   direction,
   hide = false,
   onClick,
@@ -24,5 +25,3 @@ const SlideButton = ({
     </div>
   );
 };
-
-export default SlideButton;

@@ -1,12 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
-import { authSlice } from "./auth/slice";
-import { modalSlice } from "./modal/slice";
+
+import { authSlice } from "@/auth/slice";
 
 export const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
-    modal: modalSlice.reducer,
   },
 });
 

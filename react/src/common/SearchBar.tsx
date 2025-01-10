@@ -1,6 +1,7 @@
-import clsx from "clsx";
-import searchIcon from "/search.svg";
+import clsx from "clsx/lite";
+
 import crossIcon from "/cross.svg";
+import searchIcon from "/search.svg";
 
 const QueryTerm = ({
   term,
@@ -20,7 +21,7 @@ const QueryTerm = ({
   );
 };
 
-const SearchBar = ({
+export const SearchBar = ({
   query,
   setQuery,
 }: {
@@ -86,5 +87,3 @@ const SearchBar = ({
     </div>
   );
 };
-
-export default SearchBar;

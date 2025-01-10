@@ -1,8 +1,10 @@
-import clsx from "clsx";
-import { STATIC_BASE_URL } from "./const";
+import clsx from "clsx/lite";
+
+import { STATIC_BASE_URL } from "@/app/const";
+
 import { fileExtention } from "./util";
 
-function filetype(ext: string): string | undefined {
+const filetype = (ext: string): string | undefined => {
   if (ext === "doc" || ext === "docx") {
     return "word";
   }
@@ -12,9 +14,9 @@ function filetype(ext: string): string | undefined {
   if (ext === "pdf") {
     return "pdf";
   }
-}
+};
 
-export default function FileAttachment({ url }: { url: string }) {
+export const Attachment = ({ url }: { url: string }) => {
   const ext = fileExtention(url);
   const ft = ext && filetype(ext);
   const color = ft ? `text-${ft}` : "";
@@ -33,4 +35,4 @@ export default function FileAttachment({ url }: { url: string }) {
       {text}
     </a>
   );
-}
+};

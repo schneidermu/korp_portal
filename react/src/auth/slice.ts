@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { API_BASE_URL } from "../const";
+import { API_BASE_URL } from "@/app/const";
 
-import { useAppSelector } from "../store";
+import { useAppSelector } from "@/app/store";
 
 export interface AuthState {
   userId: string;

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
-import { API_BASE_URL } from "../const";
-import { useAppDispatch } from "../store";
+
+import { API_BASE_URL } from "@/app/const";
+
+import { useAppDispatch } from "@/app/store";
 import { authSlice, useAuth } from "./slice";
 
 const username = "kuznetsov";

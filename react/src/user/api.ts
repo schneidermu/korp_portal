@@ -1,11 +1,9 @@
+import { produce } from "immer";
 import useSWR, { mutate } from "swr";
 
-import { User, UserStatus } from "../types";
-
-import { tokenFetch, useTokenFetcher } from "../auth/slice";
-
-import { produce } from "immer";
-import { fileExtention, fullNameLong } from "../util";
+import { tokenFetch, useTokenFetcher } from "@/auth/slice";
+import { fileExtention, fullNameLong } from "@/common/util";
+import { User, UserStatus } from "./types";
 
 type UserData = {
   id: string; // UUID
