@@ -188,7 +188,7 @@ const Poll = ({
     );
     setChoiceIds(ids);
     setVoted(ids.size > 0);
-  }, [userId, poll.choices]);
+  }, [userId, poll.choices, poll.votes]);
 
   if (choiceIds === undefined || vote === undefined) {
     return;
