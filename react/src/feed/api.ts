@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import { produce } from "immer";
 import useSWRInfinite from "swr/infinite";
 
 import { FEED_PAGE_LIMIT } from "@/app/const";
@@ -100,23 +101,29 @@ const usePosts = <P extends Post, Data>(
   );
 
   const vote = (oldPoll: Poll, choiceIds: Set<number>) => {
-    mutate(
-      (pages?: Paged<P>[]) => {
-        for (const { results } of pages || []) {
-          for (const post of results) {
-            if (post.kind === "polls" && post.id === oldPoll.id) {
-              for (const choice of post.choices) {
-                if (choiceIds.has(choice.id)) {
-                  choice.voters.add(userId);
-                  choice.votes += 1;
-                }
+    if (!pages) {
+      return;
+    }
+
+    const newPages = produce(pages, (pages) => {
+      for (const { results } of pages) {
+        for (const post of results) {
+          if (post.kind === "polls" && post.id === oldPoll.id) {
+            for (const choice of post.choices) {
+              if (choiceIds.has(choice.id)) {
+                choice.voters.add(userId);
+                choice.votes += 1;
               }
-              post.votes += 1;
             }
+            post.votes += 1;
           }
         }
+      }
+    });
 
-        fetcher("/polls/vote/", {
+    mutate(
+      async () => {
+        await fetcher("/polls/vote/", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -126,10 +133,13 @@ const usePosts = <P extends Post, Data>(
             choice_ids: [...choiceIds],
           }),
         });
-
-        return pages;
+        // Ignore the error, as we'll revalidate anyway.
+        return newPages;
       },
-      { revalidate: false },
+      {
+        revalidate: true,
+        optimisticData: newPages,
+      },
     );
   };
 
