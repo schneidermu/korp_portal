@@ -29,7 +29,7 @@ AUTH_LDAP_USER_SEARCH = LDAPSearch(
 )
 
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
-    'ou=groups,dc=nodomain',
+    'ou=groups,dc=example,dc=org',
     ldap.SCOPE_SUBTREE,
     '(objectClass=groupOfUniqueNames)',
 )
@@ -38,7 +38,6 @@ AUTH_LDAP_GROUP_TYPE = PosixGroupType()
 
 AUTH_LDAP_USER_ATTR_MAP = {
     'id': 'UUID',
-    'username': 'cn',
     'email': 'uid',
     'password': 'userPassword',
     'name': 'givenName',
