@@ -55,7 +55,7 @@ export const Page = () => {
   const auth = useLogin();
 
   if (!auth.isLoggedIn) {
-    return <div>Loading...</div>;
+    return;
   }
 
   return (

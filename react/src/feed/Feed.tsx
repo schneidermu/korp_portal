@@ -52,7 +52,7 @@ export const Feed = () => {
 
   useReachBottom(loadMore);
 
-  if (!posts) return <div>Loading...</div>;
+  if (!posts) return;
 
   return (
     <AnimatePage>

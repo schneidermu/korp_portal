@@ -1098,7 +1098,7 @@ export const UserProfile = () => {
   }, [user]);
 
   if (!user || !userState || !baseUserState) {
-    return <div>Loading...</div>;
+    return;
   }
 
   const title =
