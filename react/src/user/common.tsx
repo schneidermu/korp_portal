@@ -6,13 +6,11 @@ export const EditableProperty = ({
   icon,
   name,
   wrap = false,
-  handleClick,
   children,
 }: {
   icon: string;
   name: string;
   wrap?: boolean;
-  handleClick?: () => void;
   children: ReactNode;
 }) => {
   return (
@@ -24,12 +22,7 @@ export const EditableProperty = ({
         className="inline-block mr-[20px]"
       />
       <span
-        className={clsx(
-          "inline-block",
-          "shrink-0 mr-[10px] text-dark-gray",
-          handleClick && "hover:underline cursor-pointer",
-        )}
-        onClick={handleClick}
+        className={clsx("inline-block", "shrink-0 mr-[10px] text-dark-gray")}
       >
         {name}:
       </span>

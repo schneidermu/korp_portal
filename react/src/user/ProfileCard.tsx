@@ -1,5 +1,5 @@
 import clsx from "clsx/lite";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import {
   formatDateOfBirth,
@@ -90,8 +90,6 @@ export const ProfileCard = ({
   setUser?: (user: User) => void;
   editing?: boolean;
 }) => {
-  const navigate = useNavigate();
-
   const changeField =
     (key: MonomorphFields<User, string | null>) => (value: string) => {
       let v: string | null = value;
@@ -101,33 +99,20 @@ export const ProfileCard = ({
       setUser({ ...user, [key]: v });
     };
 
-  const viewUnit = () => {
-    console.log("view unit");
-    if (user.unit === null) return;
-    navigate("/list/" + user.unit.name);
-  };
-
   const field = ({
     name,
     icon,
     field,
     type = "text",
     pattern,
-    handleClick,
   }: {
     name: string;
     icon: string;
     field: MonomorphFields<User, string | null>;
     type?: string;
     pattern?: string;
-    handleClick?: () => void;
   }) => (
-    <EditableProperty
-      key={field}
-      icon={icon}
-      name={name}
-      handleClick={handleClick}
-    >
+    <EditableProperty key={field} icon={icon} name={name}>
       <PropertyInput
         type={type}
         pattern={pattern}
@@ -205,7 +190,16 @@ export const ProfileCard = ({
             name="Организация"
             icon={pinIcon}
           >
-            {user.organization?.name}
+            {!editing && user.organization !== null ? (
+              <Link
+                to={`/list/${user.organization.name}`}
+                className="hover:underline"
+              >
+                {user.organization.name}
+              </Link>
+            ) : (
+              user.organization?.name
+            )}
           </EditableProperty>
           <div className="row-span-3">
             <EditableProperty
@@ -213,9 +207,17 @@ export const ProfileCard = ({
               name="Структурное подразделение"
               icon={peopleIcon}
               wrap
-              handleClick={editing ? undefined : viewUnit}
             >
-              {user.unit?.name}
+              {!editing && user.unit !== null ? (
+                <Link
+                  to={`/list/${user.unit.name}`}
+                  className="hover:underline"
+                >
+                  {user.unit.name}
+                </Link>
+              ) : (
+                user.unit?.name
+              )}
             </EditableProperty>
           </div>
         </div>
