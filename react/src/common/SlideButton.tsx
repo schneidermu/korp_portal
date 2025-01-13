@@ -9,7 +9,7 @@ export const SlideButton = ({
 }: {
   direction: "left" | "right";
   hide?: boolean;
-  onClick: () => void;
+  onClick?: () => void;
 }) => {
   return (
     <div style={{ width: "83px" }}>
