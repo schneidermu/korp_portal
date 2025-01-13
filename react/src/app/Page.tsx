@@ -59,7 +59,7 @@ export const Page = () => {
   }
 
   return (
-    <div className="max-w-[1920px] mx-auto mb-[300px]">
+    <div className="max-w-[1920px] mx-auto mb-[300px] min-h-screen">
       <div className="flex flex-col gap-[45px] max-w-[1404px] mx-auto mt-[45px] text-[24px]">
         <NavBar></NavBar>
         <Outlet />
