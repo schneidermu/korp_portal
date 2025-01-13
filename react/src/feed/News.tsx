@@ -53,7 +53,6 @@ const NewsContent = ({
                   }
             }
           >
-            {overlayImg}/{images.length}
             <img
               src={images[overlayImg]}
               className="w-full h-full object-cover"
