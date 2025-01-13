@@ -33,7 +33,14 @@ export const News = ({
       </div>
       <div className="mt-[36px]">
         {full && (
-          <div className="text-[32px] mt-[56px] mb-[90px]">{news.text}</div>
+          <div
+            className={clsx(
+              "text-[32px] mt-[56px] mb-[90px]",
+              "max-h-48 overflow-y-auto",
+            )}
+          >
+            {news.text}
+          </div>
         )}
         <div className="grid grid-cols-2 gap-[20px]">
           {images.map((src, i) => (
