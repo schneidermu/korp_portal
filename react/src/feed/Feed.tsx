@@ -38,7 +38,7 @@ const Separator = () => {
 };
 
 export const Feed = () => {
-  const { data: posts, vote, setPoll, loadMore } = useFeed();
+  const { data: posts, vote, setPoll, loadMore, allAreLoaded } = useFeed();
   const [overlayPost, setOverlayPost] = useState<number | null>(null);
   const [overlayImg, setOverlayImg] = useState<number | null>(null);
 
@@ -82,6 +82,14 @@ export const Feed = () => {
               )}
             </div>
           ))}
+          {allAreLoaded && (
+            <>
+              <Separator />
+              <div className="mt-20 mb-40 text-[32px] text-center">
+                Вы посмотрели все записи
+              </div>
+            </>
+          )}
           <Modal hidden={overlayPost === null}>
             <AnimatePresence>
               {overlayPost !== null && (
