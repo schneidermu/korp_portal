@@ -50,6 +50,8 @@ services:
       ALLOWED_HOSTS: "${ALLOWED_HOSTS}"
       ALLOWED_ORIGINS: "${ALLOWED_ORIGINS}"
       DEBUG: "${DEBUG}"
+      LDAP_PASSWORD: "$LDAP_PASSWORD"
+      LDAP_URI: "$LDAP_URI"
     volumes:
       - static:/app/collected_static
       - ./volumes/media:/media
