@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 import clsx from "clsx/lite";
 import { produce } from "immer";
 
@@ -13,15 +11,11 @@ import tickIcon from "/tick.svg";
 const Choice = ({
   poll,
   choice,
-  voted,
-  isSelected,
-  setIsSelected,
+  setPoll,
 }: {
   poll: types.Poll;
   choice: types.Choice;
-  voted: boolean;
-  isSelected: boolean;
-  setIsSelected: (isSelected: boolean) => void;
+  setPoll: (poll: types.Poll) => void;
 }) => {
   const { userId } = useAuth();
 
@@ -29,19 +23,27 @@ const Choice = ({
     return;
   }
 
-  let pollVotes = poll.votes;
-  let votes = choice.votes;
-  if (isSelected && !choice.voters.has(userId)) {
-    votes += 1;
-    pollVotes += 1;
-  }
-  const pct =
-    Math.round(10 * (voted ? (100 * votes) / pollVotes || 0 : 0)) / 10;
+  const chosen = poll.myChoices.has(choice.id);
+
+  const toggleChosen = () =>
+    setPoll(
+      produce(poll, (poll) => {
+        if (!chosen) {
+          poll.myChoices.add(choice.id);
+        } else {
+          poll.myChoices.delete(choice.id);
+        }
+      }),
+    );
+
+  let pct = poll.voted ? (100 * choice.votes) / poll.votes || 0 : 0;
+  pct = Math.round(10 * pct) / 10;
   const bg = `linear-gradient(to right, #CBE1FF 0%, #CBE1FF ${pct}%, #E7F1FF ${pct}%, #E7F1FF 100%)`;
+
   return (
     <label
       style={{
-        background: voted ? bg : undefined,
+        background: poll.voted ? bg : undefined,
       }}
       className={clsx(
         "select-none bg-choice border border-choice-border rounded-choice",
@@ -51,31 +53,29 @@ const Choice = ({
       )}
     >
       <input
-        disabled={voted}
+        disabled={poll.voted}
         style={{
           backgroundImage:
-            isSelected && poll.isMultipleChoice
-              ? `url(${checkIcon})`
-              : undefined,
+            chosen && poll.isMultipleChoice ? `url(${checkIcon})` : undefined,
         }}
         className={clsx(
           "w-[25px] h-[25px] appearance-none",
           "mr-[34px]",
           "border-dark-gray rounded-[2px]",
-          !isSelected && "border",
+          !chosen && "border",
           !poll.isMultipleChoice && "hidden",
         )}
         name={poll.isMultipleChoice ? `choice-${choice.id}` : "choice"}
         type={poll.isMultipleChoice ? "checkbox" : "radio"}
         key={choice.id}
-        checked={isSelected}
-        onChange={(event) => setIsSelected(event.target.checked)}
+        checked={chosen}
+        onChange={toggleChosen}
       />
       <div className="grow">{choice.text}</div>
-      {isSelected && !poll.isMultipleChoice && (
+      {chosen && !poll.isMultipleChoice && (
         <img className="mx-[18px]" src={tickIcon} />
       )}
-      {voted && (
+      {poll.voted && (
         <div className="ml-[18px] mr-[5px] w-[100px]">
           {pct.toString().replace(".", ",")}%
         </div>
@@ -89,57 +89,21 @@ export const Poll = ({
   full = false,
   vote,
   handleOpen,
+  setPoll,
 }: {
   poll: types.Poll;
   full?: boolean;
-  vote: (poll: types.Poll, choiceIds: Set<number>) => void;
+  vote: (poll: types.Poll) => void;
   handleOpen?: () => void;
+  setPoll: (poll: types.Poll) => void;
 }) => {
-  const { userId } = useAuth();
-  const [choiceIds, setChoiceIds] = useState<Set<number> | undefined>();
-  const [voted, setVoted] = useState(false);
+  const choices = [...poll.choices]
+    .sort(([id1], [id2]) => id1 - id2)
+    .map(([id, choice]) => (
+      <Choice key={id} poll={poll} choice={choice} setPoll={setPoll} />
+    ));
 
-  useEffect(() => {
-    const ids = new Set(
-      poll.choices
-        .filter(({ voters }) => voters.has(userId))
-        .map(({ id }) => id),
-    );
-    setChoiceIds(ids);
-    setVoted(ids.size > 0);
-  }, [userId, poll.choices, poll.votes]);
-
-  if (choiceIds === undefined || vote === undefined) {
-    return;
-  }
-
-  const voteIsSaved = poll.choices.some(({ voters }) => voters.has(userId));
-
-  const choices = poll.choices.map((choice) => (
-    <Choice
-      key={choice.id}
-      poll={poll}
-      choice={choice}
-      voted={voted}
-      isSelected={choiceIds.has(choice.id)}
-      setIsSelected={(isSelected) => {
-        setChoiceIds(
-          produce((choices) => {
-            if (choices === undefined || !poll.isMultipleChoice) {
-              return new Set(isSelected ? [choice.id] : []);
-            }
-            if (isSelected) {
-              choices.add(choice.id);
-            } else {
-              choices?.delete(choice.id);
-            }
-          }),
-        );
-      }}
-    />
-  ));
-
-  const votes = poll.votes + Number(voted && !voteIsSaved);
+  const votes = poll.votes;
   const voteSuffix = votes % 10 === 1 ? "" : "о";
   const peopleSuffix = [2, 3, 4].includes(votes % 10) ? "а" : "";
 
@@ -174,7 +138,7 @@ export const Poll = ({
         </div>
         <div className="ml-[5%] mr-[10%]">
           <div className="flex flex-col gap-[24px]">{choices}</div>
-          {!voted && (
+          {!poll.voted && (
             <button
               className={clsx(
                 "mt-[54px] px-[30px] py-[6px] w-fit",
@@ -182,11 +146,10 @@ export const Poll = ({
                 "text-[36px]",
               )}
               onClick={() => {
-                if (choiceIds.size === 0) {
+                if (poll.myChoices.size === 0) {
                   return;
                 }
-                vote(poll, choiceIds);
-                setVoted(true);
+                vote(poll);
               }}
             >
               Проголосовать

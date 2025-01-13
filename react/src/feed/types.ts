@@ -12,6 +12,7 @@ export interface News {
 export interface Choice {
   id: number;
   text: string;
+  // Voters other than the current user.
   voters: Set<string>;
   votes: number;
 }
@@ -20,10 +21,11 @@ export interface Poll {
   kind: "polls";
   id: number;
   publishedAt: Date;
-  title: "Опрос";
   question: string;
-  choices: Choice[];
+  choices: Map<number, Choice>;
   votes: number;
+  myChoices: Set<number>;
+  voted: boolean;
   isAnonymous: boolean;
   isMultipleChoice: boolean;
 }

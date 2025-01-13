@@ -38,7 +38,7 @@ const Separator = () => {
 };
 
 export const Feed = () => {
-  const { data: posts, vote, loadMore } = useFeed();
+  const { data: posts, vote, setPoll, loadMore } = useFeed();
   const [overlayPost, setOverlayPost] = useState<number | null>(null);
   const [overlayImg, setOverlayImg] = useState<number | null>(null);
 
@@ -77,6 +77,7 @@ export const Feed = () => {
                   poll={post}
                   handleOpen={() => setOverlayPost(i)}
                   vote={vote}
+                  setPoll={setPoll}
                 />
               )}
             </div>
@@ -116,6 +117,7 @@ export const Feed = () => {
                       full
                       poll={posts[overlayPost]}
                       vote={vote}
+                      setPoll={setPoll}
                     />
                   )}
                 </Gallery>

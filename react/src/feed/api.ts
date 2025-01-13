@@ -47,26 +47,47 @@ interface PollData {
   voted_count: number;
 }
 
-const toPoll = (data: PollData): Poll => ({
-  kind: "polls",
-  title: "Опрос",
-  id: data.id,
-  question: data.question_text,
-  choices: data.choices.map(({ id, choice_text, who_voted, voted }) => ({
-    id,
-    text: choice_text,
-    voters: new Set(who_voted),
-    votes: voted,
-  })),
-  votes: data.voted_count,
-  isAnonymous: data.is_anonymous,
-  isMultipleChoice: data.is_multiple_choice,
-  publishedAt: new Date(data.pub_date),
-});
+const toPoll = (data: PollData, userId: string): Poll => {
+  const myChoices = new Set(
+    data.choices
+      .filter(({ who_voted }) => who_voted.includes(userId))
+      .map(({ id }) => id),
+  );
+
+  const choices = new Map(
+    data.choices.map(({ id, choice_text, who_voted, voted }) => {
+      const voters = new Set(who_voted);
+      voters.delete(userId);
+
+      return [
+        id,
+        {
+          id,
+          text: choice_text,
+          voters,
+          votes: voted,
+        },
+      ];
+    }),
+  );
+
+  return {
+    kind: "polls",
+    id: data.id,
+    question: data.question_text,
+    choices,
+    myChoices,
+    voted: myChoices.size > 0,
+    votes: data.voted_count,
+    isAnonymous: data.is_anonymous,
+    isMultipleChoice: data.is_multiple_choice,
+    publishedAt: new Date(data.pub_date),
+  };
+};
 
 const usePosts = <P extends Post, Data>(
   kind: P["kind"],
-  toPost: (data: Data, offset: number) => P,
+  toPost: (data: Data, userId: string) => P,
   limit: number,
 ) => {
   const fetcher = useTokenFetcher();
@@ -90,7 +111,7 @@ const usePosts = <P extends Post, Data>(
         .then((res) => res.json())
         .then((page: Paged<Data>) => ({
           ...page,
-          results: page.results.map(toPost),
+          results: page.results.map((post) => toPost(post, userId)),
         })),
     {
       revalidateFirstPage: false,
@@ -100,26 +121,51 @@ const usePosts = <P extends Post, Data>(
     },
   );
 
-  const vote = (oldPoll: Poll, choiceIds: Set<number>) => {
+  const pagesSetPoll = (poll: Poll): typeof pages => {
     if (!pages) {
       return;
     }
 
-    const newPages = produce(pages, (pages) => {
-      for (const { results } of pages) {
-        for (const post of results) {
-          if (post.kind === "polls" && post.id === oldPoll.id) {
-            for (const choice of post.choices) {
-              if (choiceIds.has(choice.id)) {
-                choice.voters.add(userId);
-                choice.votes += 1;
-              }
-            }
-            post.votes += 1;
-          }
+    return pages.map((page) => {
+      const i = page.results.findIndex(
+        (p) => p.kind === "polls" && p.id === poll.id,
+      );
+      const results =
+        i < 0
+          ? page.results
+          : [
+              ...page.results.slice(0, i),
+              poll as P,
+              ...page.results.slice(i + 1),
+            ];
+      return {
+        ...page,
+        results,
+      };
+    });
+  };
+
+  const setPoll = (poll: Poll) => {
+    mutate(pagesSetPoll(poll), { revalidate: false });
+  };
+
+  const vote = (poll: Poll) => {
+    if (!pages) {
+      return;
+    }
+
+    poll = produce(poll, (poll) => {
+      poll.votes += 1;
+      poll.voted = true;
+      for (const id of poll.myChoices) {
+        const choice = poll.choices.get(id);
+        if (choice) {
+          choice.votes += 1;
         }
       }
     });
+
+    const newPages = pagesSetPoll(poll);
 
     mutate(
       async () => {
@@ -129,8 +175,8 @@ const usePosts = <P extends Post, Data>(
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            poll_id: oldPoll.id,
-            choice_ids: [...choiceIds],
+            poll_id: poll.id,
+            choice_ids: [...poll.myChoices],
           }),
         });
         // Ignore the error, as we'll revalidate anyway.
@@ -149,6 +195,7 @@ const usePosts = <P extends Post, Data>(
     data: pages?.flatMap((page) => page.results),
     allAreLoaded,
     vote,
+    setPoll,
     ...rest,
   };
 };
@@ -202,6 +249,7 @@ export const useFeed = () => {
     error: news.error || polls.error,
     allAreLoaded: news.allAreLoaded && polls.allAreLoaded,
     vote: polls.vote,
+    setPoll: polls.setPoll,
     loadMore,
   };
 };
