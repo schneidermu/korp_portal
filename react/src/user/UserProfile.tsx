@@ -1085,19 +1085,15 @@ export const UserProfile = () => {
   const auth = useAuth();
 
   const [editing, setEditing] = useState(false);
-  const [baseUserState, setBaseUserState] = useState<User | undefined>(
-    undefined,
-  );
   const [userState, setUserState] = useState<User | undefined>(undefined);
 
   useEffect(() => {
-    setBaseUserState(user);
     setUserState(user);
     // FIXME:
     // setEditing(false);
   }, [user]);
 
-  if (!user || !userState || !baseUserState) {
+  if (!user || !userState) {
     return;
   }
 
@@ -1110,7 +1106,6 @@ export const UserProfile = () => {
     if (editing) {
       updateUser(auth.token, userState).catch(() => setUserState(user));
     }
-    setBaseUserState(userState);
     setEditing(false);
   };
 
@@ -1140,7 +1135,7 @@ export const UserProfile = () => {
                 editing={editing}
                 edit={() => setEditing(true)}
                 reset={() => {
-                  setUserState(baseUserState);
+                  setUserState(user);
                   setEditing(false);
                 }}
               />
