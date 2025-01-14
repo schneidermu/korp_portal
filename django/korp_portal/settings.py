@@ -14,7 +14,7 @@ from pathlib import Path
 import os
 
 import ldap
-from django_auth_ldap.config import LDAPSearch, PosixGroupType
+from django_auth_ldap.config import LDAPSearch, GroupOfUniqueNamesType
 
 
 AUTH_LDAP_SERVER_URI = os.getenv("LDAP_URI", "0")
@@ -34,7 +34,9 @@ AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
     '(objectClass=groupOfUniqueNames)',
 )
 
-AUTH_LDAP_GROUP_TYPE = PosixGroupType()
+AUTH_LDAP_GROUP_TYPE = GroupOfUniqueNamesType()
+
+AUTH_LDAP_MIRROR_GROUPS = True
 
 AUTH_LDAP_USER_ATTR_MAP = {
     'id': 'UUID',
@@ -54,9 +56,9 @@ AUTH_LDAP_GROUP_ATTR_MAP = {
 }
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    'is_active': 'cn=active,ou=groups,dc=nodomain',
-    'is_staff': 'cn=staff,ou=groups,dc=nodomain',
-    'is_superuser': 'cn=superuser,ou=groups,dc=nodomain',
+    'is_active': 'cn=active,ou=groups,dc=example,dc=org',
+    'is_staff': 'cn=staff,ou=groups,dc=example,dc=org',
+    'is_superuser': 'cn=superuser,ou=groups,dc=example,dc=org',
 }
 
 AUTHENTICATION_BACKENDS = (
