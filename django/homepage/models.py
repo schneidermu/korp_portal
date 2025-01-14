@@ -51,7 +51,11 @@ class News(Published):
         default=None
     )
 
-    text = models.TextField(verbose_name='Текст')
+    text = models.TextField(
+        verbose_name='Текст',
+        null=True,
+        blank=True
+    )
 
 #    image = models.ImageField(
 #        verbose_name='Картинка',
