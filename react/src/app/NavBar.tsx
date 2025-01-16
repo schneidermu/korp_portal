@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 
 import clsx from "clsx/lite";
 
+import { useAuth } from "@/auth/slice";
+
 import backArrowIcon from "/back-arrow.svg";
 
 const DropdownArrow = () => {
@@ -63,12 +65,17 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
 };
 
 export const NavBar = () => {
+  const auth = useAuth();
+
   return (
     <nav className="flex justify-between items-center h-[76px] bg-blue2 rounded text-[32px] text-white">
       <Link to="/feed" className="hover:underline mx-[120px]">
         Рабочий стол
       </Link>
-      <Link to="/" className="hover:underline mx-[120px]">
+      <Link
+        to={`/profile/${auth.userId}`}
+        className="hover:underline mx-[120px]"
+      >
         Мой профиль
       </Link>
       <DropdownMenu position="right" />

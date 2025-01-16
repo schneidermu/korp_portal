@@ -8,7 +8,7 @@ import {
 
 import clsx from "clsx/lite";
 import { produce } from "immer";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
 
@@ -960,10 +960,15 @@ const revokeUnusedURLs = (oldUser: User, user: User) => {
 };
 
 export const UserProfile = () => {
+  const navigate = useNavigate();
   const params = useParams();
-  const userId = params.userId || "me";
-  const { user } = useFetchUser(userId);
   const auth = useAuth();
+  const userId = params.userId || auth.userId;
+  const { user } = useFetchUser(userId);
+
+  if (!params.userId) {
+    navigate(`/profile/${userId}`);
+  }
 
   const [editing, setEditing] = useState(false);
   const [userState, setUserState] = useState<User | undefined>(undefined);
