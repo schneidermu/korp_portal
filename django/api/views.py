@@ -146,9 +146,9 @@ class ColleagueProfileViewset(UserViewSet):
         return super().get_serializer_class()
 
     @staticmethod
-    def validate_rating(serializer_class, request, username):
+    def validate_rating(serializer_class, request, id):
         user = request.user
-        employee = get_object_or_404(Employee, username=username)
+        employee = get_object_or_404(Employee, id=id)
         request.data['user'] = user.id
         request.data['employee'] = employee.id
 
@@ -167,9 +167,9 @@ class ColleagueProfileViewset(UserViewSet):
         permission_classes=(IsAuthenticated,),
         serializer_class=RatingPOSTSerializer
     )
-    def rate(self, request, username):
+    def rate(self, request, id):
 
-        serializer = self.validate_rating(RatingPOSTSerializer, request, username)
+        serializer = self.validate_rating(RatingPOSTSerializer, request, id)
         serializer.save()
 
         return Response(
@@ -181,9 +181,9 @@ class ColleagueProfileViewset(UserViewSet):
 
     @transaction.atomic
     @rate.mapping.delete
-    def unrate(self, request, username):
+    def unrate(self, request, id):
 
-        serializer = self.validate_rating(RatingDELETESerializer, request, username)
+        serializer = self.validate_rating(RatingDELETESerializer, request, id)
 
         employee = serializer.validated_data.get("employee")
 
