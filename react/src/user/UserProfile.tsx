@@ -796,7 +796,10 @@ const GallerySection = ({
         </button>
         <textarea
           disabled
-          className="mt-8 w-full px-3 py-3 resize-none bg-white"
+          className={clsx(
+            "mt-8 w-full px-3 py-2 resize-none bg-white",
+            "border border-[#00000000]",
+          )}
         />
       </div>,
     );
