@@ -5,6 +5,7 @@ import { produce, WritableDraft } from "immer";
 import { Link, useParams } from "react-router-dom";
 
 import { User } from "./types";
+import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
 
 import { tokenFetch, useAuth } from "@/auth/slice";
 import {
@@ -336,6 +337,7 @@ const EducationSection = ({
                   <input
                     className="hidden"
                     type="file"
+                    accept={ACCEPT_DOCUMENTS.join(",")}
                     onChange={({ target: { files } }) => {
                       if (!files || files.length < 1) {
                         return;
@@ -475,6 +477,7 @@ const TrainingInfo = ({
             <label className="ml-4 block hover:underline text-dark-gray text-[20px] cursor-pointer">
               <input
                 type="file"
+                accept={ACCEPT_DOCUMENTS.join(",")}
                 className="hidden"
                 onChange={({ target: { files } }) => changeFile(i, files)}
               />
@@ -896,6 +899,7 @@ const GallerySection = ({
               <input
                 required
                 type="file"
+                accept={ACCEPT_IMAGES.join(",")}
                 className="hidden"
                 onChange={({ target: { files } }) => changeImage(i, files)}
               />

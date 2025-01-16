@@ -1,6 +1,8 @@
 import clsx from "clsx/lite";
 import { Link } from "react-router-dom";
 
+import { ACCEPT_IMAGES } from "@/app/const";
+
 import {
   formatDateOfBirth,
   fullNameLong,
@@ -45,7 +47,7 @@ const Avatar = ({
             <input
               type="file"
               name="avatar"
-              accept=".png,.jpg,.jpeg"
+              accept={ACCEPT_IMAGES.join(",")}
               className="hidden"
               onChange={({ target: { files } }) => {
                 if (!files || files.length < 1) {
