@@ -17,6 +17,14 @@ export const fileExtention = (url: string): string | undefined => {
   return parts[parts.length - 1].toLowerCase();
 };
 
+export const trimExtention = (path: string) => {
+  const parts = path.split(".");
+  if (parts.length < 2) {
+    return path;
+  }
+  return parts.slice(0, -1).join(".");
+};
+
 const nameParts = (user: User): string[] => {
   const parts = [user.lastName, user.firstName];
   if (user.patronym !== null) {

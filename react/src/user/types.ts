@@ -65,3 +65,22 @@ export type User = {
 export type UpdateUserFn = (
   recipe: User | ((draft: WritableDraft<User>) => void),
 ) => void;
+
+export const userBlobURLs = (user: User): Set<string> => {
+  const set = new Set<string>();
+
+  const f = ({ attachment }: { attachment: string | null }) => {
+    if (attachment?.startsWith("blob:")) {
+      set.add(attachment);
+    }
+  };
+
+  user.awards.forEach(f);
+  user.communityWork.forEach(f);
+  user.courses.forEach(f);
+  user.training.forEach(f);
+
+  f({ attachment: user.photo });
+
+  return set;
+};

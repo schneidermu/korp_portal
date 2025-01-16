@@ -2,7 +2,7 @@ import { produce } from "immer";
 import useSWR, { mutate } from "swr";
 
 import { tokenFetch, useTokenFetcher } from "@/auth/slice";
-import { fileExtention, fullNameLong } from "@/common/util";
+import { fullNameLong, trimExtention } from "@/common/util";
 import { User, UserStatus } from "./types";
 
 type UserData = {
@@ -282,10 +282,7 @@ export const uploadFile = async (token: string, uri: string | null) => {
   if (!uri?.startsWith("blob:")) {
     return uri || undefined;
   }
-  const ext = fileExtention(uri);
-  if (ext) {
-    uri = uri.replace(/\.[a-z0-9]*$/, "");
-  }
+  uri = trimExtention(uri);
   const blob = await fetch(uri).then((res) => res.blob());
   const formData = new FormData();
   formData.append("file", blob);

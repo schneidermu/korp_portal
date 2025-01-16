@@ -14,20 +14,20 @@ import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
 
 import { tokenFetch, useAuth } from "@/auth/slice";
 import {
-  fileExtention,
   fullImagePath,
   fullNameShort,
+  trimExtention,
   userPhotoPath,
 } from "@/common/util";
 import { saveUser, useFetchColleagues, useFetchUser } from "./api";
-import { UpdateUserFn, User } from "./types";
+import { UpdateUserFn, User, userBlobURLs } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
 import { Attachment } from "@/common/Attachment";
 import { SlideButton } from "@/common/SlideButton";
 
 import { Picture } from "@/common/Picture";
-import { EditableProperty, PropertyInput } from "./common";
+import { EditableProperty, FileInput, PropertyInput } from "./common";
 import { ProfileCard } from "./ProfileCard";
 import bookIcon from "/book.svg";
 import creditCardIcon from "/credit-card.svg";
@@ -254,6 +254,11 @@ const EducationSection = ({
 
   const popCourse = () => updateUser((user) => user.courses.pop());
 
+  const changeFile = (i: number, url: string | null) => {
+    console.log("update user set file", url);
+    updateUser((user) => (user.courses[i].attachment = url));
+  };
+
   const courses = (
     <Timeline
       editing={editing}
@@ -292,37 +297,16 @@ const EducationSection = ({
                   <Attachment url={attachment || ""} />
                   <button
                     className="hover:underline text-dark-gray ml-4 text-[20px]"
-                    onClick={() => {
-                      if (attachment?.startsWith("blob")) {
-                        URL.revokeObjectURL(attachment);
-                      }
-                      updateUser((user) => (user.courses[i].attachment = null));
-                    }}
+                    onClick={() => changeFile(i, null)}
                   >
                     (Удалить файл)
                   </button>
                 </div>
               ) : (
                 <label className="hover:underline cursor-pointer text-dark-gray ml-4 text-[20px]">
-                  <input
-                    className="hidden"
-                    type="file"
-                    accept={ACCEPT_DOCUMENTS.join(",")}
-                    onChange={({ target: { files } }) => {
-                      if (!files || files.length < 1) {
-                        return;
-                      }
-                      if (attachment?.startsWith("blob")) {
-                        URL.revokeObjectURL(attachment);
-                      }
-                      const file = files[0];
-                      let url = URL.createObjectURL(file);
-                      const ext = fileExtention(file.name);
-                      if (ext) {
-                        url += "." + ext;
-                      }
-                      updateUser((user) => (user.courses[i].attachment = url));
-                    }}
+                  <FileInput
+                    accept={ACCEPT_DOCUMENTS}
+                    onUpload={(url) => changeFile(i, url)}
                   />
                   + Загрузить файл
                 </label>
@@ -367,35 +351,16 @@ const TrainingInfo = ({
   const changeName = (i: number, value: string) =>
     updateUser((user) => (user.training[i].name = value));
 
+  const changeFile = (i: number, url: string) =>
+    updateUser((user) => (user.training[i].attachment = url));
+
   const pushItem = () =>
     updateUser((user) => user.training.push({ name: "", attachment: null }));
 
   const popItem = () => updateUser((user) => user.training.pop());
 
-  const changeFile = (i: number, files: FileList | null) => {
-    if (!files || files.length < 1) {
-      return;
-    }
-    const { attachment } = user.training[i];
-    if (attachment?.startsWith("blob")) {
-      URL.revokeObjectURL(attachment);
-    }
-    const file = files[0];
-    let url = URL.createObjectURL(file);
-    const ext = fileExtention(file.name);
-    if (ext) {
-      url += "." + ext;
-    }
-    updateUser((user) => (user.training[i].attachment = url));
-  };
-
-  const removeFile = (i: number) => {
-    const { attachment } = user.training[i];
-    if (attachment?.startsWith("blob")) {
-      URL.revokeObjectURL(attachment);
-    }
+  const removeFile = (i: number) =>
     updateUser((user) => (user.training[i].attachment = null));
-  };
 
   const certificates = user.training.map(({ name, attachment }, i) => {
     return (
@@ -424,11 +389,9 @@ const TrainingInfo = ({
             </div>
           ) : (
             <label className="ml-4 block hover:underline text-dark-gray text-[20px] cursor-pointer">
-              <input
-                type="file"
-                accept={ACCEPT_DOCUMENTS.join(",")}
-                className="hidden"
-                onChange={({ target: { files } }) => changeFile(i, files)}
+              <FileInput
+                accept={ACCEPT_DOCUMENTS}
+                onUpload={(url) => changeFile(i, url)}
               />
               + Загрузить файл
             </label>
@@ -766,18 +729,8 @@ const GallerySection = ({
   const changeTitle = (i: number, value: string) =>
     updateUser((user) => (user[attr][i].name = value));
 
-  const changeImage = (i: number, files: FileList | null) => {
-    if (!files || files.length < 1) {
-      return;
-    }
-    const { attachment: image } = user[attr][i];
-    if (image?.startsWith("blob")) {
-      URL.revokeObjectURL(image);
-    }
-    const file = files[0];
-    const url = URL.createObjectURL(file);
+  const changeImg = (i: number, url: string) =>
     updateUser((user) => (user[attr][i].attachment = url));
-  };
 
   const items = user[attr].map(({ name: title, attachment }, i) => (
     <div key={i} className="relative">
@@ -809,12 +762,9 @@ const GallerySection = ({
                 "rounded border",
               )}
             >
-              <input
-                required
-                type="file"
-                accept={ACCEPT_IMAGES.join(",")}
-                className="hidden"
-                onChange={({ target: { files } }) => changeImage(i, files)}
+              <FileInput
+                accept={ACCEPT_IMAGES}
+                onUpload={(url) => changeImg(i, url)}
               />
               <div className="w-full text-center">Загрузить картинку</div>
             </label>
@@ -995,6 +945,17 @@ const FeedbackSection = ({ user }: { user: User }) => {
   );
 };
 
+const revokeUnusedURLs = (oldUser: User, user: User) => {
+  const s1 = userBlobURLs(oldUser);
+  const s2 = userBlobURLs(user);
+  for (const url of s1) {
+    if (s2.has(url)) {
+      continue;
+    }
+    URL.revokeObjectURL(trimExtention(url));
+  }
+};
+
 export const UserProfile = () => {
   const params = useParams();
   const userId = params.userId || "me";
@@ -1007,7 +968,12 @@ export const UserProfile = () => {
   const updateUserState = useMemo<UpdateUserFn>(
     () => (recipe) => {
       if (typeof recipe !== "function") {
-        setUserState(recipe);
+        setUserState((user) => {
+          if (user) {
+            revokeUnusedURLs(user, recipe);
+          }
+          return recipe;
+        });
         return;
       }
       setUserState((user) => {
@@ -1016,6 +982,7 @@ export const UserProfile = () => {
         }
         return produce(user, (draft) => {
           recipe(draft);
+          revokeUnusedURLs(user, draft);
         });
       });
     },

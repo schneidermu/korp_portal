@@ -2,6 +2,8 @@ import { HTMLInputTypeAttribute, ReactNode } from "react";
 
 import clsx from "clsx/lite";
 
+import { fileExtention } from "@/common/util";
+
 export const EditableProperty = ({
   icon,
   name,
@@ -106,5 +108,34 @@ export const PropertySelect = ({
     </select>
   ) : (
     <span>{text}</span>
+  );
+};
+
+export const FileInput = ({
+  accept,
+  onUpload,
+}: {
+  accept: readonly string[];
+  onUpload: (file: string) => void;
+}) => {
+  return (
+    <input
+      type="file"
+      accept={accept.join(",")}
+      className="hidden"
+      onClick={(event) => event.stopPropagation()}
+      onChange={({ target: { files } }) => {
+        if (!files || files.length < 1) {
+          return;
+        }
+        const file = files[0];
+        let url = URL.createObjectURL(file);
+        const ext = fileExtention(file.name);
+        if (ext) {
+          url += "." + ext;
+        }
+        onUpload(url);
+      }}
+    />
   );
 };

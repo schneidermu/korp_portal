@@ -13,7 +13,12 @@ import {
 import { UpdateUserFn, User, USER_STATUS, UserStatus } from "./types";
 
 import { Picture } from "@/common/Picture";
-import { EditableProperty, PropertyInput, PropertySelect } from "./common";
+import {
+  EditableProperty,
+  FileInput,
+  PropertyInput,
+  PropertySelect,
+} from "./common";
 
 import atIcon from "/at.svg";
 import awardIcon from "/award.svg";
@@ -45,25 +50,9 @@ const Avatar = ({
             className="block w-full py-3 hover:underline text-center cursor-pointer"
             onClick={(event) => event.stopPropagation()}
           >
-            <input
-              type="file"
-              name="avatar"
-              accept={ACCEPT_IMAGES.join(",")}
-              className="hidden"
-              onChange={({ target: { files } }) => {
-                if (!files || files.length < 1) {
-                  return;
-                }
-                if (user.photo?.startsWith("blob")) {
-                  URL.revokeObjectURL(user.photo);
-                  console.log("revoke", user.photo);
-                }
-                const file = files[0];
-                const url = URL.createObjectURL(file);
-                console.log("set photo", url);
-                updateUser({ ...user, photo: url });
-              }}
-              onClick={(event) => event.stopPropagation()}
+            <FileInput
+              accept={ACCEPT_IMAGES}
+              onUpload={(url) => updateUser({ ...user, photo: url })}
             />
             Загрузить фото
           </label>
