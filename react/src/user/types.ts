@@ -1,3 +1,5 @@
+import { WritableDraft } from "immer";
+
 export const USER_STATUS = [
   "В командировке",
   "В отпуске",
@@ -59,3 +61,7 @@ export type User = {
     attachment: string | null;
   }[];
 };
+
+export type UpdateUserFn = (
+  recipe: User | ((draft: WritableDraft<User>) => void),
+) => void;

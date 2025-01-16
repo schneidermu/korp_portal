@@ -297,7 +297,7 @@ export const uploadFile = async (token: string, uri: string | null) => {
     .then(({ file }) => decodeURI(file));
 };
 
-export const updateUser = async (token: string, user: User) => {
+export const saveUser = async (token: string, user: User) => {
   const data = fromUser(user);
 
   const attrs = [

@@ -7,9 +7,10 @@ import {
   formatDateOfBirth,
   fullNameLong,
   MonomorphFields,
+  noop,
   userPhotoPath,
 } from "@/common/util";
-import { User, USER_STATUS, UserStatus } from "./types";
+import { UpdateUserFn, User, USER_STATUS, UserStatus } from "./types";
 
 import { Picture } from "@/common/Picture";
 import { EditableProperty, PropertyInput, PropertySelect } from "./common";
@@ -25,11 +26,11 @@ import pinIcon from "/pin.svg";
 
 const Avatar = ({
   user,
-  setUser,
+  updateUser,
   editing,
 }: {
   user: User;
-  setUser: (user: User) => void;
+  updateUser: UpdateUserFn;
   editing: boolean;
 }) => {
   return (
@@ -60,7 +61,7 @@ const Avatar = ({
                 const file = files[0];
                 const url = URL.createObjectURL(file);
                 console.log("set photo", url);
-                setUser({ ...user, photo: url });
+                updateUser({ ...user, photo: url });
               }}
               onClick={(event) => event.stopPropagation()}
             />
@@ -70,7 +71,7 @@ const Avatar = ({
           <button
             onClick={(event) => {
               event.stopPropagation();
-              setUser({ ...user, photo: null });
+              updateUser({ ...user, photo: null });
             }}
             className="w-full py-3 hover:underline"
             type="button"
@@ -85,12 +86,12 @@ const Avatar = ({
 
 export const ProfileCard = ({
   user,
-  setUser = () => ({}),
   editing = false,
+  updateUser = noop,
 }: {
   user: User;
-  setUser?: (user: User) => void;
   editing?: boolean;
+  updateUser?: UpdateUserFn;
 }) => {
   const changeField =
     (key: MonomorphFields<User, string | null>) => (value: string) => {
@@ -98,7 +99,7 @@ export const ProfileCard = ({
       if (key === "dateOfBirth" && !value) {
         v = null;
       }
-      setUser({ ...user, [key]: v });
+      updateUser({ ...user, [key]: v });
     };
 
   const field = ({
@@ -133,7 +134,7 @@ export const ProfileCard = ({
 
   return (
     <section className="-ml-[20px] flex gap-[64px] h-[340px]">
-      <Avatar editing={editing} user={user} setUser={setUser} />
+      <Avatar editing={editing} user={user} updateUser={updateUser} />
       <div className="w-full flex flex-col justify-between">
         <div className="flex">
           <img src={personIcon} alt="" className="w-[33px]" />
@@ -156,7 +157,7 @@ export const ProfileCard = ({
               value={user.status}
               options={USER_STATUS.map((status) => [status, status])}
               handleSelect={(value) => {
-                setUser({ ...user, status: value as UserStatus });
+                updateUser({ ...user, status: value as UserStatus });
               }}
             ></PropertySelect>
           </EditableProperty>

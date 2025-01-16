@@ -1,10 +1,15 @@
-import { FormEventHandler, ReactNode, useEffect, useState } from "react";
+import {
+  FormEventHandler,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import clsx from "clsx/lite";
-import { produce, WritableDraft } from "immer";
+import { produce } from "immer";
 import { Link, useParams } from "react-router-dom";
 
-import { User } from "./types";
 import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
 
 import { tokenFetch, useAuth } from "@/auth/slice";
@@ -14,7 +19,8 @@ import {
   fullNameShort,
   userPhotoPath,
 } from "@/common/util";
-import { updateUser, useFetchColleagues, useFetchUser } from "./api";
+import { saveUser, useFetchColleagues, useFetchUser } from "./api";
+import { UpdateUserFn, User } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
 import { Attachment } from "@/common/Attachment";
@@ -144,48 +150,33 @@ const Timeline = ({
 
 const HigherEducationInfo = ({
   user,
-  setUser,
+  updateUser,
   editing,
 }: {
   user: User;
-  setUser: (user: User) => void;
+  updateUser: UpdateUserFn;
   editing: boolean;
 }) => {
   const pushItem = () =>
-    setUser(
-      produce((user) => {
-        user.education.push({
-          year: new Date().getFullYear(),
-          university: "",
-          major: "",
-        });
-      }, user)(),
+    updateUser((user) =>
+      user.education.push({
+        year: new Date().getFullYear(),
+        university: "",
+        major: "",
+      }),
     );
 
-  const popItem = () =>
-    setUser(
-      produce((user: WritableDraft<User>) => {
-        user.education.pop();
-      }, user)(),
-    );
+  const popItem = () => updateUser((user) => user.education.pop());
 
   const changeYear = (i: number) => (value: string) => {
     const year = Number(value);
     if (Number.isNaN(year)) return;
-    setUser(
-      produce((user) => {
-        user.education[i].year = year;
-      }, user)(),
-    );
+    updateUser((user) => (user.education[i].year = year));
   };
 
   const changeAttr =
     (i: number, attr: "university" | "major") => (value: string) =>
-      setUser(
-        produce((user) => {
-          user.education[i][attr] = value;
-        }, user)(),
-      );
+      updateUser((user) => (user.education[i][attr] = value));
 
   const items = user.education.map((edu, i) => (
     <>
@@ -245,39 +236,30 @@ const HigherEducationInfo = ({
 
 const EducationSection = ({
   user,
-  setUser,
+  updateUser,
   editing,
 }: {
   user: User;
-  setUser: (user: User) => void;
+  updateUser: UpdateUserFn;
   editing: boolean;
 }) => {
+  const pushCourse = () =>
+    updateUser((user) =>
+      user.courses.push({
+        year: new Date().getFullYear(),
+        name: "",
+        attachment: null,
+      }),
+    );
+
+  const popCourse = () => updateUser((user) => user.courses.pop());
+
   const courses = (
     <Timeline
       editing={editing}
       controls={[
-        [
-          "+ Добавить",
-          () =>
-            setUser(
-              produce((user) => {
-                user.courses.push({
-                  year: new Date().getFullYear(),
-                  name: "",
-                  attachment: null,
-                });
-              }, user)(),
-            ),
-        ],
-        [
-          "- Удалить",
-          () =>
-            setUser(
-              produce((user: WritableDraft<User>) => {
-                user.courses.pop();
-              }, user)(),
-            ),
-        ],
+        ["+ Добавить", pushCourse],
+        ["- Удалить", popCourse],
       ]}
     >
       {user.courses.map(({ year, name, attachment }, i) => (
@@ -290,11 +272,7 @@ const EducationSection = ({
             handleChange={(value) => {
               const year = Number(value);
               if (Number.isNaN(year)) return;
-              setUser(
-                produce((user) => {
-                  user.courses[i].year = year;
-                }, user)(),
-              );
+              updateUser((user) => (user.courses[i].year = year));
             }}
           />
           {editing ? (
@@ -305,13 +283,9 @@ const EducationSection = ({
                 value={name}
                 placeholder="Название курса"
                 theme="px-[20px] py-[6px]"
-                handleChange={(value) => {
-                  setUser(
-                    produce((user) => {
-                      user.courses[i].name = value;
-                    }, user)(),
-                  );
-                }}
+                handleChange={(value) =>
+                  updateUser((user) => (user.courses[i].name = value))
+                }
               />
               {attachment ? (
                 <div className="flex">
@@ -322,11 +296,7 @@ const EducationSection = ({
                       if (attachment?.startsWith("blob")) {
                         URL.revokeObjectURL(attachment);
                       }
-                      setUser(
-                        produce(user, (user) => {
-                          user.courses[i].attachment = null;
-                        }),
-                      );
+                      updateUser((user) => (user.courses[i].attachment = null));
                     }}
                   >
                     (Удалить файл)
@@ -351,11 +321,7 @@ const EducationSection = ({
                       if (ext) {
                         url += "." + ext;
                       }
-                      setUser(
-                        produce((user) => {
-                          user.courses[i].attachment = url;
-                        }, user)(),
-                      );
+                      updateUser((user) => (user.courses[i].attachment = url));
                     }}
                   />
                   + Загрузить файл
@@ -377,7 +343,11 @@ const EducationSection = ({
     <section>
       <SectionTitle title="Образование" />
 
-      <HigherEducationInfo user={user} setUser={setUser} editing={editing} />
+      <HigherEducationInfo
+        user={user}
+        updateUser={updateUser}
+        editing={editing}
+      />
 
       <Property icon={layersIcon} name="Курсы" />
       <div className={clsx(editing ? "my-6" : "my-12")}>{courses}</div>
@@ -387,33 +357,20 @@ const EducationSection = ({
 
 const TrainingInfo = ({
   user,
-  setUser,
+  updateUser,
   editing,
 }: {
   user: User;
-  setUser: (user: User) => void;
+  updateUser: UpdateUserFn;
   editing: boolean;
 }) => {
   const changeName = (i: number, value: string) =>
-    setUser(
-      produce(user, (user) => {
-        user.training[i].name = value;
-      }),
-    );
+    updateUser((user) => (user.training[i].name = value));
 
   const pushItem = () =>
-    setUser(
-      produce(user, (user) => {
-        user.training.push({ name: "", attachment: null });
-      }),
-    );
+    updateUser((user) => user.training.push({ name: "", attachment: null }));
 
-  const popItem = () =>
-    setUser(
-      produce(user, (user) => {
-        user.training.pop();
-      }),
-    );
+  const popItem = () => updateUser((user) => user.training.pop());
 
   const changeFile = (i: number, files: FileList | null) => {
     if (!files || files.length < 1) {
@@ -429,11 +386,7 @@ const TrainingInfo = ({
     if (ext) {
       url += "." + ext;
     }
-    setUser(
-      produce((user) => {
-        user.training[i].attachment = url;
-      }, user)(),
-    );
+    updateUser((user) => (user.training[i].attachment = url));
   };
 
   const removeFile = (i: number) => {
@@ -441,11 +394,7 @@ const TrainingInfo = ({
     if (attachment?.startsWith("blob")) {
       URL.revokeObjectURL(attachment);
     }
-    setUser(
-      produce((user) => {
-        user.training[i].attachment = null;
-      }, user)(),
-    );
+    updateUser((user) => (user.training[i].attachment = null));
   };
 
   const certificates = user.training.map(({ name, attachment }, i) => {
@@ -516,11 +465,11 @@ const TrainingInfo = ({
 
 const CareerSection = ({
   user,
-  setUser,
+  updateUser,
   editing,
 }: {
   user: User;
-  setUser: (user: User) => void;
+  updateUser: UpdateUserFn;
   editing: boolean;
 }) => {
   const positions = user.career.map(
@@ -533,14 +482,12 @@ const CareerSection = ({
             className="w-full rounded text-center outline-none bg-white"
             value={year_start.toString()}
             onChange={({ target: { value } }) =>
-              setUser(
-                produce((user) => {
-                  const year_start = Number(value);
-                  if (!Number.isNaN(year_start)) {
-                    user.career[i].year_start = year_start;
-                  }
-                }, user)(),
-              )
+              updateUser((user) => {
+                const year_start = Number(value);
+                if (!Number.isNaN(year_start)) {
+                  user.career[i].year_start = year_start;
+                }
+              })
             }
           />
         </td>
@@ -551,20 +498,18 @@ const CareerSection = ({
             className="w-full rounded text-center outline-none bg-white"
             value={year_leave?.toString() || "н. вр."}
             onChange={({ target: { value } }) =>
-              setUser(
-                produce((user) => {
-                  const year_leave = Number(
-                    user.career[i].year_leave === null
-                      ? value.replace(/[^0-9]/g, "")
-                      : value,
-                  );
-                  if (Number.isNaN(year_leave)) {
-                    user.career[i].year_leave = null;
-                  } else {
-                    user.career[i].year_leave = year_leave;
-                  }
-                }, user)(),
-              )
+              updateUser((user) => {
+                const year_leave = Number(
+                  user.career[i].year_leave === null
+                    ? value.replace(/[^0-9]/g, "")
+                    : value,
+                );
+                if (Number.isNaN(year_leave)) {
+                  user.career[i].year_leave = null;
+                } else {
+                  user.career[i].year_leave = year_leave;
+                }
+              })
             }
           />
         </td>
@@ -575,11 +520,7 @@ const CareerSection = ({
             className="rounded w-full outline-none bg-white"
             value={position}
             onChange={({ target: { value } }) =>
-              setUser(
-                produce((user) => {
-                  user.career[i].position = value;
-                }, user)(),
-              )
+              updateUser((user) => (user.career[i].position = value))
             }
           />
         </td>
@@ -598,11 +539,7 @@ const CareerSection = ({
               value={user.workExperience || ""}
               theme="px-6 py-[6px] text-center"
               handleChange={(value) =>
-                setUser(
-                  produce((user) => {
-                    user.workExperience = value;
-                  }, user)(),
-                )
+                updateUser((user) => (user.workExperience = value))
               }
             />
           </div>
@@ -631,22 +568,20 @@ const CareerSection = ({
                       type="button"
                       className="grow basis-0 hover:underline border-r"
                       onClick={() =>
-                        setUser(
-                          produce(user, (user) => {
-                            const n = user.career.length;
-                            const y = new Date().getFullYear();
-                            const year_leave =
-                              n > 0 ? user.career[n - 1].year_start : null;
-                            const year_start = year_leave ? year_leave - 1 : y;
-                            user.career.push({
-                              year_start,
-                              year_leave,
-                              month_start: null,
-                              month_leave: null,
-                              position: "",
-                            });
-                          }),
-                        )
+                        updateUser((user) => {
+                          const n = user.career.length;
+                          const y = new Date().getFullYear();
+                          const year_leave =
+                            n > 0 ? user.career[n - 1].year_start : null;
+                          const year_start = year_leave ? year_leave - 1 : y;
+                          user.career.push({
+                            year_start,
+                            year_leave,
+                            month_start: null,
+                            month_leave: null,
+                            position: "",
+                          });
+                        })
                       }
                     >
                       + Добавить
@@ -654,13 +589,7 @@ const CareerSection = ({
                     <button
                       type="button"
                       className="grow basis-0 hover:underline"
-                      onClick={() =>
-                        setUser(
-                          produce(user, (user) => {
-                            user.career.pop();
-                          }),
-                        )
-                      }
+                      onClick={() => updateUser((user) => user.career.pop())}
                     >
                       - Удалить
                     </button>
@@ -677,7 +606,7 @@ const CareerSection = ({
               className={clsx("w-full mt-2 px-5 py-2", "rounded border")}
               value={user.skills}
               onChange={({ target: { value } }) =>
-                setUser({ ...user, skills: value })
+                updateUser({ ...user, skills: value })
               }
             />
           ) : (
@@ -685,7 +614,7 @@ const CareerSection = ({
           )}
         </EditableProperty>
 
-        <TrainingInfo user={user} setUser={setUser} editing={editing} />
+        <TrainingInfo user={user} updateUser={updateUser} editing={editing} />
       </div>
     </section>
   );
@@ -801,7 +730,7 @@ const Slides = ({
       <div className="w-[60px] absolute left-full top-0 h-full flex items-center">
         <SlideButton
           direction="right"
-          hide={i + window > items.length}
+          hide={i + window >= items.length}
           onClick={() => setIdx(i + 1)}
         />
       </div>
@@ -811,7 +740,7 @@ const Slides = ({
 
 const GallerySection = ({
   user,
-  setUser,
+  updateUser,
   editing,
   attr,
   window,
@@ -820,7 +749,7 @@ const GallerySection = ({
   gap,
 }: {
   user: User;
-  setUser: (user: User) => void;
+  updateUser: UpdateUserFn;
   editing: boolean;
   attr: "awards" | "communityWork";
   window: number;
@@ -829,25 +758,13 @@ const GallerySection = ({
   gap: string | number;
 }) => {
   const pushItem = () =>
-    setUser(
-      produce(user, (user) => {
-        user[attr].push({ name: "", attachment: null });
-      }),
-    );
+    updateUser((user) => user[attr].push({ name: "", attachment: null }));
 
-  const deleteItem = (i: number) => () =>
-    setUser(
-      produce(user, (user) => {
-        user[attr].splice(i, 1);
-      }),
-    );
+  const deleteItem = (i: number) =>
+    updateUser((user) => user[attr].splice(i, 1));
 
   const changeTitle = (i: number, value: string) =>
-    setUser(
-      produce(user, (user) => {
-        user[attr][i].name = value;
-      }),
-    );
+    updateUser((user) => (user[attr][i].name = value));
 
   const changeImage = (i: number, files: FileList | null) => {
     if (!files || files.length < 1) {
@@ -859,11 +776,7 @@ const GallerySection = ({
     }
     const file = files[0];
     const url = URL.createObjectURL(file);
-    setUser(
-      produce((user) => {
-        user[attr][i].attachment = url;
-      }, user)(),
-    );
+    updateUser((user) => (user[attr][i].attachment = url));
   };
 
   const items = user[attr].map(({ name: title, attachment }, i) => (
@@ -871,7 +784,7 @@ const GallerySection = ({
       {editing && (
         <button
           type="button"
-          onClick={deleteItem(i)}
+          onClick={() => deleteItem(i)}
           style={{ width: 24, height: 24, translate: "-25% 0" }}
           className="absolute left-[100%] bottom-[100%]"
         >
@@ -949,11 +862,11 @@ const GallerySection = ({
 
 const AwardsSection = ({
   user,
-  setUser,
+  updateUser,
   editing,
 }: {
   user: User;
-  setUser: (user: User) => void;
+  updateUser: UpdateUserFn;
   editing: boolean;
 }) => (
   <GallerySection
@@ -963,18 +876,18 @@ const AwardsSection = ({
     height={240}
     gap={40}
     user={user}
-    setUser={setUser}
+    updateUser={updateUser}
     editing={editing}
   />
 );
 
 const CommunityWorkSection = ({
   user,
-  setUser,
+  updateUser,
   editing,
 }: {
   user: User;
-  setUser: (user: User) => void;
+  updateUser: UpdateUserFn;
   editing: boolean;
 }) => (
   <GallerySection
@@ -984,18 +897,18 @@ const CommunityWorkSection = ({
     height={200}
     gap={30}
     user={user}
-    setUser={setUser}
+    updateUser={updateUser}
     editing={editing}
   />
 );
 
 const AboutMeSection = ({
   user,
-  setUser,
+  updateUser,
   editing,
 }: {
   user: User;
-  setUser: (user: User) => void;
+  updateUser: UpdateUserFn;
   editing: boolean;
 }) => {
   return (
@@ -1006,7 +919,7 @@ const AboutMeSection = ({
           value={user.about}
           className="w-full p-[22px] h-48 rounded border"
           onChange={({ target: { value } }) =>
-            setUser({ ...user, about: value })
+            updateUser({ ...user, about: value })
           }
         />
       ) : (
@@ -1091,11 +1004,31 @@ export const UserProfile = () => {
   const [editing, setEditing] = useState(false);
   const [userState, setUserState] = useState<User | undefined>(undefined);
 
+  const updateUserState = useMemo<UpdateUserFn>(
+    () => (recipe) => {
+      if (typeof recipe !== "function") {
+        setUserState(recipe);
+        return;
+      }
+      setUserState((user) => {
+        if (!user) {
+          return;
+        }
+        return produce(user, (draft) => {
+          recipe(draft);
+        });
+      });
+    },
+    [setUserState],
+  );
+
   useEffect(() => {
-    setUserState(user);
+    if (user) {
+      updateUserState(user);
+    }
     // FIXME:
     // setEditing(false);
-  }, [user]);
+  }, [updateUserState, user]);
 
   if (!user || !userState) {
     return;
@@ -1108,7 +1041,7 @@ export const UserProfile = () => {
     console.log("submit");
     event.preventDefault();
     if (editing) {
-      updateUser(auth.token, userState).catch(() => setUserState(user));
+      saveUser(auth.token, userState).catch(() => setUserState(user));
     }
     setEditing(false);
   };
@@ -1150,7 +1083,7 @@ export const UserProfile = () => {
               <Section
                 key={i}
                 user={userState}
-                setUser={setUserState}
+                updateUser={updateUserState}
                 editing={editing}
               />
               <SectionSep key={`sep-${i}`} />
