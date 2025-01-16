@@ -129,11 +129,12 @@ export const FileInput = ({
           return;
         }
         const file = files[0];
-        let url = URL.createObjectURL(file);
         const ext = fileExtention(file.name);
-        if (ext) {
-          url += "." + ext;
+        if (!ext || !accept.includes("." + ext)) {
+          return;
         }
+        let url = URL.createObjectURL(file);
+        url += "." + ext;
         onUpload(url);
       }}
     />
