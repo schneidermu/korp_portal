@@ -85,6 +85,19 @@ class Employee(AbstractUser):
         blank=True,
         null=True,
     )
+
+    inner_telephone_number = models.CharField(
+        verbose_name='Внутренний номер телефона',
+        blank=True,
+        null=True,
+    )
+
+    office = models.CharField(
+        verbose_name='Кабинет',
+        blank=True,
+        null=True,
+    )
+
     job_title = models.CharField(
         verbose_name='Должность',
         max_length=CHARFIELD_LENGTH,
