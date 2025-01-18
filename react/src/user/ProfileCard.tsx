@@ -5,9 +5,11 @@ import { ACCEPT_IMAGES } from "@/app/const";
 
 import {
   formatDateOfBirth,
+  formatMobilePhone,
   fullNameLong,
   MonomorphFields,
   noop,
+  stripPhoneNumber,
   userPhotoPath,
 } from "@/common/util";
 import { UpdateUserFn, User, USER_STATUS, UserStatus } from "./types";
@@ -121,6 +123,16 @@ export const ProfileCard = ({
     </EditableProperty>
   );
 
+  const changePhoneNumber = (phone: string) => {
+    const phoneValue = stripPhoneNumber(phone);
+    const prettyPhone = formatMobilePhone(phoneValue);
+    if (prettyPhone === phoneValue) {
+      updateUser({ ...user, phoneNumber: phone });
+    } else {
+      updateUser({ ...user, phoneNumber: prettyPhone });
+    }
+  };
+
   return (
     <section className="-ml-[20px] flex gap-[64px] h-[340px]">
       <Avatar editing={editing} user={user} updateUser={updateUser} />
@@ -157,12 +169,15 @@ export const ProfileCard = ({
               icon: giftIcon,
               type: "date",
             }),
-            field({
-              field: "phoneNumber",
-              name: "Телефон",
-              icon: phoneIcon,
-              type: "tel",
-            }),
+            <EditableProperty key="phoneNumber" icon={phoneIcon} name="Телефон">
+              <PropertyInput
+                editing={editing}
+                value={user.phoneNumber}
+                theme="py-[6px] px-[10px]"
+                text={formatMobilePhone(user.phoneNumber)}
+                handleChange={changePhoneNumber}
+              />
+            </EditableProperty>,
             <EditableProperty key="email" name="Почта" icon={atIcon}>
               {user.email}
             </EditableProperty>,
