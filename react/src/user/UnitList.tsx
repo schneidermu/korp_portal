@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import clsx from "clsx/lite";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import { formatMobilePhone, fullNameLong } from "@/common/util";
 import { cmpUsers, useFetchUsers } from "./api";
+import { useQuery } from "./hooks";
 import { filterUsers, Unit, User } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
@@ -67,23 +68,9 @@ const groupUsersByUnits = (users: User[]) => {
 };
 
 export const UnitList = () => {
-  const navigate = useNavigate();
   const params = useParams();
 
-  const [query, setQuery] = useState([""]);
-  const [pagePath, setPagePath] = useState(
-    `/units/${query.slice(0, -1).join("+")}`,
-  );
-
-  useEffect(() => {
-    if (!params.query) {
-      return;
-    }
-    setPagePath(`/units/${params.query}`);
-    const terms = params.query.split("+");
-    terms.push("");
-    setQuery(terms);
-  }, [params.query]);
+  const { query, setQuery } = useQuery("/units", params.query);
 
   const { data: allUsers } = useFetchUsers();
 
@@ -125,21 +112,16 @@ export const UnitList = () => {
     "px-6 py-5",
   );
 
+  const id = query.slice(0, -1).join("+");
+
   return (
-    <AnimatePage id={pagePath}>
+    <AnimatePage id={id}>
       <SearchBar
         query={query}
-        setQuery={({ query, reload }) => {
-          setQuery(query);
-          if (reload) {
-            const path = `/units/${query.slice(0, -1).join("+")}`;
-            setPagePath(path);
-            navigate(path);
-          }
-        }}
+        setQuery={({ query, reload }) => setQuery(query, reload)}
       />
       <div className="h-[45px]"></div>
-      <PageSkel title="Список отделов" heading="Список отделов" id={pagePath}>
+      <PageSkel title="Список отделов" heading="Список отделов" id={id}>
         <div className="w-full px-12 pb-24">
           <div className="grid grid-cols-[1fr,1fr,22%,auto,auto]">
             {/* Header row */}
