@@ -19,7 +19,11 @@ type UserData = {
   job_title: string | null;
   class_rank: string | null;
   chief: string | null; // UUID
-  structural_division: null | { id: number; name: string };
+  structural_division: null | {
+    id: number;
+    name: string;
+    parent_structural_subdivision: number | null;
+  };
   organization: null | { id: number; name: string };
   average_rating: number | null;
   avatar: string | null; // URI
@@ -64,6 +68,7 @@ type UserData = {
 
 const toUser = (data: UserData): User => {
   const char = data.characteristic;
+  const unit = data.structural_division;
   return {
     id: data.id,
     email: data.username + "@voda.gov.ru",
@@ -82,7 +87,11 @@ const toUser = (data: UserData): User => {
     position: data.job_title || "",
     serviceRank: data.class_rank || "",
     bossId: data.chief,
-    unit: data.structural_division,
+    unit: unit && {
+      id: unit.id,
+      name: unit.name,
+      parentId: unit.parent_structural_subdivision,
+    },
     organization: data.organization,
     avgRating: data.average_rating,
     career:
@@ -137,7 +146,11 @@ const fromUser = (user: User): UserData => ({
   job_title: user.position,
   class_rank: user.serviceRank,
   chief: user.bossId,
-  structural_division: user.unit,
+  structural_division: user.unit && {
+    id: user.unit.id,
+    name: user.unit.name,
+    parent_structural_subdivision: user.unit.parentId,
+  },
   organization: user.organization,
   average_rating: user.avgRating,
   avatar: user.photo,

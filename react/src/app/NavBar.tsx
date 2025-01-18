@@ -55,9 +55,9 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
           <Link to="/list" className="hover:underline cursor-pointer">
             Список сотрудников
           </Link>
-          <a className="hover:underline cursor-pointer" onClick={() => {}}>
+          <Link to="/units" className="hover:underline cursor-pointer">
             Список отделов
-          </a>
+          </Link>
         </div>
       </div>
     </div>

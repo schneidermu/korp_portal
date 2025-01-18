@@ -1,5 +1,7 @@
 import { WritableDraft } from "immer";
 
+import { fullNameLong, fullNameShort, stripPhoneNumber } from "@/common/util";
+
 export const USER_STATUS = [
   "В командировке",
   "В отпуске",
@@ -9,6 +11,12 @@ export const USER_STATUS = [
 ] as const;
 
 export type UserStatus = (typeof USER_STATUS)[number];
+
+export type Unit = {
+  id: number;
+  name: string;
+  parentId: number | null;
+};
 
 export type User = {
   id: string;
@@ -28,7 +36,7 @@ export type User = {
   position: string;
   serviceRank: string;
   bossId: string | null;
-  unit: null | { id: number; name: string };
+  unit: null | Unit;
   organization: null | { id: number; name: string };
   avgRating: number | null;
   career: {
@@ -83,4 +91,45 @@ export const userBlobURLs = (user: User): Set<string> => {
   f({ attachment: user.photo });
 
   return set;
+};
+
+const matchString = (q: string, s: string): boolean => {
+  return s.toLowerCase().includes(q);
+};
+
+type FilterFields = Set<keyof User>;
+
+export const filterUsers = (
+  users: User[],
+  term: string,
+  fields: FilterFields,
+) => {
+  term = term.toLowerCase();
+
+  return users.filter((user) => {
+    const {
+      unit,
+      organization,
+      position,
+      status,
+      email,
+      phoneNumber,
+      serviceRank,
+    } = user;
+
+    return (
+      (fields.has("unit") && unit && matchString(term, unit.name)) ||
+      (fields.has("organization") &&
+        organization &&
+        matchString(term, organization.name)) ||
+      matchString(term, fullNameLong(user)) ||
+      matchString(term, fullNameShort(user)) ||
+      (fields.has("position") && matchString(term, position)) ||
+      (fields.has("status") && matchString(term, status)) ||
+      (fields.has("email") && matchString(term, email)) ||
+      (fields.has("phoneNumber") &&
+        matchString(stripPhoneNumber(term), phoneNumber)) ||
+      (fields.has("serviceRank") && matchString(term, serviceRank))
+    );
+  });
 };

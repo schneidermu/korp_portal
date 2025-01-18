@@ -3,34 +3,21 @@ import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx/lite";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { fullNameLong, fullNameShort } from "@/common/util";
 import { cmpUsers, useFetchUsers } from "./api";
-import { User } from "./types";
+import { filterUsers, User } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
 import { SearchBar } from "@/common/SearchBar";
 import { ProfileCard } from "./ProfileCard";
 
-const matchString = (q: string, s: string): boolean => {
-  return s.toLowerCase().includes(q);
-};
-
-const filterUsers = (users: User[], term: string) => {
-  term = term.toLowerCase();
-  return users.filter((user) => {
-    if (user.unit && matchString(term, user.unit.name)) return true;
-    if (user.organization && matchString(term, user.organization.name))
-      return true;
-    if (matchString(term, fullNameLong(user))) return true;
-    if (matchString(term, fullNameShort(user))) return true;
-    if (matchString(term, user.position)) return true;
-    if (matchString(term, user.status)) return true;
-    if (matchString(term, user.email)) return true;
-    if (matchString(term, user.phoneNumber)) return true;
-    if (matchString(term, user.serviceRank)) return true;
-    return false;
-  });
-};
+const FILTER_FIELDS = new Set<keyof User>([
+  "unit",
+  "organization",
+  "position",
+  "email",
+  "phoneNumber",
+  "serviceRank",
+]);
 
 export const UserList = () => {
   const navigate = useNavigate();
@@ -59,7 +46,7 @@ export const UserList = () => {
     }
     let users = [...allUsers.values()];
     for (const term of query) {
-      users = filterUsers(users, term);
+      users = filterUsers(users, term, FILTER_FIELDS);
     }
     users.sort(cmpUsers);
     return users;

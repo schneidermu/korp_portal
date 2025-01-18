@@ -72,3 +72,25 @@ export const userPhotoPath = (user: User) =>
     : user.photo || personIcon;
 
 export const noop = () => ({});
+
+const formatMobilePhoneProper = (phone: string): string => {
+  const p1 = phone.slice(0, 3);
+  const p2 = phone.slice(3, 6);
+  const p3 = phone.slice(6, 8);
+  const p4 = phone.slice(8, 10);
+  return `(${p1}) ${p2}-${p3}-${p4}`;
+};
+
+export const formatMobilePhone = (phone: string): string => {
+  if (phone.length === 12 && phone.startsWith("+7")) {
+    return `+7 ${formatMobilePhoneProper(phone.slice(2))}`;
+  }
+  if (phone.length === 11 && phone.startsWith("8")) {
+    return `8 ${formatMobilePhoneProper(phone.slice(1))}`;
+  }
+  return phone;
+};
+
+export const stripPhoneNumber = (phone: string): string => {
+  return phone.replace(/[ ()-]/g, "");
+};
