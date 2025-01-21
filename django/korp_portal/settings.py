@@ -62,7 +62,7 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
 }
 
 AUTHENTICATION_BACKENDS = (
-    'django_auth_ldap.backend.LDAPBackend',
+    'korp_portal.backends.CustomLDAPBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -93,6 +93,8 @@ CORS_ALLOWED_ORIGIN_REGEXES = ['^http://([a-z0-9]+\.)*localhost(:[0-9]+)?$']
 CORS_ALLOWED_ORIGINS = []
 if os.getenv('ALLOWED_ORIGINS', '') != '':
     CORS_ALLOWED_ORIGINS.extend(os.environ['ALLOWED_ORIGINS'].split(','))
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
