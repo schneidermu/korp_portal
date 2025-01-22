@@ -30,6 +30,9 @@ const Choice = ({
   const toggleChosen = () =>
     setPoll(
       produce(poll, (poll) => {
+        if (!poll.isMultipleChoice) {
+          poll.myChoices.clear();
+        }
         if (!chosen) {
           poll.myChoices.add(choice.id);
         } else {
