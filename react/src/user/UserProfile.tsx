@@ -423,7 +423,7 @@ const TrainingInfo = ({
             required
             value={name}
             onChange={({ target: { value } }) => changeName(i, value)}
-            className="mb-1 px-[20px] py-[6px] border rounded"
+            className="w-full mb-1 px-[20px] py-[6px] border rounded"
           />
         ) : (
           <span>{name}</span>
@@ -464,7 +464,7 @@ const TrainingInfo = ({
   return (
     <div>
       <Property icon={upArrowIcon} name="Повышение квалификации" />
-      <div className="ml-8 mt-2">
+      <div className="w-1/2 ml-8 mt-2">
         <ul className="mb-4 list-disc flex flex-col gap-4">{certificates}</ul>
         {editing && (
           <RowControls
