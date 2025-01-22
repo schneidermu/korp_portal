@@ -50,7 +50,7 @@ const Avatar = ({
       {editing && (
         <div className="w-full absolute bottom-0 text-[16px] bg-[#D9D9D9C0]">
           <label
-            className="block w-full py-3 hover:underline text-center cursor-pointer"
+            className="block w-full py-3 hover:underline text-center cursor-pointer select-none"
             onClick={(event) => event.stopPropagation()}
           >
             <FileInput
@@ -65,7 +65,7 @@ const Avatar = ({
               event.stopPropagation();
               updateUser({ ...user, photo: null });
             }}
-            className="w-full py-3 hover:underline"
+            className="w-full py-3 hover:underline select-none"
             type="button"
           >
             Удалить фото

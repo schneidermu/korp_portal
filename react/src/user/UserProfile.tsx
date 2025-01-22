@@ -94,7 +94,7 @@ const EditControls = ({
   const btn = clsx(
     "px-[30px] py-[6px] w-fit",
     "rounded bg-light-blue text-white",
-    "text-[24px]",
+    "text-[24px] select-none",
   );
 
   return editing ? (
@@ -720,7 +720,8 @@ const ViewButton = ({
   active: boolean;
   onClick: () => void;
 }) => {
-  let style = "border border-light-blue rounded px-[38px] py-[12px] ";
+  let style =
+    "border border-light-blue rounded px-[38px] py-[12px] select-none ";
   style += active ? "bg-light-blue text-white" : "bg-white text-light-blue";
   return (
     <button type="button" className={style} onClick={onClick}>
