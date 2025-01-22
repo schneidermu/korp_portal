@@ -42,6 +42,8 @@ import starYellowIcon from "/star-yellow.svg";
 import starIcon from "/star.svg";
 import upArrowIcon from "/up-arrow.svg";
 
+import Sticky from "react-stickynode";
+
 const SectionSep = () => {
   return (
     <hr
@@ -1164,20 +1166,22 @@ export const UserProfile = () => {
       <PageSkel title={title} heading="Основные сведения">
         <form
           spellCheck
-          className={clsx("mr-[36px] ml-[64px] pb-[155px]", "relative")}
+          className={clsx("mr-[36px] ml-[64px] pb-[155px] -mt-12", "relative")}
           onSubmit={handleSubmit}
         >
           {editable && (
-            <div className="absolute right-0 bottom-[100%]">
-              <EditControls
-                editing={editing}
-                edit={() => setEditing(true)}
-                reset={() => {
-                  setUserState(user);
-                  setEditing(false);
-                }}
-              />
-            </div>
+            <Sticky top={40} innerZ={1}>
+              <div className="flex justify-end">
+                <EditControls
+                  editing={editing}
+                  edit={() => setEditing(true)}
+                  reset={() => {
+                    setUserState(user);
+                    setEditing(false);
+                  }}
+                />
+              </div>
+            </Sticky>
           )}
           {sections.map((Section, i) => (
             <>

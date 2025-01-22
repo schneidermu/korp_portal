@@ -16,6 +16,7 @@
 - [react-router](https://reactrouter.com/), routing
 - [immer](https://immerjs.github.io/immer/), immutability helper
 - [clsx](https://github.com/lukeed/clsx), react `className` utility
+- [yahoo/react-stickynode](https://github.com/yahoo/react-stickynode), sticky component
 - [tailwindcss](https://tailwindcss.com/), CSS framework
 
 ## Formatting
