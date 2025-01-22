@@ -75,16 +75,32 @@ export const Gallery = ({
   hideControls?: boolean;
 }) => {
   useEffect(() => {
-    const listener = () => {
+    const handleClick = () => {
       if (!hideControls) {
         close();
       }
     };
-    document.addEventListener("click", listener);
-    return () => {
-      document.removeEventListener("click", listener);
+
+    const handleKeyDown = ({ key }: KeyboardEvent) => {
+      if (hideControls) {
+        return;
+      }
+      if (key === "Escape") {
+        close();
+      } else if (left && (key === "ArrowLeft" || key === "ArrowUp")) {
+        left();
+      } else if (right && (key === "ArrowRight" || key === "ArrowDown")) {
+        right();
+      }
     };
-  }, [close, hideControls]);
+
+    document.addEventListener("click", handleClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("click", handleClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [left, right, close, hideControls]);
 
   return (
     <Overlay>
