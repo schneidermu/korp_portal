@@ -14,6 +14,7 @@ import { ProfileCard } from "./ProfileCard";
 const FILTER_FIELDS = new Set<keyof User>([
   "unit",
   "organization",
+  "dateOfBirth",
   "position",
   "email",
   "phoneNumber",

@@ -63,6 +63,12 @@ export const formatDateOfBirth = new Intl.DateTimeFormat(LOCALE, {
   day: "numeric",
 }).format;
 
+export const formatDateLong = new Intl.DateTimeFormat(LOCALE, {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+}).format;
+
 export const fullImagePath = (path: string) =>
   path.startsWith("/media") ? STATIC_BASE_URL + path : path;
 

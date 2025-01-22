@@ -1,6 +1,11 @@
 import { WritableDraft } from "immer";
 
-import { fullNameLong, fullNameShort, stripPhoneNumber } from "@/common/util";
+import {
+  formatDateLong,
+  fullNameLong,
+  fullNameShort,
+  stripPhoneNumber,
+} from "@/common/util";
 
 export const USER_STATUS = [
   "В командировке",
@@ -110,6 +115,7 @@ export const filterUsers = (
     const {
       unit,
       organization,
+      dateOfBirth,
       position,
       status,
       email,
@@ -124,6 +130,9 @@ export const filterUsers = (
         matchString(term, organization.name)) ||
       matchString(term, fullNameLong(user)) ||
       matchString(term, fullNameShort(user)) ||
+      (fields.has("dateOfBirth") &&
+        dateOfBirth &&
+        matchString(term, formatDateLong(new Date(dateOfBirth)))) ||
       (fields.has("position") && matchString(term, position)) ||
       (fields.has("status") && matchString(term, status)) ||
       (fields.has("email") && matchString(term, email)) ||
