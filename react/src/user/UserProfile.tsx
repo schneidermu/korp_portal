@@ -1,5 +1,6 @@
 import {
   FormEventHandler,
+  Fragment,
   ReactNode,
   useEffect,
   useMemo,
@@ -426,6 +427,182 @@ const TrainingInfo = ({
   );
 };
 
+const CareerPositionsTableControls = ({
+  editing,
+  add,
+  remove,
+  isLastRow = false,
+}: {
+  editing: boolean;
+  add: () => void;
+  remove: () => void;
+  isLastRow?: boolean;
+}) => {
+  if (!editing) {
+    return;
+  }
+  return (
+    <div
+      className={clsx(
+        "col-span-3 flex text-dark-gray border-x border-b",
+        isLastRow && "rounded-b",
+      )}
+    >
+      <button
+        type="button"
+        className="grow basis-0 hover:underline border-r py-2"
+        onClick={add}
+      >
+        + Добавить
+      </button>
+      <button
+        type="button"
+        className="grow basis-0 hover:underline py-2"
+        onClick={remove}
+      >
+        - Удалить
+      </button>
+    </div>
+  );
+};
+
+const CareerPositionsTable = ({
+  user,
+  updateUser,
+  editing,
+}: {
+  user: User;
+  updateUser: UpdateUserFn;
+  editing: boolean;
+}) => {
+  const headerClass = clsx(
+    "border-t border-r border-b border-dark-gray",
+    "px-6 py-2",
+    "text-dark-gray",
+  );
+
+  const cellClass = clsx("border-b border-r border-dark-gray", "px-6 py-2");
+
+  const inputCellClass = clsx(cellClass, "w-full outline-none bg-white");
+
+  const changeStartYear = (i: number, value: string) =>
+    updateUser((user) => {
+      const year_start = Number(value);
+      if (!Number.isNaN(year_start)) {
+        user.career[i].year_start = year_start;
+      }
+    });
+
+  const changeLeaveYear = (i: number, value: string) =>
+    updateUser((user) => {
+      const year_leave = Number(
+        user.career[i].year_leave === null
+          ? value.replace(/[^0-9]/g, "")
+          : value,
+      );
+      if (Number.isNaN(year_leave)) {
+        user.career[i].year_leave = null;
+      } else {
+        user.career[i].year_leave = year_leave;
+      }
+    });
+
+  const unshiftPosition = () =>
+    updateUser((user) => {
+      const y = new Date().getFullYear();
+      const c = user.career[0];
+      const year_start = c?.year_leave ?? y;
+      const year_leave = c && c.year_leave !== null ? c.year_leave + 1 : null;
+      c.year_leave = year_start;
+      user.career.unshift({
+        year_start,
+        year_leave,
+        month_start: null,
+        month_leave: null,
+        position: "",
+      });
+    });
+
+  const shiftPosition = () => updateUser((user) => user.career.shift());
+
+  const pushPosition = () =>
+    updateUser((user) => {
+      if (user.career.length === 0) {
+        return;
+      }
+      const year_leave = user.career[user.career.length - 1].year_start;
+      const year_start = year_leave - 1;
+      user.career.push({
+        year_start,
+        year_leave,
+        month_start: null,
+        month_leave: null,
+        position: "",
+      });
+    });
+
+  const popPosition = () => updateUser((user) => user.career.pop());
+
+  return (
+    <div className="grid w-full grid-cols-[auto,auto,80%] mb-[15px]">
+      {/* Header */}
+      <div
+        className={clsx(
+          headerClass,
+          "rounded-tl border-l",
+          "text-center",
+          "col-span-2",
+        )}
+      >
+        Годы
+      </div>
+      <div className={clsx(headerClass, "rounded-tr")}>Должность</div>
+
+      <CareerPositionsTableControls
+        editing={editing}
+        add={unshiftPosition}
+        remove={shiftPosition}
+      />
+
+      {user.career.map(({ year_start, year_leave, position }, i) => (
+        <Fragment key={i}>
+          {/* Position row */}
+          <input
+            required
+            disabled={!editing}
+            className={clsx(inputCellClass, "text-center", "border-l")}
+            value={year_start.toString()}
+            onChange={({ target: { value } }) => changeStartYear(i, value)}
+          />
+          <input
+            required
+            disabled={!editing}
+            className={clsx(inputCellClass, "text-center")}
+            value={year_leave?.toString() || "н. вр."}
+            onChange={({ target: { value } }) => changeLeaveYear(i, value)}
+          />
+          <input
+            required
+            disabled={!editing}
+            className={clsx(inputCellClass)}
+            value={position}
+            onChange={({ target: { value } }) =>
+              updateUser((user) => (user.career[i].position = value))
+            }
+          />
+        </Fragment>
+      ))}
+
+      <CareerPositionsTableControls
+        isLastRow
+        editing={editing}
+        add={pushPosition}
+        remove={popPosition}
+      />
+    </div>
+  );
+};
+
 const CareerSection = ({
   user,
   updateUser,
@@ -435,62 +612,6 @@ const CareerSection = ({
   updateUser: UpdateUserFn;
   editing: boolean;
 }) => {
-  const positions = user.career.map(
-    ({ year_start, year_leave, position }, i) => (
-      <tr key={i} className="h-[45px]">
-        <td className="w-[136px] border border-dark-gray">
-          <input
-            required
-            disabled={!editing}
-            className="w-full rounded text-center outline-none bg-white"
-            value={year_start.toString()}
-            onChange={({ target: { value } }) =>
-              updateUser((user) => {
-                const year_start = Number(value);
-                if (!Number.isNaN(year_start)) {
-                  user.career[i].year_start = year_start;
-                }
-              })
-            }
-          />
-        </td>
-        <td className="w-[136px] border border-dark-gray">
-          <input
-            required
-            disabled={!editing}
-            className="w-full rounded text-center outline-none bg-white"
-            value={year_leave?.toString() || "н. вр."}
-            onChange={({ target: { value } }) =>
-              updateUser((user) => {
-                const year_leave = Number(
-                  user.career[i].year_leave === null
-                    ? value.replace(/[^0-9]/g, "")
-                    : value,
-                );
-                if (Number.isNaN(year_leave)) {
-                  user.career[i].year_leave = null;
-                } else {
-                  user.career[i].year_leave = year_leave;
-                }
-              })
-            }
-          />
-        </td>
-        <td className="border border-dark-gray pl-[30px]">
-          <input
-            required
-            disabled={!editing}
-            className="rounded w-full outline-none bg-white"
-            value={position}
-            onChange={({ target: { value } }) =>
-              updateUser((user) => (user.career[i].position = value))
-            }
-          />
-        </td>
-      </tr>
-    ),
-  );
-
   return (
     <section>
       <SectionTitle title="Карьера и развитие" />
@@ -509,59 +630,11 @@ const CareerSection = ({
         </EditableProperty>
 
         <Property icon={externalIcon} name="Карьерный рост" />
-        <table className="rounded-table w-full border border-dark-gray mb-[15px]">
-          <tbody>
-            <tr className="h-[45px]">
-              <th
-                colSpan={2}
-                className="border border-dark-gray text-dark-gray font-normal text-center"
-              >
-                Годы
-              </th>
-              <th className="border border-dark-gray text-dark-gray font-normal pl-[30px] text-left">
-                Должность
-              </th>
-            </tr>
-            {positions}
-            {editing && (
-              <tr className="h-[45px]">
-                <td colSpan={3} className="h-full w-full">
-                  <div className="h-full text-dark-gray flex">
-                    <button
-                      type="button"
-                      className="grow basis-0 hover:underline border-r"
-                      onClick={() =>
-                        updateUser((user) => {
-                          const n = user.career.length;
-                          const y = new Date().getFullYear();
-                          const year_leave =
-                            n > 0 ? user.career[n - 1].year_start : null;
-                          const year_start = year_leave ? year_leave - 1 : y;
-                          user.career.push({
-                            year_start,
-                            year_leave,
-                            month_start: null,
-                            month_leave: null,
-                            position: "",
-                          });
-                        })
-                      }
-                    >
-                      + Добавить
-                    </button>
-                    <button
-                      type="button"
-                      className="grow basis-0 hover:underline"
-                      onClick={() => updateUser((user) => user.career.pop())}
-                    >
-                      - Удалить
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+        <CareerPositionsTable
+          user={user}
+          updateUser={updateUser}
+          editing={editing}
+        />
 
         <EditableProperty wrap icon={bookIcon} name="Навыки и компетенции">
           {editing ? (
