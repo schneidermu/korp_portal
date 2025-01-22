@@ -2,6 +2,7 @@ import clsx from "clsx/lite";
 
 import crossIcon from "/cross.svg";
 import searchIcon from "/search.svg";
+import { Icon } from "./Icon";
 
 const QueryTerm = ({
   term,
@@ -16,7 +17,7 @@ const QueryTerm = ({
       onClick={handleClick}
     >
       <span>{term}</span>
-      <img src={crossIcon} style={{ width: "0.8em", height: "0.8em" }} />
+      <Icon src={crossIcon} width="0.8em" height="0.8em" />
     </div>
   );
 };
@@ -42,11 +43,7 @@ export const SearchBar = ({
         )}
       >
         <button onClick={addTerm}>
-          <img
-            src={searchIcon}
-            style={{ width: "40px", height: "40px" }}
-            draggable={false}
-          />
+          <Icon src={searchIcon} width="40px" height="40px" />
         </button>
         <input
           className={clsx(

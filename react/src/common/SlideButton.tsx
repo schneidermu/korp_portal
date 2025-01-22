@@ -1,5 +1,7 @@
 import clsx from "clsx/lite";
 
+import { Icon } from "./Icon";
+
 import arrow from "/arrow.png";
 
 export const SlideButton = ({
@@ -15,10 +17,10 @@ export const SlideButton = ({
     <div style={{ width: "83px" }}>
       {!hide && (
         <button type="button" className="py-[40px]" onClick={onClick}>
-          <img
-            style={{ height: "83px" }}
-            className={clsx(direction === "left" && "rotate-180")}
+          <Icon
             src={arrow}
+            height="83px"
+            className={clsx(direction === "left" && "rotate-180")}
           />
         </button>
       )}

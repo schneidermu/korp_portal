@@ -27,6 +27,7 @@ import { AnimatePage, PageSkel } from "@/app/Page";
 import { Attachment } from "@/common/Attachment";
 import { SlideButton } from "@/common/SlideButton";
 
+import { Icon } from "@/common/Icon";
 import { Picture } from "@/common/Picture";
 import { EditableProperty, FileInput, PropertyInput } from "./common";
 import { ProfileCard } from "./ProfileCard";
@@ -63,10 +64,10 @@ const Property = ({
 }) => {
   return (
     <div>
-      <img
-        style={{ width: "30px", height: "30px" }}
+      <Icon
         src={icon}
-        alt=""
+        width="30px"
+        height="30px"
         className="inline-block mr-[20px]"
       />
       <span className="mr-[10px] text-dark-gray">{name}:</span>
@@ -105,7 +106,7 @@ const EditControls = ({
     </div>
   ) : (
     <button key="edit" type="button" onClick={edit}>
-      <img style={{ width: "36px", height: "36px" }} src={editIcon} />
+      <Icon src={editIcon} width="36px" height="36px" />
     </button>
   );
 };
@@ -866,13 +867,13 @@ const GallerySection = ({
           style={{ width: 24, height: 24, translate: "-25% 0" }}
           className="absolute left-[100%] bottom-[100%]"
         >
-          <img src={crossIcon} />
+          <Icon src={crossIcon} />
         </button>
       )}
       {attachment && (
-        <img
+        <Icon
           src={fullImagePath(attachment)}
-          style={{ height }}
+          height={height}
           className="w-full object-cover object-center"
         />
       )}
@@ -1050,7 +1051,7 @@ const FeedbackSection = ({ user }: { user: User }) => {
         onClick={() => onClick(i)}
         onMouseEnter={() => setHoverMark(i)}
       >
-        <img style={{ width: "52px", height: "52px" }} src={icon} alt="" />
+        <Icon src={icon} width="52px" height="52px" />
       </button>
     );
   });

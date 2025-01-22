@@ -5,6 +5,8 @@ import { SlideButton } from "./SlideButton";
 import clsx from "clsx/lite";
 import { motion } from "motion/react";
 
+import { Icon } from "./Icon";
+
 import cross from "/cross.png";
 
 export const Modal = ({
@@ -54,7 +56,7 @@ const Overlay = ({ children }: { children: ReactNode }) => {
 const CloseButton = ({ onClick }: { onClick: () => void }) => {
   return (
     <button onClick={onClick}>
-      <img style={{ width: "53px", height: "53px" }} src={cross} />
+      <Icon src={cross} width="53px" height="53px" />
     </button>
   );
 };

@@ -4,6 +4,8 @@ import clsx from "clsx/lite";
 
 import { fileExtention } from "@/common/util";
 
+import { Icon } from "@/common/Icon";
+
 export const EditableProperty = ({
   icon,
   name,
@@ -17,10 +19,10 @@ export const EditableProperty = ({
 }) => {
   return (
     <div className={clsx("h-full", wrap ? "mt-[7.5px]" : "flex items-center")}>
-      <img
-        style={{ width: "30px", height: "30px" }}
+      <Icon
         src={icon}
-        alt=""
+        width="30px"
+        height="30px"
         className="inline-block mr-[20px]"
       />
       <span

@@ -5,6 +5,8 @@ import { useAuth } from "@/auth/slice";
 import { formatDate } from "@/common/util";
 import * as types from "./types";
 
+import { Icon } from "@/common/Icon";
+
 import checkIcon from "/check.svg";
 import tickIcon from "/tick.svg";
 
@@ -73,7 +75,7 @@ const Choice = ({
       />
       <div className="grow">{choice.text}</div>
       {chosen && !poll.isMultipleChoice && (
-        <img className="mx-[18px]" src={tickIcon} />
+        <Icon src={tickIcon} className="mx-[18px]" />
       )}
       {poll.voted && (
         <div className="ml-[18px] mr-[5px] w-[100px]">

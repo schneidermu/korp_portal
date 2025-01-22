@@ -14,6 +14,7 @@ import {
 } from "@/common/util";
 import { UpdateUserFn, User, USER_STATUS, UserStatus } from "./types";
 
+import { Icon } from "@/common/Icon";
 import { Picture } from "@/common/Picture";
 import {
   EditableProperty,
@@ -138,7 +139,7 @@ export const ProfileCard = ({
       <Avatar editing={editing} user={user} updateUser={updateUser} />
       <div className="w-full flex flex-col justify-between">
         <div className="flex">
-          <img src={personIcon} alt="" className="w-[33px]" />
+          <Icon src={personIcon} width="33px" />
           <Link
             to={"/profile/" + user.id}
             className="ml-[28px] text-[30px] hover:underline"

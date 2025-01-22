@@ -11,7 +11,7 @@ const DropdownArrow = () => {
   return (
     <object
       type="image/svg+xml"
-      className="-rotate-90 w-[1em] h-[1em] ml-[0.1em] mt-[0.1em]"
+      className="-rotate-90 w-[1em] h-[1em] ml-[0.1em] mt-[0.1em] select-none"
       data={backArrowIcon}
     ></object>
   );
