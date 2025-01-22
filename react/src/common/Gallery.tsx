@@ -74,9 +74,24 @@ export const Gallery = ({
   children?: ReactNode;
   hideControls?: boolean;
 }) => {
+  useEffect(() => {
+    const listener = () => {
+      if (!hideControls) {
+        close();
+      }
+    };
+    document.addEventListener("click", listener);
+    return () => {
+      document.removeEventListener("click", listener);
+    };
+  }, [close, hideControls]);
+
   return (
     <Overlay>
-      <div className="py-[50px] w-full h-full max-w-[1639px] flex items-center">
+      <div
+        className="py-[50px] w-full h-full max-w-[1639px] flex items-center"
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="grid grid-cols-[83px,1fr,83px] gap-[35px] w-full h-fit">
           <div className="flex items-center">
             {hideControls || (

@@ -19,7 +19,13 @@ export const News = ({
   return (
     <article className="mt-[60px] mx-[65px] mb-[50px]">
       <div className="flex items-center justify-end">
-        <a className="grow cursor-pointer" onClick={handleOpen}>
+        <a
+          className="grow cursor-pointer"
+          onClick={(event) => {
+            event.stopPropagation();
+            if (handleOpen) handleOpen();
+          }}
+        >
           <h2 className={clsx("text-[32px]", full && "font-medium")}>
             {news.title}
           </h2>
@@ -48,8 +54,9 @@ export const News = ({
               key={i}
               src={src}
               className="w-full h-[400px] object-cover"
-              onClick={() => {
+              onClick={(event) => {
                 if (!full && handleOpen) {
+                  event.stopPropagation();
                   handleOpen();
                 }
                 setOverlayImg(i);

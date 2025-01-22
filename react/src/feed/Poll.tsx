@@ -133,7 +133,13 @@ export const Poll = ({
           full && "mt-[45px] px-[70px] py-[60px] border",
         )}
       >
-        <a className="block mt-[22px] cursor-pointer" onClick={handleOpen}>
+        <a
+          className="block mt-[22px] cursor-pointer"
+          onClick={(event) => {
+            event.stopPropagation();
+            if (handleOpen) handleOpen();
+          }}
+        >
           <h2 className={clsx("text-[36px] font-medium text-center")}>
             {poll.question}
           </h2>
