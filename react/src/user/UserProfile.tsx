@@ -123,11 +123,13 @@ const RowControls = ({ controls }: { controls: [string, () => void][] }) => {
 };
 
 const Timeline = ({
-  controls,
+  controlsAbove,
+  controlsBelow,
   editing,
   children,
 }: {
-  controls: [string, () => void][];
+  controlsAbove?: [string, () => void][];
+  controlsBelow?: [string, () => void][];
   editing: boolean;
   children?: ReactNode;
 }) => {
@@ -138,11 +140,17 @@ const Timeline = ({
         editing ? "grid-cols-[140px,auto]" : "grid-cols-[70px,auto]",
       )}
     >
-      {children}
-      {editing && (
+      {editing && controlsAbove && (
         <>
           <div></div>
-          <RowControls controls={controls} />
+          <RowControls controls={controlsAbove} />
+        </>
+      )}
+      {children}
+      {editing && controlsBelow && (
+        <>
+          <div></div>
+          <RowControls controls={controlsBelow} />
         </>
       )}
     </div>
@@ -158,10 +166,27 @@ const HigherEducationInfo = ({
   updateUser: UpdateUserFn;
   editing: boolean;
 }) => {
+  const unshiftItem = () =>
+    updateUser(({ education }) => {
+      let year = new Date().getFullYear();
+      if (education[0] && education[0].year < year) {
+        year = education[0].year + 1;
+      }
+      education.unshift({
+        year,
+        university: "",
+        major: "",
+      });
+    });
+
+  const shiftItem = () => updateUser((user) => user.education.shift());
+
   const pushItem = () =>
-    updateUser((user) =>
-      user.education.push({
-        year: new Date().getFullYear(),
+    updateUser(({ education }) =>
+      education.push({
+        year: education[education.length - 1]
+          ? education[education.length - 1].year - 1
+          : new Date().getFullYear(),
         university: "",
         major: "",
       }),
@@ -223,10 +248,18 @@ const HigherEducationInfo = ({
       <div className={clsx(editing ? "my-6" : "my-12")}>
         <Timeline
           editing={editing}
-          controls={[
-            ["+ Добавить", pushItem],
-            ["- Удалить", popItem],
+          controlsAbove={[
+            ["+ Добавить", unshiftItem],
+            ["- Удалить", shiftItem],
           ]}
+          controlsBelow={
+            user.education.length === 0
+              ? undefined
+              : [
+                  ["+ Добавить", pushItem],
+                  ["- Удалить", popItem],
+                ]
+          }
         >
           {items}
         </Timeline>
@@ -244,16 +277,27 @@ const EducationSection = ({
   updateUser: UpdateUserFn;
   editing: boolean;
 }) => {
-  const pushCourse = () =>
-    updateUser((user) =>
-      user.courses.push({
-        year: new Date().getFullYear(),
+  const unshiftCourse = () =>
+    updateUser(({ courses }) =>
+      courses.unshift({
+        year: courses[0]?.year ?? new Date().getFullYear(),
         name: "",
         attachment: null,
       }),
     );
 
-  const popCourse = () => updateUser((user) => user.courses.pop());
+  const shiftCourse = () => updateUser(({ courses }) => courses.shift());
+
+  const pushCourse = () =>
+    updateUser(({ courses }) =>
+      courses.push({
+        year: courses[courses.length - 1]?.year ?? new Date().getFullYear(),
+        name: "",
+        attachment: null,
+      }),
+    );
+
+  const popCourse = () => updateUser(({ courses }) => courses.pop());
 
   const changeFile = (i: number, url: string | null) => {
     console.log("update user set file", url);
@@ -263,10 +307,18 @@ const EducationSection = ({
   const courses = (
     <Timeline
       editing={editing}
-      controls={[
-        ["+ Добавить", pushCourse],
-        ["- Удалить", popCourse],
+      controlsAbove={[
+        ["+ Добавить", unshiftCourse],
+        ["- Удалить", shiftCourse],
       ]}
+      controlsBelow={
+        user.courses.length === 0
+          ? undefined
+          : [
+              ["+ Добавить", pushCourse],
+              ["- Удалить", popCourse],
+            ]
+      }
     >
       {user.courses.map(({ year, name, attachment }, i) => (
         <>
