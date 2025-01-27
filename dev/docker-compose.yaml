@@ -52,6 +52,8 @@ services:
       DEBUG: "${DEBUG}"
       LDAP_PASSWORD: "$LDAP_PASSWORD"
       LDAP_URI: "$LDAP_URI"
+      LDAP_USER: "$LDAP_USER"
+      LDAP_BASE_DN: "$LDAP_BASE_DN"
       CHALLENGE_URL: "$CHALLENGE_URL"
     volumes:
       - static:/app/collected_static
