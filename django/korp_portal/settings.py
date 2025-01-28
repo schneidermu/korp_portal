@@ -19,19 +19,19 @@ from django_auth_ldap.config import LDAPSearch, GroupOfUniqueNamesType
 
 AUTH_LDAP_SERVER_URI = os.getenv("LDAP_URI", "0")
 LDAP_USER = os.getenv("LDAP_USER", "0")
-LDAP_BASE_DN = os.getenv("LDAP_BASE_DN", "0")
+LDAP_ROOT = os.getenv("LDAP_ROOT", "0")
 
-AUTH_LDAP_BIND_DN = f"cn={LDAP_USER},{LDAP_BASE_DN}"
+AUTH_LDAP_BIND_DN = f"cn={LDAP_USER},{LDAP_ROOT}"
 AUTH_LDAP_BIND_PASSWORD = os.getenv("LDAP_PASSWORD", "0")
 
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    f'ou=users,{LDAP_BASE_DN}',
+    f'ou=users,{LDAP_ROOT}',
     ldap.SCOPE_SUBTREE,
     '(uid=%(user)s)',
 )
 
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
-    f'ou=groups,{LDAP_BASE_DN}',
+    f'ou=groups,{LDAP_ROOT}',
     ldap.SCOPE_SUBTREE,
     '(objectClass=groupOfUniqueNames)',
 )
@@ -57,9 +57,9 @@ AUTH_LDAP_GROUP_ATTR_MAP = {
 }
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    'is_active': f'cn=active,ou=groups,{LDAP_BASE_DN}',
-    'is_staff': f'cn=staff,ou=groups,{LDAP_BASE_DN}',
-    'is_superuser': f'cn=superuser,ou=groups,{LDAP_BASE_DN}',
+    'is_active': f'cn=active,ou=groups,{LDAP_ROOT}',
+    'is_staff': f'cn=staff,ou=groups,{LDAP_ROOT}',
+    'is_superuser': f'cn=superuser,ou=groups,{LDAP_ROOT}',
 }
 
 AUTHENTICATION_BACKENDS = (

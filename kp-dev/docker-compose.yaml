@@ -21,7 +21,7 @@ services:
   liferay:
     image: liferay/portal:7.0.6-ga7
     ports:
-      - 8080:8080
+      - "${LIFERAY_PORT}:8080"
     volumes:
       # Copy a .war here to deploy it.
       - ./volumes/deploy:/mnt/liferay/deploy
@@ -47,14 +47,14 @@ services:
       POSTGRES_DB: "${POSTGRES_DB_DJANGO}"
       DB_HOST: database
       SECRET_KEY: "${SECRET_KEY}"
-      ALLOWED_HOSTS: "${ALLOWED_HOSTS}"
-      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS}"
+      ALLOWED_HOSTS: "${HOSTNAME}"
+      ALLOWED_ORIGINS: "http://${HOSTNAME}:${FRONTEND_PORT},http://${HOSTNAME}:${LIFERAY_PORT}"
       DEBUG: "${DEBUG}"
-      LDAP_PASSWORD: "$LDAP_PASSWORD"
-      LDAP_URI: "$LDAP_URI"
-      LDAP_USER: "$LDAP_USER"
-      LDAP_BASE_DN: "$LDAP_BASE_DN"
-      CHALLENGE_URL: "$CHALLENGE_URL"
+      LDAP_PASSWORD: "${LDAP_PASSWORD}"
+      LDAP_URI: ldap://openldap:1389
+      LDAP_USER: "${LDAP_USER}"
+      LDAP_ROOT: "${LDAP_ROOT}"
+      CHALLENGE_URL: "${CHALLENGE_URL}"
     volumes:
       - static:/app/collected_static
       - ./volumes/media:/media
@@ -67,10 +67,12 @@ services:
       context: ../react/
       target: dev
     command: yarn dev
+    environment:
+      VITE_BACKEND_AUTHORITY: "${VITE_BACKEND_AUTHORITY}"
     volumes:
       - ../react:/app
     ports:
-      - 3000:3000
+      - "${FRONTEND_PORT}:3000"
 
   gateway:
     image: nginx:1.22.1-alpine
@@ -81,17 +83,15 @@ services:
     ports:
       # Have to map backend outside, because docker network
       # is not accessible from the outside (from a browser).
-      - "${DJANGO_PORT}:80"
+      - "${BACKEND_PORT}:80"
     depends_on:
       - django
 
   openldap:
     image: bitnami/openldap:2.6.9
     environment:
-      LDAP_ROOT: dc=example,dc=org
+      LDAP_ROOT: "${LDAP_ROOT}"
       LDAP_USERS: "${LDAP_USER}"
       LDAP_PASSWORDS: "${LDAP_PASSWORD}"
     volumes:
       - openldap_data:/bitnami/openldap
-    ports:
-      - "${LDAP_PORT}:1389"
