@@ -1,6 +1,6 @@
 volumes:
-  data:
-  static:
+  pg_data:
+  django_static:
   openldap_data:
 
 services:
@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
     volumes:
       - ./database/gen/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       timeout: 3s
@@ -56,7 +56,7 @@ services:
       LDAP_ROOT: "${LDAP_ROOT}"
       CHALLENGE_URL: "${CHALLENGE_URL}"
     volumes:
-      - static:/app/collected_static
+      - django_static:/app/collected_static
       - ./volumes/media:/media
     depends_on:
       database:
@@ -78,7 +78,7 @@ services:
     image: nginx:1.22.1-alpine
     volumes:
       - ./nginx:/etc/nginx/conf.d
-      - static:/static
+      - django_static:/static
       - ./volumes/media:/media
     ports:
       # Have to map backend outside, because docker network
