@@ -1,4 +1,4 @@
-type Value = str | int | bool | None
+Value = str | int | bool | None
 
 
 def value2str(v: Value):
