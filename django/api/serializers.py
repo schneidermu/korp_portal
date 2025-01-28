@@ -596,6 +596,8 @@ class ProfileSerializer(UserSerializer):
             "birth_date",
             "email",
             "telephone_number",
+            "inner_telephone_number",
+            "office",
             "organization",
             "job_title",
             "class_rank",
@@ -817,6 +819,8 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             "chief",
             "email",
             "telephone_number",
+            "inner_telephone_number",
+            "office",
             "supervizor",
             "structural_division",
         )
@@ -920,3 +924,13 @@ class ProfileInOrganizationSerializer(UserSerializer):
         super().update(instance=instance, validated_data=validated_data)
 
         return instance
+
+
+class HierarchySerializer(UserSerializer):
+
+    class Meta(UserSerializer.Meta):
+        model = Employee
+        fields = (
+            "id",
+            "subordinates",
+        )

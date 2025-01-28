@@ -14,7 +14,7 @@ from rest_framework.views import APIView
 
 from homepage.models import Poll, News
 from employees.models import Employee, Rating, Organization
-from .serializers import VoteCreateSerializer, PollSerializer, NewsSerializer, RatingPOSTSerializer, RatingDELETESerializer, OrgStructureSerializer, OrganizationSerializer, ProfileInOrganizationSerializer, FileUploadSerializer
+from .serializers import VoteCreateSerializer, PollSerializer, NewsSerializer, RatingPOSTSerializer, RatingDELETESerializer, OrgStructureSerializer, OrganizationSerializer, ProfileInOrganizationSerializer, FileUploadSerializer, HierarchySerializer
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 
 
@@ -146,9 +146,9 @@ class ColleagueProfileViewset(UserViewSet):
         return super().get_serializer_class()
 
     @staticmethod
-    def validate_rating(serializer_class, request, username):
+    def validate_rating(serializer_class, request, id):
         user = request.user
-        employee = get_object_or_404(Employee, username=username)
+        employee = get_object_or_404(Employee, id=id)
         request.data['user'] = user.id
         request.data['employee'] = employee.id
 
@@ -167,9 +167,9 @@ class ColleagueProfileViewset(UserViewSet):
         permission_classes=(IsAuthenticated,),
         serializer_class=RatingPOSTSerializer
     )
-    def rate(self, request, username):
+    def rate(self, request, id):
 
-        serializer = self.validate_rating(RatingPOSTSerializer, request, username)
+        serializer = self.validate_rating(RatingPOSTSerializer, request, id)
         serializer.save()
 
         return Response(
@@ -181,9 +181,9 @@ class ColleagueProfileViewset(UserViewSet):
 
     @transaction.atomic
     @rate.mapping.delete
-    def unrate(self, request, username):
+    def unrate(self, request, id):
 
-        serializer = self.validate_rating(RatingDELETESerializer, request, username)
+        serializer = self.validate_rating(RatingDELETESerializer, request, id)
 
         employee = serializer.validated_data.get("employee")
 
@@ -224,3 +224,21 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         'structural_subdivisions__positions__status'
     )
     search_fields = ('structural_subdivisions__positions__name','structural_subdivisions__positions__surname', 'structural_subdivisions__positions__patronym')
+
+
+class HierarchyViewSet(
+    ListModelMixin,
+    RetrieveModelMixin,
+    viewsets.GenericViewSet
+):
+    '''Вьюсет для иерархии.'''
+
+    filter_backends = (DjangoFilterBackend,)
+
+    filterset_fields = (
+        'structural_division__organization__id',
+    )
+
+    serializer_class = HierarchySerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Employee.objects.all()

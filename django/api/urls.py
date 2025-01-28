@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import PollViewset, NewsViewSet, ColleagueProfileViewset, OrgStructureViewset, OrganizationViewSet, FileUploadAPIView
+from .views import PollViewset, NewsViewSet, ColleagueProfileViewset, OrgStructureViewset, OrganizationViewSet, FileUploadAPIView, HierarchyViewSet
 
 router_version1 = DefaultRouter()
 router_version1.register("polls", PollViewset, basename="poll")
@@ -20,6 +20,12 @@ router_version1.register(
     "organization",
     OrganizationViewSet,
     basename="organization"
+)
+
+router_version1.register(
+    "hierarchy",
+    HierarchyViewSet,
+    basename="hierarchy"
 )
 
 

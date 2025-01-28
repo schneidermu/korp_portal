@@ -11,8 +11,64 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
 import os
+
+import ldap
+from django_auth_ldap.config import LDAPSearch, GroupOfUniqueNamesType
+
+
+AUTH_LDAP_SERVER_URI = os.getenv("LDAP_URI", "0")
+LDAP_USER = os.getenv("LDAP_USER", "0")
+LDAP_BASE_DN = os.getenv("LDAP_BASE_DN", "0")
+
+AUTH_LDAP_BIND_DN = f"cn={LDAP_USER},{LDAP_BASE_DN}"
+AUTH_LDAP_BIND_PASSWORD = os.getenv("LDAP_PASSWORD", "0")
+
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    f'ou=users,{LDAP_BASE_DN}',
+    ldap.SCOPE_SUBTREE,
+    '(uid=%(user)s)',
+)
+
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
+    f'ou=groups,{LDAP_BASE_DN}',
+    ldap.SCOPE_SUBTREE,
+    '(objectClass=groupOfUniqueNames)',
+)
+
+AUTH_LDAP_GROUP_TYPE = GroupOfUniqueNamesType()
+
+AUTH_LDAP_MIRROR_GROUPS = True
+
+AUTH_LDAP_USER_ATTR_MAP = {
+    'id': 'employeeNumber',
+    'email': 'uid',
+    'password': 'userPassword',
+    'name': 'givenName',
+    'patronym': 'displayName',
+    'surname': 'sn',
+    'job_title': 'title',
+}
+
+AUTH_LDAP_GROUP_ATTR_MAP = {
+    'name': 'cn',
+    'description': 'description',
+    'members': 'uniqueMember',
+}
+
+AUTH_LDAP_USER_FLAGS_BY_GROUP = {
+    'is_active': f'cn=active,ou=groups,{LDAP_BASE_DN}',
+    'is_staff': f'cn=staff,ou=groups,{LDAP_BASE_DN}',
+    'is_superuser': f'cn=superuser,ou=groups,{LDAP_BASE_DN}',
+}
+
+AUTHENTICATION_BACKENDS = (
+    'korp_portal.backends.CustomLDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+LOGGING = { 'version': 1, 'disable_existing_loggers': False, 'handlers': { 'mail_admins': { 'level': 'ERROR', 'class': 'django.utils.log.AdminEmailHandler' }, 'stream_to_console': { 'level': 'DEBUG', 'class': 'logging.StreamHandler' }, }, 'loggers': { 'django.request': { 'handlers': ['mail_admins'], 'level': 'ERROR', 'propagate': True, }, 'django_auth_ldap': { 'handlers': ['stream_to_console'], 'level': 'DEBUG', 'propagate': True, }, } } 
+ldap.OPT_DEBUG_LEVEL = 1
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,6 +94,8 @@ CORS_ALLOWED_ORIGIN_REGEXES = ['^http://([a-z0-9]+\.)*localhost(:[0-9]+)?$']
 CORS_ALLOWED_ORIGINS = []
 if os.getenv('ALLOWED_ORIGINS', '') != '':
     CORS_ALLOWED_ORIGINS.extend(os.environ['ALLOWED_ORIGINS'].split(','))
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
