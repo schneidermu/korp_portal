@@ -5,7 +5,7 @@
 ### Database, Django & Liferay
 
 ```sh
-cd dev
+cd kp-dev
 
 # Create volumes:
 mkdir -p volumes/deploy volumes/media
@@ -17,28 +17,28 @@ cp sample.env .env
 ./database/bin/gen-init.sh
 
 # Start database, Django and Liferay:
-docker compose -p kp build
-docker compose -p kp up -d
-docker compose -p kp logs -f
+docker compose build
+docker compose up -d
+docker compose logs -f
 ```
 
 ### React
 
 ```sh
 # Start React dev server:
-cd dev
-docker compose -p kp up -d react
+cd kp-dev
+docker compose up -d react
 
 # Or build and deploy a WAR to Liferay:
 docker build -t kp-react-war --target war react/
 docker run --rm -it -v ./react:/app kp-react-war
-cp pkg/*.war ./dev/volumes/deploy
+cp pkg/*.war ./kp-dev/volumes/deploy
 ```
 
 ### Load dummy Django data
 
 ```sh
-./database/bin/load-django-dummy.sh kp-database-1
+./database/bin/load-django-dummy.sh kp-dev-database-1
 ```
 
 ## Liferay
