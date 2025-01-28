@@ -57,6 +57,16 @@ services:
       database:
         condition: service_healthy
 
+  react:
+    build:
+      context: ../react/
+      target: dev
+    command: yarn dev
+    volumes:
+      - ../react:/app
+    ports:
+      - 3000:3000
+
   gateway:
     image: nginx:1.22.1-alpine
     volumes:
@@ -64,6 +74,8 @@ services:
       - static:/static
       - ./volumes/media:/media
     ports:
+      # Have to map backend outside, because docker network
+      # is not accessible from the outside (from a browser).
       - "${DJANGO_PORT}:80"
     depends_on:
       - django

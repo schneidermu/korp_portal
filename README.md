@@ -26,8 +26,8 @@ docker compose -p kp logs -f
 
 ```sh
 # Start React dev server:
-docker build -t kp-react-dev --target dev react/
-docker run --rm -it -p 3000:3000 -v ./react:/app kp-react-dev
+cd dev
+docker compose -p kp up -d react
 
 # Or build and deploy a WAR to Liferay:
 docker build -t kp-react-war --target war react/
