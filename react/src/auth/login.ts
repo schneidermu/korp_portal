@@ -5,8 +5,16 @@ import { API_BASE_URL } from "@/app/const";
 import { useAppDispatch } from "@/app/store";
 import { authSlice, useAuth } from "./slice";
 
-const username = "kuznetsov";
-const password = "password";
+declare const Liferay: { authToken: string };
+
+const liferayFetchEmail = async (): Promise<string> => {
+  return fetch("/api/jsonws/user/get-current-user", {
+    method: "POST",
+    body: new URLSearchParams([["p_auth", Liferay.authToken]]),
+  })
+    .then((res) => res.json())
+    .then(({ emailAddress }: { emailAddress: string }) => emailAddress);
+};
 
 export const useLogin = () => {
   const auth = useAuth();
@@ -17,35 +25,54 @@ export const useLogin = () => {
       return;
     }
 
-    fetch(`${API_BASE_URL}/auth/token/login`, {
-      method: "POST",
-      body: JSON.stringify({ username, password }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then(({ auth_token: token }: { auth_token: string }) => {
-        fetch(`${API_BASE_URL}/colleagues/me/`, {
+    (async () => {
+      const pauth =
+        import.meta.env.VITE_LIFERAY_EMBED === "true"
+          ? Liferay.authToken
+          : import.meta.env.VITE_PAUTH;
+
+      const email =
+        import.meta.env.VITE_LIFERAY_EMBED === "true"
+          ? await liferayFetchEmail()
+          : import.meta.env.VITE_EMAIL;
+
+      const { auth_token: token }: { auth_token: string } = await fetch(
+        `${API_BASE_URL}/auth/token/login`,
+        {
+          method: "POST",
+          credentials: "include",
+          body: JSON.stringify({ username: email, password: pauth }),
           headers: {
-            Authorization: "Token " + token,
+            "Content-Type": "application/json",
           },
-        })
-          .then((res) => res.json())
-          .then(
-            ({
-              id: userId,
-              is_superuser: isAdmin,
-            }: {
-              id: string;
-              is_superuser: boolean;
-            }) => {
-              dispatch(
-                authSlice.actions.login({ userId, username, token, isAdmin }),
-              );
-            },
-          );
-      });
+        },
+      ).then((res) => res.json());
+
+      return fetch(`${API_BASE_URL}/colleagues/me/`, {
+        headers: {
+          Authorization: "Token " + token,
+        },
+      })
+        .then((res) => res.json())
+        .then(
+          ({
+            id: userId,
+            is_superuser: isAdmin,
+          }: {
+            id: string;
+            is_superuser: boolean;
+          }) => {
+            dispatch(
+              authSlice.actions.login({
+                userId,
+                email,
+                token,
+                isAdmin,
+              }),
+            );
+          },
+        );
+    })();
   }, [dispatch, auth.isLoggedIn]);
 
   return auth;

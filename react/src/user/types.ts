@@ -36,7 +36,7 @@ export type User = {
   phoneNumber: string;
   workExperience: string | null;
   about: string;
-  skills: string;
+  skills: string | null;
   photo: string | null;
   position: string;
   serviceRank: string;

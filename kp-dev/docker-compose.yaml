@@ -68,7 +68,10 @@ services:
       target: dev
     command: yarn dev
     environment:
-      VITE_BACKEND_AUTHORITY: "${VITE_BACKEND_AUTHORITY}"
+      VITE_BACKEND_AUTHORITY: "http://${HOSTNAME}:${BACKEND_PORT}"
+      VITE_LIFERAY_EMBED: false
+      VITE_EMAIL: "${VITE_EMAIL}"
+      VITE_PAUTH: "${VITE_PAUTH}"
     volumes:
       - ../react:/app
     ports:

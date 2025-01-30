@@ -19,12 +19,12 @@ type UserData = {
   job_title: string | null;
   class_rank: string | null;
   chief: string | null; // UUID
-  structural_division: null | {
+  structural_division?: null | {
     id: number;
     name: string;
     parent_structural_subdivision: number | null;
   };
-  organization: null | { id: number; name: string };
+  organization?: null | { id: number; name: string };
   average_rating: number | null;
   avatar: string | null; // URI
   characteristic: null | {
@@ -71,7 +71,7 @@ const toUser = (data: UserData): User => {
   const unit = data.structural_division;
   return {
     id: data.id,
-    email: data.username + "@voda.gov.ru",
+    email: data.username,
     username: data.username,
     isAdmin: data.is_superuser,
     lastName: data.surname || "?",
@@ -82,17 +82,19 @@ const toUser = (data: UserData): User => {
     phoneNumber: data.telephone_number || "",
     workExperience: char?.experience || null,
     about: char?.about || "",
-    skills: char?.competences[0]?.name || "",
+    skills: char?.competences[0]?.name || null,
     photo: data.avatar || null,
     position: data.job_title || "",
     serviceRank: data.class_rank || "",
     bossId: data.chief,
-    unit: unit && {
-      id: unit.id,
-      name: unit.name,
-      parentId: unit.parent_structural_subdivision,
-    },
-    organization: data.organization,
+    unit: unit
+      ? {
+          id: unit.id,
+          name: unit.name,
+          parentId: unit.parent_structural_subdivision,
+        }
+      : null,
+    organization: data.organization || null,
     avgRating: data.average_rating,
     career:
       char?.careers.map((c) => ({

@@ -6,7 +6,7 @@ import { useAppSelector } from "@/app/store";
 
 export interface AuthState {
   userId: string;
-  username: string;
+  email: string;
   token: string;
   isAdmin: boolean;
   isLoggedIn: boolean;
@@ -14,7 +14,7 @@ export interface AuthState {
 
 const initialState: AuthState = {
   userId: "",
-  username: "",
+  email: "",
   token: "",
   isAdmin: false,
   isLoggedIn: false,
@@ -30,7 +30,7 @@ export const authSlice = createSlice({
         payload,
       }: PayloadAction<{
         userId: string;
-        username: string;
+        email: string;
         token: string;
         isAdmin: boolean;
       }>,

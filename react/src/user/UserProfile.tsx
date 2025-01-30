@@ -695,7 +695,7 @@ const CareerSection = ({
           {editing ? (
             <textarea
               className={clsx("w-full mt-2 px-5 py-2", "rounded border")}
-              value={user.skills}
+              value={user.skills || ""}
               onChange={({ target: { value } }) =>
                 updateUser({ ...user, skills: value })
               }
