@@ -57,7 +57,9 @@ ENTRYPOINT [ "sh", "-c", \
   "yarn && yarn build && \
   cp -r /app/dist /war/dist && \
   cd /war && rm -f dist/index.html && \
-  mkdir -p /app/pkg && zip -qr /app/pkg/korp-portal-portlet.war ." ]
+  mkdir -p /app/pkg && \
+  rm -f /app/pkg/korp-portal-portlet.war && \
+  zip -qr /app/pkg/korp-portal-portlet.war ." ]
 
 
 FROM node AS dev
