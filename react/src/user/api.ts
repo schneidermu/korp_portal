@@ -270,11 +270,11 @@ export const useFetchColleagues = (
   return new Map(s.map((user) => [user.id, user]));
 };
 
-export const useFetchUser = (userId: string | null) => {
+export const useFetchUser = (userId?: string | null) => {
   const tokenFetcher = useTokenFetcher();
 
   const { data, ...rest } = useSWR<User>(
-    userId === null ? null : `/colleagues/${userId}/`,
+    userId ? `/colleagues/${userId}/` : null,
     async (path: string) =>
       tokenFetcher(path)
         .then((data) => data.json())

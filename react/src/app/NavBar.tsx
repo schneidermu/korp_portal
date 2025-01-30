@@ -73,7 +73,7 @@ export const NavBar = () => {
         Рабочий стол
       </Link>
       <Link
-        to={`/profile/${auth.userId}`}
+        to={auth.userId ? `/profile/${auth.userId}` : "/"}
         className="hover:underline mx-[120px]"
       >
         Мой профиль

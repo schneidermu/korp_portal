@@ -1095,7 +1095,7 @@ export const UserProfile = () => {
   const userId = params.userId || auth.userId;
   const { user } = useFetchUser(userId);
 
-  if (!params.userId) {
+  if (!params.userId && userId) {
     navigate(`/profile/${userId}`);
   }
 
