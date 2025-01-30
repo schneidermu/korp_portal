@@ -30,9 +30,11 @@ cd kp-dev
 docker compose up -d react
 
 # Or build and deploy a WAR to Liferay:
-docker build -t kp-react-war --target war react/
-docker run --rm -it -v ./react:/app kp-react-war
-cp pkg/*.war ./kp-dev/volumes/deploy
+cd react
+cp sample.env .env # Edit .env.
+docker build -t kp-react-war --target war .
+docker run --rm -it -v ./:/app kp-react-war
+cp pkg/*.war ../kp-dev/volumes/deploy
 ```
 
 ### Load dummy Django data

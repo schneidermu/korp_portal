@@ -51,6 +51,8 @@ RUN yarn
 
 FROM node AS war
 
+ENV VITE_LIFERAY_EMBED=true
+
 COPY --from=workspace --chown=1000:1000 /war /war
 
 ENTRYPOINT [ "sh", "-c", \
