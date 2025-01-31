@@ -69,13 +69,18 @@ export const formatDateLong = new Intl.DateTimeFormat(LOCALE, {
   day: "numeric",
 }).format;
 
-export const fullImagePath = (path: string) =>
-  path.startsWith("/media") ? STATIC_BASE_URL + path : path;
+export const fullImagePath = (path: string) => {
+  if (path.startsWith("/media")) {
+    return STATIC_BASE_URL + path;
+  }
+  if (path.startsWith("blob:")) {
+    return path.replace(/\.[a-z0-9]+$/, "");
+  }
+  return path;
+};
 
 export const userPhotoPath = (user: User) =>
-  user.photo?.startsWith("/media")
-    ? STATIC_BASE_URL + user.photo
-    : user.photo || personIcon;
+  user.photo ? fullImagePath(user.photo) : personIcon;
 
 export const noop = () => ({});
 
