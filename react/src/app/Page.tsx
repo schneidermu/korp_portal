@@ -12,11 +12,13 @@ export const PageSkel = ({
   title,
   heading,
   id = "",
+  slot,
   children,
 }: {
   title: string;
   heading: string;
   id?: string;
+  slot?: ReactNode;
   children: ReactNode;
 }) => {
   useEffect(() => {
@@ -36,16 +38,16 @@ export const PageSkel = ({
         "shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]",
       )}
     >
-      <h1
+      <div
         className={clsx(
-          "flex items-center",
-          "mb-[70px] h-[70px] pl-[45px]",
+          "flex justify-between items-center",
+          "mb-[70px] h-[70px] px-[45px]",
           "bg-light-gray",
-          "text-[30px] font-medium",
         )}
       >
-        {heading}
-      </h1>
+        <h1 className="text-[30px] font-medium">{heading}</h1>
+        {slot}
+      </div>
       {children}
     </main>
   );

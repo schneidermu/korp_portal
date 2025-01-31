@@ -1,13 +1,16 @@
 import { useMemo } from "react";
 
 import clsx from "clsx/lite";
-import { useParams } from "react-router-dom";
 
+import {
+  useIntSearchParam,
+  useQuerySearchParam,
+} from "@/common/useSearchParam";
 import { cmpUsers, useFetchUsers } from "./api";
-import { useQuery } from "./hooks";
 import { filterUsers, User } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
+import { OrgPicker } from "@/common/OrgPicker";
 import { SearchBar } from "@/common/SearchBar";
 import { ProfileCard } from "./ProfileCard";
 
@@ -22,14 +25,13 @@ const FILTER_FIELDS = new Set<keyof User>([
 ]);
 
 export const UserList = () => {
-  const params = useParams();
+  const [orgId, setOrgId] = useIntSearchParam("org");
+  const [query, setQuery] = useQuerySearchParam("q");
 
-  const { data: allUsers } = useFetchUsers();
-
-  const { query, setQuery } = useQuery("/list", params.query);
+  const { data: allUsers } = useFetchUsers(orgId);
 
   const users = useMemo(() => {
-    if (!allUsers) {
+    if (!allUsers || orgId === null) {
       return [];
     }
     let users = [...allUsers.values()];
@@ -38,22 +40,24 @@ export const UserList = () => {
     }
     users.sort(cmpUsers);
     return users;
-  }, [allUsers, query]);
-
-  if (allUsers === undefined) {
-    return;
-  }
+  }, [allUsers, query, orgId]);
 
   const id = query.slice(0, -1).join("+");
 
   return (
     <AnimatePage id={id}>
-      <SearchBar
-        query={query}
-        setQuery={({ query, reload }) => setQuery(query, reload)}
-      />
+      <SearchBar query={query} setQuery={({ query }) => setQuery(query)} />
       <div className="h-[45px]"></div>
-      <PageSkel title="Список сотрудников" heading="Список сотрудников" id={id}>
+      <PageSkel
+        title="Список сотрудников"
+        heading="Список сотрудников"
+        id={id}
+        slot={
+          <div className="basis-1/4">
+            <OrgPicker orgId={orgId} setOrgId={setOrgId} />
+          </div>
+        }
+      >
         <div className="flex flex-col gap-[56px] mr-[36px] ml-[64px] pb-[60px]">
           {users.map((user) => (
             <div

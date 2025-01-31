@@ -58,9 +58,11 @@ export const useLogin = () => {
           ({
             id: userId,
             is_superuser: isAdmin,
+            organization,
           }: {
             id: string;
             is_superuser: boolean;
+            organization: null | { id: number };
           }) => {
             dispatch(
               authSlice.actions.login({
@@ -68,6 +70,7 @@ export const useLogin = () => {
                 email,
                 token,
                 isAdmin,
+                orgId: organization?.id || null,
               }),
             );
           },
