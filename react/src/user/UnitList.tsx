@@ -1,15 +1,19 @@
 import { useMemo } from "react";
 
 import clsx from "clsx/lite";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { formatMobilePhone, fullNameLong } from "@/common/util";
 import { cmpUsers, useFetchUsers } from "./api";
-import { useQuery } from "./hooks";
 import { filterUsers, Unit, User } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
+import { OrgPicker } from "@/common/OrgPicker";
 import { SearchBar } from "@/common/SearchBar";
+import {
+  useIntSearchParam,
+  useQuerySearchParam,
+} from "@/common/useSearchParam";
 
 const FILTER_FIELDS = new Set<keyof User>(["unit", "position", "phoneNumber"]);
 
@@ -68,11 +72,10 @@ const groupUsersByUnits = (users: User[]) => {
 };
 
 export const UnitList = () => {
-  const params = useParams();
+  const [orgId, setOrgId] = useIntSearchParam("org");
+  const [query, setQuery] = useQuerySearchParam("q");
 
-  const { query, setQuery } = useQuery("/units", params.query);
-
-  const { data: allUsers } = useFetchUsers();
+  const { data: allUsers } = useFetchUsers(orgId);
 
   const allUnits = useMemo(() => {
     if (!allUsers) {
@@ -82,6 +85,10 @@ export const UnitList = () => {
   }, [allUsers]);
 
   const units = useMemo(() => {
+    if (orgId === null) {
+      return [];
+    }
+
     const units: typeof allUnits = [];
     for (const v of allUnits) {
       const { unit } = v;
@@ -94,11 +101,7 @@ export const UnitList = () => {
       }
     }
     return units;
-  }, [allUnits, query]);
-
-  if (allUsers === undefined) {
-    return;
-  }
+  }, [allUnits, query, orgId]);
 
   const headerClass = clsx(
     "flex items-center justify-center",
@@ -116,12 +119,18 @@ export const UnitList = () => {
 
   return (
     <AnimatePage id={id}>
-      <SearchBar
-        query={query}
-        setQuery={({ query, reload }) => setQuery(query, reload)}
-      />
+      <SearchBar query={query} setQuery={({ query }) => setQuery(query)} />
       <div className="h-[45px]"></div>
-      <PageSkel title="Список отделов" heading="Список отделов" id={id}>
+      <PageSkel
+        title="Список отделов"
+        heading="Список отделов"
+        id={id}
+        slot={
+          <div className="basis-1/4">
+            <OrgPicker orgId={orgId} setOrgId={setOrgId} />
+          </div>
+        }
+      >
         <div className="w-full px-12 pb-24">
           <div className="grid grid-cols-[1fr,1fr,22%,auto,auto]">
             {/* Header row */}
@@ -156,7 +165,7 @@ export const UnitList = () => {
                     "text-[28px] font-medium text-center",
                   )}
                 >
-                  <Link to={`/units/${unit}`} className="hover:underline">
+                  <Link to={`?q=${unit}`} className="hover:underline">
                     {unit}
                   </Link>
                 </div>
@@ -174,7 +183,7 @@ export const UnitList = () => {
                         )}
                       >
                         <Link
-                          to={`/profile/${user.id}`}
+                          to={`/profile/${user.id}%2B`}
                           className="hover:underline"
                         >
                           {fullNameLong(user)}

@@ -200,7 +200,7 @@ export const ProfileCard = ({
           >
             {!editing && user.organization !== null ? (
               <Link
-                to={`/list/${user.organization.name}`}
+                to={`/list?org=${user.organization.id}`}
                 className="hover:underline"
               >
                 {user.organization.name}
@@ -216,9 +216,9 @@ export const ProfileCard = ({
               icon={peopleIcon}
               wrap
             >
-              {!editing && user.unit !== null ? (
+              {!editing && user.organization !== null && user.unit !== null ? (
                 <Link
-                  to={`/list/${user.unit.name}`}
+                  to={`/list?org=${user.organization.id}&q=${user.unit.name}%2B`}
                   className="hover:underline"
                 >
                   {user.unit.name}

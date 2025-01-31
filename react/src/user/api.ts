@@ -195,11 +195,13 @@ const fromUser = (user: User): UserData => ({
   },
 });
 
-export const useFetchUsers = () => {
+export const useFetchUsers = (orgId: number | null) => {
   const tokenFetcher = useTokenFetcher();
 
   return useSWR(
-    "/colleagues/",
+    orgId === null
+      ? null
+      : `/colleagues/?structural_division__organization__id=${orgId}`,
     async (path: string) =>
       tokenFetcher(path)
         .then((res) => res.json())

@@ -1,7 +1,8 @@
 import useSWR from "swr";
 
-import { fetcher } from "@/auth/slice";
 import { Organization } from "./types";
+
+import { fetcher, useTokenFetcher } from "@/auth/slice";
 
 interface OrganizationData {
   id: number;
@@ -29,4 +30,12 @@ export const useOrganization = (orgId: number) => {
         .then(toOrganization),
   );
   return { data };
+};
+
+export const useFetchOrgs = () => {
+  const tokenFetch = useTokenFetcher();
+
+  return useSWR<Organization[]>("/organization/", () =>
+    tokenFetch("/organization/").then((res) => res.json()),
+  );
 };

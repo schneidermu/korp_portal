@@ -53,7 +53,7 @@ export const SearchBar = ({
           )}
           type="search"
           placeholder="Поиск..."
-          value={query[query.length - 1]}
+          value={query[query.length - 1] || ""}
           onChange={(event) => {
             setQuery({
               query: [...query.slice(0, -1), event.target.value],
