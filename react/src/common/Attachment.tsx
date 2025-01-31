@@ -31,7 +31,7 @@ export const Attachment = ({ url }: { url: string }) => {
     url = STATIC_BASE_URL + url;
   }
   return (
-    <a href={url} className={clsx("underline", color)}>
+    <a href={url} target="_blank" className={clsx("underline", color)}>
       {text}
     </a>
   );
