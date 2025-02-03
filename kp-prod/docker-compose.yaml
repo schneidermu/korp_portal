@@ -1,0 +1,40 @@
+volumes:
+  pg_data:
+  django_static:
+
+services:
+  django:
+    build: ../django/
+    command: >
+      sh -c "python manage.py makemigrations &&
+        python manage.py migrate --noinput &&
+        python manage.py collectstatic --noinput &&
+        gunicorn --bind 0.0.0.0:8000 korp_portal.wsgi"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      DB_HOST: "${DB_HOST}"
+      SECRET_KEY: "${SECRET_KEY}"
+      ALLOWED_HOSTS: "${HOSTNAME}"
+      ALLOWED_ORIGINS: "${AUTHORITY}"
+      DEBUG: 0
+      LDAP_PASSWORD: "${LDAP_PASSWORD}"
+      LDAP_URI: "${LDAP_URI}"
+      LDAP_USER: "${LDAP_USER}"
+      LDAP_ROOT: "${LDAP_ROOT}"
+      CHALLENGE_URL: "${CHALLENGE_URL}"
+    volumes:
+      - django_static:/app/collected_static
+      - ./volumes/media:/media
+
+  gateway:
+    image: nginx:1.22.1-alpine
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - django_static:/static
+      - ./volumes/media:/media
+    ports:
+      - "${BACKEND_PORT}:80"
+    depends_on:
+      - django
