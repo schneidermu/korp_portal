@@ -37,6 +37,7 @@ cp sample.env .env
 - `BACKEND_PORT`
 - `DB_PORT`, `POSTGRES_DB`, `POSTGRES_USER`
 - `LDAP_USER`
+- `DJANGO_GROUP_USER`, `DJANGO_GROUP_ADMIN`
 
 Запуск:
 

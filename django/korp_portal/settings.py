@@ -56,10 +56,13 @@ AUTH_LDAP_GROUP_ATTR_MAP = {
     'members': 'uniqueMember',
 }
 
+GROUP_USER = os.getenv('GROUP_USER', 'kp_user')
+GROUP_ADMIN = os.getenv('GROUP_ADMIN', 'kp_admin')
+
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    'is_active': f'cn=active,ou=groups,{LDAP_ROOT}',
-    'is_staff': f'cn=staff,ou=groups,{LDAP_ROOT}',
-    'is_superuser': f'cn=superuser,ou=groups,{LDAP_ROOT}',
+    'is_active': f'cn={GROUP_USER},ou=groups,{LDAP_ROOT}',
+    'is_staff': f'cn={GROUP_USER},ou=groups,{LDAP_ROOT}',
+    'is_superuser': f'cn={GROUP_ADMIN},ou=groups,{LDAP_ROOT}',
 }
 
 AUTHENTICATION_BACKENDS = (

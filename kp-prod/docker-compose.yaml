@@ -24,6 +24,8 @@ services:
       LDAP_USER: "${LDAP_USER}"
       LDAP_ROOT: "${LDAP_ROOT}"
       CHALLENGE_URL: "${CHALLENGE_URL}"
+      GROUP_USER: "${DJANGO_GROUP_USER}"
+      GROUP_ADMIN: "${DJANGO_GROUP_ADMIN}"
     volumes:
       - django_static:/app/collected_static
       - ./volumes/media:/media
