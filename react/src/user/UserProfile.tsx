@@ -208,7 +208,7 @@ const HigherEducationInfo = ({
       updateUser((user) => (user.education[i][attr] = value));
 
   const items = user.education.map((edu, i) => (
-    <>
+    <Fragment key={i}>
       <PropertyInput
         type="number"
         editing={editing}
@@ -242,7 +242,7 @@ const HigherEducationInfo = ({
           <div className="font-light text-gray">{edu.major}</div>
         </div>
       )}
-    </>
+    </Fragment>
   ));
 
   return (
@@ -815,8 +815,10 @@ const Slides = ({
           gridColumnGap: gap,
         }}
       >
-        {items.slice(i, i + window).map((item) => (
-          <div className="shrink-0 w-fit">{item}</div>
+        {items.slice(i, i + window).map((item, j) => (
+          <div key={i + j} className="shrink-0 w-fit">
+            {item}
+          </div>
         ))}
       </div>
       <div className="w-[60px] absolute left-full top-0 h-full flex items-center">
@@ -1006,8 +1008,8 @@ const AboutMeSection = ({
         />
       ) : (
         <div>
-          {user.about.split("\n").map((para) => (
-            <p>{para}</p>
+          {user.about.split("\n").map((para, i) => (
+            <p key={i}>{para}</p>
           ))}
         </div>
       )}
@@ -1185,15 +1187,14 @@ export const UserProfile = () => {
             </Sticky>
           )}
           {sections.map((Section, i) => (
-            <>
+            <Fragment key={i}>
               <Section
-                key={i}
                 user={userState}
                 updateUser={updateUserState}
                 editing={editing}
               />
               <SectionSep key={`sep-${i}`} />
-            </>
+            </Fragment>
           ))}
           <FeedbackSection user={user} />
         </form>

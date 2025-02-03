@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 
 import clsx from "clsx/lite";
 import { Link } from "react-router-dom";
@@ -155,9 +155,8 @@ export const UnitList = () => {
 
             {/* Data rows */}
             {[...units].map(({ unit, orgId, users }, i) => (
-              <>
+              <Fragment key={unit.name}>
                 <div
-                  key={"unit/" + unit}
                   className={clsx(
                     cellClass,
                     "col-span-5 border-l",
@@ -182,9 +181,8 @@ export const UnitList = () => {
                   const isLastRow =
                     i === units.length - 1 && j === users.length - 1;
                   return (
-                    <>
+                    <Fragment key={user.id}>
                       <div
-                        key={"name/" + user.id}
                         className={clsx(
                           cellClass,
                           "border-l",
@@ -198,34 +196,22 @@ export const UnitList = () => {
                           {fullNameLong(user)}
                         </Link>
                       </div>
-                      <div
-                        key={"position/" + user.id}
-                        className={clsx(cellClass, "")}
-                      >
-                        {user.position}
-                      </div>
-                      <div
-                        key={"mobilePhone/" + user.id}
-                        className={clsx(cellClass, "text-nowrap")}
-                      >
+                      <div className={clsx(cellClass, "")}>{user.position}</div>
+                      <div className={clsx(cellClass, "text-nowrap")}>
                         {formatMobilePhone(user.phoneNumber)}
                       </div>
+                      <div className={clsx(cellClass, "text-nowrap")}></div>
                       <div
-                        key={"phone/" + user.id}
-                        className={clsx(cellClass, "text-nowrap")}
-                      ></div>
-                      <div
-                        key={"office/" + user.id}
                         className={clsx(
                           cellClass,
                           "text-nowrap",
                           isLastRow && "rounded-br",
                         )}
                       ></div>
-                    </>
+                    </Fragment>
                   );
                 })}
-              </>
+              </Fragment>
             ))}
           </div>
         </div>
