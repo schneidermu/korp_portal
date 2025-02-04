@@ -9,7 +9,9 @@ def value2str(v: Value):
     return str(v)
 
 
-def gen_table(table: str, rows: list[dict[str, Value]], seq_col="id") -> str:
+def gen_table(
+    table: str, rows: list[dict[str, Value]], seq_col: str | None = "id"
+) -> str:
     lines = []
     col_list = ", ".join(rows[0].keys())
     lines.append(f"COPY public.{table} ({col_list}) FROM stdin;")
