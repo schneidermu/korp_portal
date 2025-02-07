@@ -224,6 +224,45 @@ export const cmpUsers = (u1: User, u2: User): -1 | 0 | 1 => {
   return 0;
 };
 
+interface Tree<T> {
+  value: T;
+  branches: Tree<T>[];
+}
+
+export const sortUsers = (users: User[]): User[] => {
+  const trees = new Map<string, Tree<User>>(
+    users.map((user) => [user.id, { value: user, branches: [] }]),
+  );
+
+  const roots: Tree<User>[] = [];
+
+  for (const user of users) {
+    const tree = trees.get(user.id)!;
+    const bossTree = user.bossId === null ? undefined : trees.get(user.bossId);
+    if (bossTree) {
+      bossTree.branches.push(tree);
+    } else {
+      roots.push(tree);
+    }
+  }
+
+  const sorted: User[] = [];
+
+  const flattenTrees = (trees: Tree<User>[]) => {
+    trees.sort(({ value: u1 }, { value: u2 }) => cmpUsers(u1, u2));
+    for (const { value, branches } of trees) {
+      sorted.push(value);
+      if (branches.length > 0) {
+        flattenTrees(branches);
+      }
+    }
+  };
+
+  flattenTrees(roots);
+
+  return sorted;
+};
+
 export const useFetchUsersSubset = ({
   unitId,
   bossId,

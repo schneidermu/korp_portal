@@ -4,7 +4,7 @@ import clsx from "clsx/lite";
 import { Link } from "react-router-dom";
 
 import { formatMobilePhone, fullNameLong } from "@/common/util";
-import { cmpUsers, useFetchUsers } from "./api";
+import { sortUsers, useFetchUsers } from "./api";
 import { filterUsers, Unit, User } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
@@ -42,8 +42,8 @@ const groupUsersByUnits = (users: User[]) => {
     }
   }
   for (const [, children] of parent2children) {
-    for (const [, { users }] of children) {
-      users.sort(cmpUsers);
+    for (const child of children.values()) {
+      child.users = sortUsers(child.users);
     }
   }
 

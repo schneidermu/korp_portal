@@ -6,7 +6,7 @@ import {
   useIntSearchParam,
   useQuerySearchParam,
 } from "@/common/useSearchParam";
-import { cmpUsers, useFetchUsers } from "./api";
+import { sortUsers, useFetchUsers } from "./api";
 import { filterUsers, User } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
@@ -38,7 +38,7 @@ export const UserList = () => {
     for (const term of query) {
       users = filterUsers(users, term, FILTER_FIELDS);
     }
-    users.sort(cmpUsers);
+    users = sortUsers(users);
     return users;
   }, [allUsers, query, orgId]);
 
