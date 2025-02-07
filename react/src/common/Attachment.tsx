@@ -27,7 +27,7 @@ export const Attachment = ({ url }: { url: string }) => {
   if (ext) {
     text += "." + ext;
   }
-  if (!url.startsWith("blob://")) {
+  if (!url.startsWith("blob:")) {
     url = STATIC_BASE_URL + url;
   }
   return (
