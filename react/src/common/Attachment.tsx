@@ -16,10 +16,15 @@ const filetype = (ext: string): string | undefined => {
   }
 };
 
-export const Attachment = ({ url }: { url: string }) => {
+export const Attachment = ({
+  url,
+  download,
+}: {
+  url: string;
+  download?: string;
+}) => {
   const ext = fileExtention(url);
   const ft = ext && filetype(ext);
-  const color = ft ? `text-${ft}` : "";
   let text = "";
   if (url) {
     text += "Документ";
@@ -31,7 +36,12 @@ export const Attachment = ({ url }: { url: string }) => {
     url = STATIC_BASE_URL + url;
   }
   return (
-    <a href={url} target="_blank" className={clsx("underline", color)}>
+    <a
+      href={url}
+      className={clsx("underline", ft && `text-${ft}`)}
+      target="_blank"
+      download={download}
+    >
       {text}
     </a>
   );

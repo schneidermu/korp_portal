@@ -15,6 +15,7 @@ import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
 
 import { tokenFetch, useAuth } from "@/auth/slice";
 import {
+  fileExtention,
   fullImagePath,
   fullNameShort,
   trimExtention,
@@ -434,7 +435,10 @@ const TrainingInfo = ({
         {editing ? (
           attachment ? (
             <div className="">
-              <Attachment url={attachment} />
+              <Attachment
+                url={attachment}
+                download={name + "." + fileExtention(attachment)!}
+              />
               <button
                 type="button"
                 className="ml-4 hover:underline text-dark-gray text-[20px]"
@@ -456,7 +460,10 @@ const TrainingInfo = ({
           attachment && (
             <>
               {", "}
-              <Attachment url={attachment} />
+              <Attachment
+                url={attachment}
+                download={name + "." + fileExtention(attachment)!}
+              />
             </>
           )
         )}
