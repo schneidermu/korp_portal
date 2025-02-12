@@ -250,7 +250,23 @@ export const sortUsers = (users: User[]): User[] => {
   const sorted: User[] = [];
 
   const flattenTrees = (trees: Tree<User>[]) => {
-    trees.sort(({ value: u1 }, { value: u2 }) => cmpUsers(u1, u2));
+    trees.sort((t1, t2) => {
+      // Sort subordinates with no own subordinates first.
+      if (t1.value.unit === null && t2.value.unit !== null) {
+        return +1;
+      }
+      if (t1.value.unit !== null && t2.value.unit === null) {
+        return -1;
+      }
+      // Sort subordinates with no own subordinates first.
+      if (t1.branches.length === 0 && t2.branches.length > 0) {
+        return -1;
+      }
+      if (t1.branches.length > 0 && t2.branches.length === 0) {
+        return +1;
+      }
+      return cmpUsers(t1.value, t2.value);
+    });
     for (const { value, branches } of trees) {
       sorted.push(value);
       if (branches.length > 0) {
