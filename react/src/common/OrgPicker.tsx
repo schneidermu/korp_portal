@@ -25,7 +25,7 @@ export const OrgPicker = ({
       onChange={({ target: { value } }) => setOrgId(value || null)}
     >
       <option key="" value="">
-        Выберите организацию
+        Все организации
       </option>
       {data.map(({ id, name }) => (
         <option key={id} value={id}>

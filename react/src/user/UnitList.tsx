@@ -47,7 +47,7 @@ const groupUsersByUnits = (users: User[]) => {
     }
   }
 
-  const units: { unit: Unit; orgId: number; users: User[] }[] = [];
+  const units: { unit: Unit; org: User["organization"]; users: User[] }[] = [];
 
   const pushChildrenOf = (parentId: number | null) => {
     const children = parent2children.get(parentId);
@@ -61,7 +61,7 @@ const groupUsersByUnits = (users: User[]) => {
       return 0;
     });
     for (const { unit, users } of flatChildren) {
-      units.push({ unit, orgId: users[0].organization!.id, users });
+      units.push({ unit, org: users[0].organization, users });
       pushChildrenOf(unit.id);
     }
   };
@@ -85,23 +85,19 @@ export const UnitList = () => {
   }, [allUsers]);
 
   const units = useMemo(() => {
-    if (orgId === null) {
-      return [];
-    }
-
     const units: typeof allUnits = [];
     for (const v of allUnits) {
-      const { unit, orgId } = v;
+      const { unit, org } = v;
       let users = v.users;
       for (const term of query) {
         users = filterUsers(users, term, FILTER_FIELDS);
       }
       if (users.length > 0) {
-        units.push({ unit, orgId, users });
+        units.push({ unit, org, users });
       }
     }
     return units;
-  }, [allUnits, query, orgId]);
+  }, [allUnits, query]);
 
   const headerClass = clsx(
     "flex items-center justify-center",
@@ -154,8 +150,8 @@ export const UnitList = () => {
             </div>
 
             {/* Data rows */}
-            {[...units].map(({ unit, orgId, users }, i) => (
-              <Fragment key={unit.name}>
+            {[...units].map(({ unit, org, users }, i) => (
+              <Fragment key={unit.id}>
                 <div
                   className={clsx(
                     cellClass,
@@ -168,13 +164,13 @@ export const UnitList = () => {
                     to={
                       "?" +
                       new URLSearchParams([
-                        ["org", orgId.toString()],
                         ["q", unit.name + "+"],
+                        ...(orgId === null ? [] : [["org", orgId.toString()]]),
                       ])
                     }
                     className="hover:underline"
                   >
-                    {unit.name}
+                    {unit.name} {orgId === null && org && `(${org.name})`}
                   </Link>
                 </div>
                 {users.map((user, j) => {

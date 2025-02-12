@@ -31,7 +31,7 @@ export const UserList = () => {
   const { data: allUsers } = useFetchUsers(orgId);
 
   const users = useMemo(() => {
-    if (!allUsers || orgId === null) {
+    if (!allUsers) {
       return [];
     }
     let users = [...allUsers.values()];
@@ -40,7 +40,7 @@ export const UserList = () => {
     }
     users = sortUsers(users);
     return users;
-  }, [allUsers, query, orgId]);
+  }, [allUsers, query]);
 
   const id = query.slice(0, -1).join("+");
 

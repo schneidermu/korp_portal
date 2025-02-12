@@ -200,7 +200,7 @@ export const useFetchUsers = (orgId: number | null) => {
 
   return useSWR(
     orgId === null
-      ? null
+      ? `/colleagues/`
       : `/colleagues/?structural_division__organization__id=${orgId}`,
     async (path: string) =>
       tokenFetcher(path)
@@ -210,6 +210,7 @@ export const useFetchUsers = (orgId: number | null) => {
     {
       revalidateOnFocus: false,
       revalidateIfStale: false,
+      keepPreviousData: false,
     },
   );
 };
