@@ -56,17 +56,8 @@ services:
     depends_on:
       database:
         condition: service_healthy
-
-  gateway:
-    image: nginx:1.22.1-alpine
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
-      - static:/static
-      - ./volumes/media:/media
     ports:
-      - "${DJANGO_PORT}:80"
-    depends_on:
-      - django
+      - 8000:8000
 
   openldap:
     image: bitnami/openldap:2.6.9
