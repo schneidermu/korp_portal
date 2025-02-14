@@ -7,8 +7,8 @@ import * as types from "./types";
 
 import { Icon } from "@/common/Icon";
 
-import checkIcon from "/check.svg";
-import tickIcon from "/tick.svg";
+import checkIcon from "@/assets/check.svg";
+import tickIcon from "@/assets/tick.svg";
 
 const Choice = ({
   poll,

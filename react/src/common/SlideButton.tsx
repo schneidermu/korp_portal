@@ -2,7 +2,7 @@ import clsx from "clsx/lite";
 
 import { Icon } from "./Icon";
 
-import arrow from "/arrow.png";
+import arrow from "@/assets/arrow.png";
 
 export const SlideButton = ({
   direction,

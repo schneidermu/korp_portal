@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 
 import { Icon } from "./Icon";
 
-import cross from "/cross.png";
+import cross from "@/assets/cross.png";
 
 export const Modal = ({
   hidden = false,

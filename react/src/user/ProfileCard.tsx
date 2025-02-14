@@ -23,14 +23,14 @@ import {
   PropertySelect,
 } from "./common";
 
-import atIcon from "/at.svg";
-import awardIcon from "/award.svg";
-import brightnessIcon from "/brightness.svg";
-import giftIcon from "/gift.svg";
-import peopleIcon from "/people.svg";
-import personIcon from "/person.svg";
-import phoneIcon from "/phone.svg";
-import pinIcon from "/pin.svg";
+import atIcon from "@/assets/at.svg";
+import awardIcon from "@/assets/award.svg";
+import brightnessIcon from "@/assets/brightness.svg";
+import giftIcon from "@/assets/gift.svg";
+import peopleIcon from "@/assets/people.svg";
+import personIcon from "@/assets/person.svg";
+import phoneIcon from "@/assets/phone.svg";
+import pinIcon from "@/assets/pin.svg";
 
 const Avatar = ({
   user,

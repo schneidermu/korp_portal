@@ -32,16 +32,16 @@ import { Icon } from "@/common/Icon";
 import { Picture } from "@/common/Picture";
 import { EditableProperty, FileInput, PropertyInput } from "./common";
 import { ProfileCard } from "./ProfileCard";
-import bookIcon from "/book.svg";
-import creditCardIcon from "/credit-card.svg";
-import crossIcon from "/cross.svg";
-import editIcon from "/edit.svg";
-import externalIcon from "/external.svg";
-import layersIcon from "/layers.svg";
-import layoutIcon from "/layout.svg";
-import starYellowIcon from "/star-yellow.svg";
-import starIcon from "/star.svg";
-import upArrowIcon from "/up-arrow.svg";
+import bookIcon from "@/assets/book.svg";
+import creditCardIcon from "@/assets/credit-card.svg";
+import crossIcon from "@/assets/cross.svg";
+import editIcon from "@/assets/edit.svg";
+import externalIcon from "@/assets/external.svg";
+import layersIcon from "@/assets/layers.svg";
+import layoutIcon from "@/assets/layout.svg";
+import starYellowIcon from "@/assets/star-yellow.svg";
+import starIcon from "@/assets/star.svg";
+import upArrowIcon from "@/assets/up-arrow.svg";
 
 import Sticky from "react-stickynode";
 

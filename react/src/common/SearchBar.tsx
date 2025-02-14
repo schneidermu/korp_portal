@@ -1,7 +1,7 @@
 import clsx from "clsx/lite";
 
-import crossIcon from "/cross.svg";
-import searchIcon from "/search.svg";
+import crossIcon from "@/assets/cross.svg";
+import searchIcon from "@/assets/search.svg";
 import { Icon } from "./Icon";
 
 const QueryTerm = ({

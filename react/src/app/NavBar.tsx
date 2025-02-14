@@ -5,7 +5,7 @@ import clsx from "clsx/lite";
 
 import { useAuth } from "@/auth/slice";
 
-import backArrowIcon from "/back-arrow.svg";
+import backArrowIcon from "@/assets/back-arrow.svg";
 
 const DropdownArrow = () => {
   return (
