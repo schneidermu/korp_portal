@@ -2,7 +2,7 @@ import { LOCALE, STATIC_BASE_URL } from "@/app/const";
 
 import { User } from "@/user/types";
 
-import personIcon from "/person.svg";
+import personIcon from "@/assets/person.svg";
 
 export const urlBasename = (url: string): string => {
   const parts = decodeURI(url).split("/");

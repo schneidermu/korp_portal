@@ -32,6 +32,7 @@ import { Icon } from "@/common/Icon";
 import { Picture } from "@/common/Picture";
 import { EditableProperty, FileInput, PropertyInput } from "./common";
 import { ProfileCard } from "./ProfileCard";
+
 import bookIcon from "@/assets/book.svg";
 import creditCardIcon from "@/assets/credit-card.svg";
 import crossIcon from "@/assets/cross.svg";
