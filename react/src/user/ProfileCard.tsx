@@ -112,7 +112,7 @@ export const ProfileCard = ({
         type={type}
         pattern={pattern}
         editing={editing}
-        value={user[field] || ""}
+        value={user[field] ?? ""}
         theme="py-[6px] px-[10px]"
         text={
           field === "dateOfBirth" && user[field]

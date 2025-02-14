@@ -352,7 +352,7 @@ const EducationSection = ({
               />
               {attachment ? (
                 <div className="flex">
-                  <Attachment url={attachment || ""} />
+                  <Attachment url={attachment ?? ""} />
                   <button
                     className="hover:underline text-dark-gray ml-4 text-[20px]"
                     onClick={() => changeFile(i, null)}
@@ -373,7 +373,7 @@ const EducationSection = ({
           ) : (
             <div>
               <div>{name}</div>
-              <Attachment url={attachment || ""} />
+              <Attachment url={attachment ?? ""} />
             </div>
           )}
         </>
@@ -641,7 +641,7 @@ const CareerPositionsTable = ({
             required
             disabled={!editing}
             className={clsx(inputCellClass, "text-center")}
-            value={year_leave?.toString() || "н. вр."}
+            value={year_leave?.toString() ?? "н. вр."}
             onChange={({ target: { value } }) => changeLeaveYear(i, value)}
           />
           <input
@@ -683,7 +683,7 @@ const CareerSection = ({
           <div className="w-[136px]">
             <PropertyInput
               editing={editing}
-              value={user.workExperience || ""}
+              value={user.workExperience ?? ""}
               theme="px-6 py-[6px] text-center"
               handleChange={(value) =>
                 updateUser((user) => (user.workExperience = value))
@@ -703,7 +703,7 @@ const CareerSection = ({
           {editing ? (
             <textarea
               className={clsx("w-full mt-2 px-5 py-2", "rounded border")}
-              value={user.skills || ""}
+              value={user.skills ?? ""}
               onChange={({ target: { value } }) =>
                 updateUser({ ...user, skills: value })
               }
@@ -1102,7 +1102,7 @@ export const UserProfile = () => {
   const navigate = useNavigate();
   const params = useParams();
   const auth = useAuth();
-  const userId = params.userId || auth.userId;
+  const userId = params.userId ?? auth.userId;
   const { user } = useFetchUser(userId);
 
   if (!params.userId && userId) {

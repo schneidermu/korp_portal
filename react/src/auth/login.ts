@@ -70,7 +70,7 @@ export const useLogin = () => {
                 email,
                 token,
                 isAdmin,
-                orgId: organization?.id || null,
+                orgId: organization?.id ?? null,
               }),
             );
           },
