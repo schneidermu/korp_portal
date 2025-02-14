@@ -38,6 +38,7 @@ docker run --rm \
   --network host \
   sonarsource/sonar-scanner-cli \
     -Dsonar.sources=. \
+    -Dsonar.exclusions='kp-dev/dummy/**/*' \
     -Dsonar.host.url=$url \
     -Dsonar.projectKey=$project_key \
     -Dsonar.token=$token \
