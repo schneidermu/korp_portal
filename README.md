@@ -49,10 +49,10 @@ cd react
 cp sample.env .env
 
 docker build -t kp-react-war --target war .
-docker run --rm -it --env-file .env -v ./:/app kp-react-war
+docker run --rm kp-react-war > "$dist/korp-portal-portlet.war"
 
 # Example deployment to dev Liferay:
-cp pkg/*.war ../kp-dev/volumes/deploy
+cp "$dist"/*.war ../kp-dev/volumes/deploy
 ```
 
 ## Liferay

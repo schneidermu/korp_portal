@@ -1,9 +1,11 @@
 FROM eclipse-temurin:11-jdk-alpine AS workspace
 
-RUN apk --no-cache add curl unzip
+RUN --mount=type=cache,target=/var/cache/apk \
+  apk add curl unzip zip
 
 # Install liferay-blade-cli.
-RUN curl -L https://raw.githubusercontent.com/liferay/liferay-blade-cli/master/cli/installers/global | sh
+RUN curl --proto "=https" --tlsv1.2 -fL \
+  https://raw.githubusercontent.com/liferay/liferay-blade-cli/master/cli/installers/global | sh
 
 WORKDIR /workspace
 
@@ -20,24 +22,25 @@ RUN ./gradlew build
 # Customize WAR.
 WORKDIR /war
 RUN unzip /workspace/modules/korp-portal-portlet/build/libs/korp-portal-portlet.war
+
 COPY liferay/view.jsp .
 
-# Point to the right CSS.
-RUN rm -rf css && sed -i s#/css/main.css#/dist/index.css# WEB-INF/liferay-portlet.xml
-
-# Fix casing in roles.
-RUN \
+# Point to the right CSS, fix casing in roles.
+RUN rm -rf css && sed -i s#/css/main.css#/dist/index.css# WEB-INF/liferay-portlet.xml && \
   sed -i s/administator/Administator/ WEB-INF/*portlet.xml && \
   sed -i s/guest/Guest/               WEB-INF/*portlet.xml && \
   sed -i 's/power-user/Power-User/'   WEB-INF/*portlet.xml && \
   sed -i s/user/User/                 WEB-INF/*portlet.xml
 
+RUN zip -qr korp-portal-portlet.war .
+
 FROM node:22.9-alpine3.20 AS node
 
-RUN apk add --no-cache zip && \
-  corepack enable
+RUN --mount=type=cache,target=/var/cache/apk \
+  apk add zip
 
-USER 1000
+RUN corepack enable
+
 WORKDIR /app
 
 # Cache package manager.
@@ -46,25 +49,29 @@ RUN corepack install
 
 # Cache packages.
 COPY yarn.lock .yarnrc.yml ./
-RUN yarn
+RUN --mount=type=cache,target=/app/.yarn \
+  yarn --immutable
 
 
 FROM node AS war
 
 ENV VITE_LIFERAY_EMBED=true
 
-COPY --from=workspace --chown=1000:1000 /war /war
+COPY --from=workspace /war/korp-portal-portlet.war .
 
-ENTRYPOINT [ "sh", "-c", \
-  "yarn && yarn build && \
-  cp -r /app/dist /war/dist && \
-  cd /war && rm -f dist/index.html && \
-  mkdir -p /app/pkg && \
-  rm -f /app/pkg/korp-portal-portlet.war && \
-  zip -qr /app/pkg/korp-portal-portlet.war ." ]
+COPY . .
+
+RUN yarn build && rm -f dist/index.html && \
+  zip -qr korp-portal-portlet.war dist/
+
+USER 1000
+
+ENTRYPOINT [ "cat", "korp-portal-portlet.war" ]
 
 
 FROM node AS dev
+
+USER 1000
 
 ENTRYPOINT [ "sh", "-c", "yarn && yarn dev" ]
 
