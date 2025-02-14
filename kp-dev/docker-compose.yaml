@@ -1,6 +1,5 @@
 volumes:
   pg_data:
-  django_static:
   openldap_data:
 
 services:
@@ -58,7 +57,6 @@ services:
       GROUP_USER: "${DJANGO_GROUP_USER}"
       GROUP_ADMIN: "${DJANGO_GROUP_ADMIN}"
     volumes:
-      - django_static:/app/collected_static
       - ./volumes/media:/media
     depends_on:
       database:
