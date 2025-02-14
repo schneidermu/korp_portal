@@ -5,15 +5,16 @@ import clsx from "clsx/lite";
 
 import { useAuth } from "@/auth/slice";
 
+import { Icon } from "@/common/Icon";
+
 import backArrowIcon from "@/assets/back-arrow.svg";
 
 const DropdownArrow = () => {
   return (
-    <object
-      type="image/svg+xml"
+    <Icon
+      src={backArrowIcon}
       className="-rotate-90 w-[1em] h-[1em] ml-[0.1em] mt-[0.1em] select-none"
-      data={backArrowIcon}
-    ></object>
+    />
   );
 };
 
