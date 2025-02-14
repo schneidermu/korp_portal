@@ -63,6 +63,10 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    ports:
+      # Have to map backend outside, because docker network
+      # is not accessible from the outside (from a browser).
+      - "${BACKEND_PORT}:8000"
 
   react:
     build:
@@ -78,19 +82,6 @@ services:
       - ../react:/app
     ports:
       - "${FRONTEND_PORT}:3000"
-
-  gateway:
-    image: nginx:1.22.1-alpine
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
-      - django_static:/static
-      - ./volumes/media:/media
-    ports:
-      # Have to map backend outside, because docker network
-      # is not accessible from the outside (from a browser).
-      - "${BACKEND_PORT}:80"
-    depends_on:
-      - django
 
   openldap:
     image: bitnami/openldap:2.6.9
