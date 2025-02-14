@@ -18,7 +18,13 @@ const DropdownArrow = () => {
 };
 
 const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
+  const auth = useAuth();
+
   const [shown, setShown] = useState(false);
+
+  const listLink = "/list" + (auth.orgId === null ? "" : `?org=${auth.orgId}`);
+  const unitsLink =
+    "/units" + (auth.orgId === null ? "" : `?org=${auth.orgId}`);
 
   return (
     <div onMouseLeave={() => setShown(false)} className="relative h-full">
@@ -52,10 +58,10 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
           <a className="hover:underline cursor-pointer" onClick={() => {}}>
             Орг. структура
           </a>
-          <Link to="/list" className="hover:underline cursor-pointer">
+          <Link to={listLink} className="hover:underline cursor-pointer">
             Список сотрудников
           </Link>
-          <Link to="/units" className="hover:underline cursor-pointer">
+          <Link to={unitsLink} className="hover:underline cursor-pointer">
             Список отделов
           </Link>
         </div>
