@@ -1,6 +1,6 @@
 import clsx from "clsx/lite";
 
-import { formatDate } from "@/common/util";
+import { formatDate, resolveMediaPath } from "@/common/util";
 import * as types from "./types";
 
 export const News = ({
@@ -51,8 +51,8 @@ export const News = ({
         <div className="grid grid-cols-2 gap-[20px]">
           {images.map((src, i) => (
             <img
-              key={i}
-              src={src}
+              key={src}
+              src={resolveMediaPath(src)}
               className="w-full h-[400px] object-cover select-none"
               onClick={(event) => {
                 if (!full && handleOpen) {

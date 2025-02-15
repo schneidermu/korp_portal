@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { API_BASE_URL } from "@/app/const";
+import { BACKEND_API_PREFIX } from "@/app/const";
 
 import { useAppSelector } from "@/app/store";
 
@@ -51,7 +51,7 @@ export const useToken = () => useAppSelector((state) => state.auth.token);
 export const useUserId = () => useAppSelector((state) => state.auth.userId);
 
 export const fetcher = (path: string, init?: RequestInit) =>
-  fetch(API_BASE_URL + path, init);
+  fetch(BACKEND_API_PREFIX + path, init);
 
 export const tokenFetch = async (
   token: string,

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import clsx from "clsx/lite";
 import { AnimatePresence } from "motion/react";
 
+import { resolveMediaPath } from "@/common/util";
 import { useFeed } from "./api";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
@@ -152,7 +153,9 @@ export const Feed = () => {
                     }
                   >
                     <img
-                      src={posts[overlayPost].images[overlayImg]}
+                      src={resolveMediaPath(
+                        posts[overlayPost].images[overlayImg],
+                      )}
                       className="w-full h-full object-cover"
                       onClick={() => setOverlayImg(null)}
                     />

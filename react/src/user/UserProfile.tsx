@@ -16,8 +16,8 @@ import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
 import { tokenFetch, useAuth } from "@/auth/slice";
 import {
   fileExtention,
-  fullImagePath,
   fullNameShort,
+  resolveMediaPath,
   trimExtention,
   userPhotoPath,
 } from "@/common/util";
@@ -885,7 +885,7 @@ const GallerySection = ({
       )}
       {attachment && (
         <Icon
-          src={fullImagePath(attachment)}
+          src={resolveMediaPath(attachment)}
           height={height}
           className="w-full object-cover object-center"
         />

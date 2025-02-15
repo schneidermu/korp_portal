@@ -1,7 +1,7 @@
-export const BACKEND_AUTHORITY = import.meta.env.VITE_BACKEND_AUTHORITY;
+export const BACKEND_PREFIX = import.meta.env.VITE_BACKEND_PREFIX;
 
-export const STATIC_BASE_URL = BACKEND_AUTHORITY;
-export const API_BASE_URL = BACKEND_AUTHORITY + "/api";
+export const BACKEND_API_PREFIX = BACKEND_PREFIX + "/api";
+
 export const FEED_PAGE_LIMIT = 5;
 export const LOCALE = "ru-RU";
 

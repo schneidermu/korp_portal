@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { API_BASE_URL } from "@/app/const";
+import { BACKEND_API_PREFIX } from "@/app/const";
 
 import { useAppDispatch } from "@/app/store";
 import { authSlice, useAuth } from "./slice";
@@ -37,7 +37,7 @@ export const useLogin = () => {
           : import.meta.env.VITE_EMAIL;
 
       const { auth_token: token }: { auth_token: string } = await fetch(
-        `${API_BASE_URL}/auth/token/login`,
+        `${BACKEND_API_PREFIX}/auth/token/login`,
         {
           method: "POST",
           credentials: "include",
@@ -48,7 +48,7 @@ export const useLogin = () => {
         },
       ).then((res) => res.json());
 
-      return fetch(`${API_BASE_URL}/colleagues/me/`, {
+      return fetch(`${BACKEND_API_PREFIX}/colleagues/me/`, {
         headers: {
           Authorization: "Token " + token,
         },

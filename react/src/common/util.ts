@@ -1,4 +1,4 @@
-import { LOCALE, STATIC_BASE_URL } from "@/app/const";
+import { BACKEND_PREFIX, LOCALE } from "@/app/const";
 
 import { User } from "@/user/types";
 
@@ -69,18 +69,25 @@ export const formatDateLong = new Intl.DateTimeFormat(LOCALE, {
   day: "numeric",
 }).format;
 
-export const fullImagePath = (path: string) => {
-  if (path.startsWith("/media")) {
-    return STATIC_BASE_URL + path;
-  }
+export const resolveMediaPath = (path: string) => {
   if (path.startsWith("blob:")) {
     return path.replace(/\.[a-z0-9]+$/, "");
+  }
+  try {
+    path = new URL(path).pathname;
+  } catch (err) {
+    if (!(err instanceof TypeError)) {
+      throw err;
+    }
+  }
+  if (path.startsWith("/media")) {
+    return BACKEND_PREFIX + path;
   }
   return path;
 };
 
 export const userPhotoPath = (user: User) =>
-  user.photo ? fullImagePath(user.photo) : personIcon;
+  user.photo ? resolveMediaPath(user.photo) : personIcon;
 
 export const noop = () => ({});
 

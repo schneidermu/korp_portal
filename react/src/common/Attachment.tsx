@@ -1,8 +1,6 @@
 import clsx from "clsx/lite";
 
-import { STATIC_BASE_URL } from "@/app/const";
-
-import { fileExtention } from "./util";
+import { fileExtention, resolveMediaPath } from "./util";
 
 const filetype = (ext: string): string | undefined => {
   if (ext === "doc" || ext === "docx") {
@@ -32,12 +30,9 @@ export const Attachment = ({
   if (ext) {
     text += "." + ext;
   }
-  if (!url.startsWith("blob:")) {
-    url = STATIC_BASE_URL + url;
-  }
   return (
     <a
-      href={url}
+      href={resolveMediaPath(url)}
       className={clsx("underline", ft && `text-${ft}`)}
       target="_blank"
       download={download}

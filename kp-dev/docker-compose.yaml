@@ -17,10 +17,22 @@ services:
       start_interval: 3s
       start_period: 60s
 
+  traefik:
+    image: traefik:v3.3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 80:80
+      - 8080:8080
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.web.address=:80"
+      - "--providers.docker.constraints=Label(`traefik.instance`, `${TRAEFIK_INSTANCE}`)"
+
   liferay:
     image: liferay/portal:7.0.6-ga7
-    ports:
-      - "${LIFERAY_PORT}:8080"
     volumes:
       # Copy a .war here to deploy it.
       - ./volumes/deploy:/mnt/liferay/deploy
@@ -32,6 +44,12 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.instance=kp"
+      - "traefik.http.routers.liferay.rule=Host(`${HOSTNAME}`)"
+      - "traefik.http.routers.liferay.entrypoints=web"
+      - "traefik.http.services.liferay.loadbalancer.server.port=8080"
 
   django:
     build: ../django/
@@ -42,7 +60,6 @@ services:
       DB_HOST: database
       SECRET_KEY: "${SECRET_KEY}"
       ALLOWED_HOSTS: "${HOSTNAME}"
-      ALLOWED_ORIGINS: "http://${HOSTNAME}:${FRONTEND_PORT},http://${HOSTNAME}:${LIFERAY_PORT}"
       DEBUG: "${DEBUG}"
       LDAP_PASSWORD: "${LDAP_PASSWORD}"
       LDAP_URI: ldap://openldap:1389
@@ -51,15 +68,17 @@ services:
       CHALLENGE_URL: "${CHALLENGE_URL}"
       GROUP_USER: "${DJANGO_GROUP_USER}"
       GROUP_ADMIN: "${DJANGO_GROUP_ADMIN}"
+      SCRIPT_NAME: /kp
     volumes:
       - ./volumes/media:/media
     depends_on:
       database:
         condition: service_healthy
-    ports:
-      # Have to map backend outside, because docker network
-      # is not accessible from the outside (from a browser).
-      - "${BACKEND_PORT}:8000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.instance=kp"
+      - "traefik.http.routers.django.rule=Host(`${HOSTNAME}`) && PathPrefix(`${BACKEND_PREFIX}/`)"
+      - "traefik.http.routers.django.entrypoints=web"
 
   react:
     build:
@@ -67,14 +86,17 @@ services:
       target: dev
     command: yarn dev
     environment:
-      VITE_BACKEND_AUTHORITY: "http://${HOSTNAME}:${BACKEND_PORT}"
+      VITE_BACKEND_PREFIX: "${BACKEND_PREFIX}"
       VITE_LIFERAY_EMBED: false
       VITE_EMAIL: "${VITE_EMAIL}"
       VITE_PAUTH: "${VITE_PAUTH}"
     volumes:
       - ../react:/app
-    ports:
-      - "${FRONTEND_PORT}:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.instance=kp"
+      - "traefik.http.routers.vite.rule=Host(`${HOSTNAME}`) && PathPrefix(`${FRONTEND_PREFIX}/`)"
+      - "traefik.http.routers.vite.entrypoints=web"
 
   openldap:
     image: bitnami/openldap:2.6.9

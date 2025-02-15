@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig(({ mode }) => {
   const conf = {
+    base: "/vite/",
     plugins: [react()],
     resolve: {
       alias: {
