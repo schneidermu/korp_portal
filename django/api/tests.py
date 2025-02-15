@@ -11,8 +11,8 @@ class TestApi(TestCase):
 
     def setUp(self):
         self.factory = APIRequestFactory()
-        org, created = Organization.objects.get_or_create(pk=1)
-        division, created = StructuralSubdivision.objects.get_or_create(pk=1, organization=org)
+        org, _ = Organization.objects.get_or_create(pk=1)
+        division, _ = StructuralSubdivision.objects.get_or_create(pk=1, organization=org)
         self.user = Employee.objects.create_user(
             username='testuser', password='testpassword', structural_division=division)
         Token.objects.create(user=self.user)

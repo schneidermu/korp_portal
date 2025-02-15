@@ -3,17 +3,17 @@ from django.db import models
 from homepage.constants import CHARFIELD_LENGTH
 from django.db.models import Avg
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 def return_name(instance, filename):
     return f'employees/{instance.__class__.__name__.lower()}/{filename}'
 
 CHOICES = (
+    ('На рабочем месте', 'На рабочем месте'),
     ('В отпуске', 'В отпуске'),
     ('В командировке', 'В командировке'),
     ('На больничном', 'На больничном'),
-    ('На рабочем месте', 'На рабочем месте'),
     ('Нет на месте', 'Нет на месте'),
 )
 
@@ -113,7 +113,7 @@ class Employee(AbstractUser):
 
     status = models.CharField(
         verbose_name='Статус',
-        max_length=16, choices=CHOICES, default='На рабочем месте',
+        max_length=16, choices=CHOICES, default=CHOICES[0][0],
         blank=True,
         null=True,
     )
@@ -202,7 +202,6 @@ class AbstractWithPhotoNameModel(models.Model):
     file = models.CharField(
         verbose_name='Документ',
         blank=True,
-        null=True,
         default=None,
     )
 
@@ -254,19 +253,11 @@ class Characteristic(models.Model):
         verbose_name='Сотрудник',
     )
 
-#    university = models.CharField(
-#        verbose_name='Университет',
-#        max_length=CHARFIELD_LENGTH,
-#        blank=True,
-#        null=True,
-#    )
-
     # Курсы через class Course
 
     experience = models.CharField(
         verbose_name='Стаж работы',
         blank=True,
-        null=True,
     )
 
     # Карьерный рост через class Career
@@ -294,7 +285,6 @@ class Characteristic(models.Model):
     about = models.TextField(
         verbose_name='Обо мне',
         blank=True,
-        null=True,
     )
 
     class Meta:
@@ -422,7 +412,6 @@ class University(AbstractWithPhotoNameModel):
     faculty = models.CharField(
         verbose_name='Факультет',
         blank=True,
-        null=True,
     )
 
     class Meta:

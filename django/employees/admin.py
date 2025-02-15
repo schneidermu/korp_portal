@@ -108,21 +108,6 @@ class CharacteristicAdmin(admin.ModelAdmin):
         UniversityInline
     )
 
-#    list_display = ('fio', 'average_rating')
-
-#    def average_rating(self, obj):
-#        return obj.employee.average_rating
-
-#    def fio(self, obj):
-#        return obj.employee.fio
-
-#    def organization(self, obj):
-#        return obj.employee.organization
-
-#    fio.short_description = "ФИО"
-#    average_rating.short_description = "Рейтинг"
-
-
 class CharacteristicLinkInline(admin.TabularInline):
     model = Characteristic
     show_change_link = True
@@ -146,5 +131,3 @@ class StructuralSubdivisionAdmin(admin.ModelAdmin):
 @admin.register(Career)
 class CareerAdmin(admin.ModelAdmin):
     pass
-
-#TODO: админка 

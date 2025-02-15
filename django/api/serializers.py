@@ -627,7 +627,7 @@ class ProfileSerializer(UserSerializer):
     def get_supervizor(self, object):
         try:
             supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
-        except:
+        except Exception:
             return None
 
         if not supervizor:
@@ -639,7 +639,7 @@ class ProfileSerializer(UserSerializer):
     def get_team(self, object):
         try:
             ids = object.structural_division.positions.values('id')
-        except:
+        except Exception:
             return []
         return ids
 
@@ -829,7 +829,7 @@ class OrgStructureSerializer(serializers.ModelSerializer):
         if object:
             try:
                 supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
-            except:
+            except Exception:
                 return None
 
         if not supervizor:

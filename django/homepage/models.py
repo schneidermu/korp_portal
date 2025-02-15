@@ -53,7 +53,6 @@ class News(Published):
 
     text = models.TextField(
         verbose_name='Текст',
-        null=True,
         blank=True
     )
 

@@ -232,5 +232,4 @@ DJOSER = {
         'current_user': 'api.serializers.ProfileSerializer',
         'user_create': 'api.serializers.ProfileCreateSerializer',
     },
-    'HIDE_USERS': False,
 }
