@@ -1,22 +1,40 @@
-from django.db import transaction
+import os.path
+
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
-from employees.models import (Career, Characteristic, Competence, Conference,
-                              Course, Diploma, Employee, Hobby, Organization,
-                              Performance, Rating, Reward, Sport,
-                              StructuralSubdivision, Training, University,
-                              Victory, Volunteer, UploadedFile)
+from employees.models import (
+    Career,
+    Characteristic,
+    Competence,
+    Conference,
+    Course,
+    Diploma,
+    Employee,
+    Hobby,
+    Organization,
+    Performance,
+    Rating,
+    Reward,
+    Sport,
+    StructuralSubdivision,
+    Training,
+    University,
+    UploadedFile,
+    Victory,
+    Volunteer,
+)
 from homepage.constants import CHARFIELD_LENGTH
 from homepage.models import Attachment, Choice, News, Poll
-import os.path
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+
+from django.db import transaction
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = UploadedFile
-        fields = ('file',)
+        fields = ("file",)
 
 
 ATTRIBUTE_MODEL = (
@@ -32,25 +50,23 @@ ATTRIBUTE_MODEL = (
     ("sports", Sport),
     ("volunteers", Volunteer),
     ("diplomas", Diploma),
-    ("universitys", University)
+    ("universitys", University),
 )
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
-    '''Сериализатор картинки'''
+    """Сериализатор картинки"""
 
     image = Base64ImageField()
 
     class Meta:
         model = Attachment
 
-        fields = (
-            "image",
-        )
+        fields = ("image",)
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
-    '''Сериализатор варианта ответа'''
+    """Сериализатор варианта ответа"""
 
     voted = serializers.SerializerMethodField()
     who_voted = serializers.SerializerMethodField()
@@ -63,34 +79,25 @@ class ChoiceSerializer(serializers.ModelSerializer):
             "voted",
             "who_voted",
         )
-        extra_kwargs = {
-            "id": {
-                "read_only": True
-            }
-        }
+        extra_kwargs = {"id": {"read_only": True}}
 
     def get_voted(self, obj):
-        if hasattr(obj, 'voted'):
+        if hasattr(obj, "voted"):
             return obj.voted.count()
         else:
             return 0
 
     def get_who_voted(self, obj):
         if obj.poll.is_anonymous:
-            current_user = self.context['request'].user
-            return [
-                user.id for user in obj.voted.all() if current_user == user
-            ]
+            current_user = self.context["request"].user
+            return [user.id for user in obj.voted.all() if current_user == user]
         return [user.id for user in obj.voted.all()]
 
 
 class PollSerializer(serializers.ModelSerializer):
-    '''Сериализатор для опросов'''
+    """Сериализатор для опросов"""
 
-    choices = ChoiceSerializer(
-        many=True,
-        required=True
-    )
+    choices = ChoiceSerializer(many=True, required=True)
     voted_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -106,18 +113,10 @@ class PollSerializer(serializers.ModelSerializer):
             "voted_count",
         )
         extra_kwargs = {
-            "id": {
-                "read_only": True
-            },
-            "question_text": {
-                "required": True
-            },
-            "pub_date": {
-                "required": False
-            },
-            "organization": {
-                "required": False
-            }
+            "id": {"read_only": True},
+            "question_text": {"required": True},
+            "pub_date": {"required": False},
+            "organization": {"required": False},
         }
 
     @transaction.atomic
@@ -140,27 +139,22 @@ class PollSerializer(serializers.ModelSerializer):
 
         return len(set(users))
 
+
 class VoteCreateSerializer(serializers.Serializer):
-    '''Сериализатор для голосования'''
+    """Сериализатор для голосования"""
 
     poll_id = serializers.IntegerField()
-    choice_ids = serializers.ListField(
-        child=serializers.IntegerField()
-    )
+    choice_ids = serializers.ListField(child=serializers.IntegerField())
 
     def validate(self, data):
         user = self.context.get("user")
         poll_id = data.get("poll_id")
         choice_ids = data.get("choice_ids")
 
-        poll = Poll.objects.filter(
-            id=poll_id
-        ).first()
+        poll = Poll.objects.filter(id=poll_id).first()
 
         if not poll:
-            raise serializers.ValidationError(
-                {"error": "Опроса не существует"}
-            )
+            raise serializers.ValidationError({"error": "Опроса не существует"})
 
         if not poll.is_multiple_choice and len(choice_ids) > 1:
             raise serializers.ValidationError(
@@ -168,20 +162,14 @@ class VoteCreateSerializer(serializers.Serializer):
             )
 
         for choice_id in choice_ids:
-            choice_exists = Choice.objects.filter(
-                id=choice_id,
-                poll_id=poll_id
-            )
+            choice_exists = Choice.objects.filter(id=choice_id, poll_id=poll_id)
 
             if not choice_exists:
                 raise serializers.ValidationError(
                     {"error": "Такого варианта ответа нет"}
                 )
 
-        already_voted = Choice.objects.filter(
-            poll_id=poll_id,
-            voted=user
-        ).exists()
+        already_voted = Choice.objects.filter(poll_id=poll_id, voted=user).exists()
 
         if already_voted:
             raise serializers.ValidationError(
@@ -192,7 +180,6 @@ class VoteCreateSerializer(serializers.Serializer):
 
     @transaction.atomic
     def create(self, validated_data):
-
         for id in validated_data.get("choice_ids"):
             choice = Choice.objects.get(id=id)
             choice.voted.add(self.context.get("user"))
@@ -201,7 +188,7 @@ class VoteCreateSerializer(serializers.Serializer):
 
 
 class VoteDeleteSerializer(serializers.Serializer):
-    '''Сериализатор для отмены голоса'''
+    """Сериализатор для отмены голоса"""
 
     poll_id = serializers.IntegerField()
 
@@ -209,19 +196,12 @@ class VoteDeleteSerializer(serializers.Serializer):
         user = self.context.get("user")
         poll_id = data.get("poll_id")
 
-        poll_exists = Poll.objects.filter(
-            id=poll_id
-        ).exists()
+        poll_exists = Poll.objects.filter(id=poll_id).exists()
 
         if not poll_exists:
-            raise serializers.ValidationError(
-                {"error": "Опроса не существует"}
-            )
+            raise serializers.ValidationError({"error": "Опроса не существует"})
 
-        choices = Choice.objects.filter(
-            poll_id=poll_id,
-            voted=user
-        )
+        choices = Choice.objects.filter(poll_id=poll_id, voted=user)
 
         if not choices:
             raise serializers.ValidationError(
@@ -232,40 +212,39 @@ class VoteDeleteSerializer(serializers.Serializer):
 
 
 class NewsSerializer(serializers.ModelSerializer):
-    '''Сериализатор для новостей'''
+    """Сериализатор для новостей"""
 
     attachments = AttachmentSerializer(many=True, required=False)
 
     class Meta:
         model = News
         fields = (
-            'id',
-            'title',
-            'text',
-            'attachments',
-            'video',
-            'organization',
-            'pub_date',
+            "id",
+            "title",
+            "text",
+            "attachments",
+            "video",
+            "organization",
+            "pub_date",
         )
         optional_fields = (
-            'attachments',
-            'video',
-            'organization',
-            'pub_date',
+            "attachments",
+            "video",
+            "organization",
+            "pub_date",
         )
 
     @transaction.atomic
     def create(self, validated_data):
-        attachments_data = validated_data.pop('attachments', [])
+        attachments_data = validated_data.pop("attachments", [])
         news = News.objects.create(**validated_data)
         for attachment_data in attachments_data:
             Attachment.objects.create(publication=news, **attachment_data)
         return news
 
 
-
 class CourseSerializer(serializers.ModelSerializer):
-    '''Сериализатор для курса'''
+    """Сериализатор для курса"""
 
     file = serializers.CharField(required=False)
 
@@ -284,7 +263,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class DiplomaSerializer(serializers.ModelSerializer):
-    '''Сериализатор для диплома'''
+    """Сериализатор для диплома"""
 
     file = serializers.CharField(required=False)
 
@@ -303,7 +282,7 @@ class DiplomaSerializer(serializers.ModelSerializer):
 
 
 class UniversitySerializer(serializers.ModelSerializer):
-    '''Сериализатор для университета'''
+    """Сериализатор для университета"""
 
     file = serializers.CharField(required=False)
 
@@ -322,7 +301,7 @@ class UniversitySerializer(serializers.ModelSerializer):
 
 
 class CareerSerializer(serializers.ModelSerializer):
-    '''Сериализатор для карьерного роста'''
+    """Сериализатор для карьерного роста"""
 
     file = serializers.CharField(required=False)
 
@@ -341,7 +320,7 @@ class CareerSerializer(serializers.ModelSerializer):
 
 
 class CompetenceSerializer(serializers.ModelSerializer):
-    '''Сериализатор для компетенций'''
+    """Сериализатор для компетенций"""
 
     file = serializers.CharField(required=False)
 
@@ -360,7 +339,7 @@ class CompetenceSerializer(serializers.ModelSerializer):
 
 
 class TrainingSerializer(serializers.ModelSerializer):
-    '''Сериализатор повышения квалификации'''
+    """Сериализатор повышения квалификации"""
 
     file = serializers.CharField(required=False)
 
@@ -379,7 +358,7 @@ class TrainingSerializer(serializers.ModelSerializer):
 
 
 class HobbySerializer(serializers.ModelSerializer):
-    '''Сериализатор хобби'''
+    """Сериализатор хобби"""
 
     file = serializers.CharField(required=False)
 
@@ -398,7 +377,7 @@ class HobbySerializer(serializers.ModelSerializer):
 
 
 class RewardSerializer(serializers.ModelSerializer):
-    '''Сериализатор наград'''
+    """Сериализатор наград"""
 
     file = serializers.CharField(required=False)
 
@@ -417,7 +396,7 @@ class RewardSerializer(serializers.ModelSerializer):
 
 
 class ConferenceSerializer(serializers.ModelSerializer):
-    '''Сериализатор конференций'''
+    """Сериализатор конференций"""
 
     file = serializers.CharField(required=False)
 
@@ -436,7 +415,7 @@ class ConferenceSerializer(serializers.ModelSerializer):
 
 
 class VictorySerializer(serializers.ModelSerializer):
-    '''Сериализатор победы в конкурсе'''
+    """Сериализатор победы в конкурсе"""
 
     file = serializers.CharField(required=False)
 
@@ -455,7 +434,7 @@ class VictorySerializer(serializers.ModelSerializer):
 
 
 class PerformanceSerializer(serializers.ModelSerializer):
-    '''Сериализатор выступления'''
+    """Сериализатор выступления"""
 
     file = serializers.CharField(required=False)
 
@@ -474,7 +453,7 @@ class PerformanceSerializer(serializers.ModelSerializer):
 
 
 class SportSerializer(serializers.ModelSerializer):
-    '''Сериализатор спортивного мероприятия'''
+    """Сериализатор спортивного мероприятия"""
 
     file = serializers.CharField(required=False)
 
@@ -493,7 +472,7 @@ class SportSerializer(serializers.ModelSerializer):
 
 
 class VolunteerSerializer(serializers.ModelSerializer):
-    '''Сериализатор волонтерства'''
+    """Сериализатор волонтерства"""
 
     file = serializers.CharField(required=False)
 
@@ -512,7 +491,7 @@ class VolunteerSerializer(serializers.ModelSerializer):
 
 
 class CharacteristicSerializer(serializers.ModelSerializer):
-    '''Сериализатор характеристики сотрудника'''
+    """Сериализатор характеристики сотрудника"""
 
     courses = CourseSerializer(many=True, required=False)
     careers = CareerSerializer(many=True, required=False)
@@ -537,18 +516,12 @@ class CharacteristicSerializer(serializers.ModelSerializer):
 
 
 class StructuralSubdivisionInProfileSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = StructuralSubdivision
-        fields = (
-            "id",
-            "name",
-            "parent_structural_subdivision"
-        )
+        fields = ("id", "name", "parent_structural_subdivision")
 
 
 class OrganizationInProfileSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Organization
 
@@ -559,26 +532,16 @@ class OrganizationInProfileSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(UserSerializer):
-    '''Сериализатор для просмотра чужих страниц'''
+    """Сериализатор для просмотра чужих страниц"""
 
     characteristic = CharacteristicSerializer(required=False)
 
-    supervizor = serializers.SerializerMethodField(
-        read_only=True
-    )
-    team = serializers.SerializerMethodField(
-        read_only=True
-    )
-    structural_division = StructuralSubdivisionInProfileSerializer(
-        read_only=True
-    )
-    organization = OrganizationInProfileSerializer(
-        read_only=True
-    )
+    supervizor = serializers.SerializerMethodField(read_only=True)
+    team = serializers.SerializerMethodField(read_only=True)
+    structural_division = StructuralSubdivisionInProfileSerializer(read_only=True)
+    organization = OrganizationInProfileSerializer(read_only=True)
 
-    subordinates_count = serializers.SerializerMethodField(
-        read_only=True
-    )
+    subordinates_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta(UserSerializer.Meta):
         model = Employee
@@ -608,14 +571,9 @@ class ProfileSerializer(UserSerializer):
             "team",
             "subordinates_count",
         )
-        extra_kwargs = {
-            "is_superuser": {
-                "read_only": True
-            }
-        }
+        extra_kwargs = {"is_superuser": {"read_only": True}}
 
     def validate_avatar(self, value):
-
         if value is None:
             return
 
@@ -626,7 +584,9 @@ class ProfileSerializer(UserSerializer):
 
     def get_supervizor(self, object):
         try:
-            supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+            supervizor = object.structural_division.positions.filter(
+                job_title="Руководитель"
+            ).first()
         except Exception:
             return None
 
@@ -638,7 +598,7 @@ class ProfileSerializer(UserSerializer):
 
     def get_team(self, object):
         try:
-            ids = object.structural_division.positions.values('id')
+            ids = object.structural_division.positions.values("id")
         except Exception:
             return []
         return ids
@@ -671,13 +631,17 @@ class ProfileSerializer(UserSerializer):
         instance.save()
 
         if characteristic_update:
-            characteristic, created = Characteristic.objects.get_or_create(employee=instance)
+            characteristic, created = Characteristic.objects.get_or_create(
+                employee=instance
+            )
             if not created:
                 characteristic.delete()
                 characteristic = Characteristic.objects.create(employee=instance)
 
             for attribute, model in ATTRIBUTE_MODEL:
-                self.add_related_fields(characteristic_update, characteristic, attribute, model)
+                self.add_related_fields(
+                    characteristic_update, characteristic, attribute, model
+                )
 
             for key in characteristic_update:
                 if key:
@@ -689,7 +653,6 @@ class ProfileSerializer(UserSerializer):
 
 
 class ProfileCreateSerializer(UserCreateSerializer):
-
     email = serializers.EmailField(
         max_length=CHARFIELD_LENGTH,
         required=True,
@@ -707,12 +670,11 @@ class ProfileCreateSerializer(UserCreateSerializer):
     )
 
     structural_division = serializers.PrimaryKeyRelatedField(
-        required=True,
-        queryset=StructuralSubdivision.objects.all()
+        required=True, queryset=StructuralSubdivision.objects.all()
     )
 
     def create(self, validated_data):
-        password = validated_data.pop('password')
+        password = validated_data.pop("password")
         user = Employee(**validated_data)
         user.set_password(password)
         user.save()
@@ -727,28 +689,24 @@ class ProfileCreateSerializer(UserCreateSerializer):
             "structural_division",
         )
         extra_kwars = {
-            "password": {
-                "write_only": True
-            },
+            "password": {"write_only": True},
         }
 
 
 class RatingPOSTSerializer(serializers.ModelSerializer):
-    '''Сериализатор для оценивания.'''
+    """Сериализатор для оценивания."""
 
     def validate(self, data):
-        employee = data.get('employee')
-        user = data.get('user')
-        rate = data.get('rate')
+        employee = data.get("employee")
+        user = data.get("user")
+        rate = data.get("rate")
 
         if employee.id == user.id:
             raise serializers.ValidationError(
                 {"error": "Вы не можете оценить самого себя."}
             )
         if rate < 1 or rate > 5:
-            raise serializers.ValidationError(
-                {"error": "Недопустимая оценка."}
-            )
+            raise serializers.ValidationError({"error": "Недопустимая оценка."})
         already_rated = user.rates.filter(employee_id=employee.id).exists()
 
         if already_rated:
@@ -765,22 +723,20 @@ class RatingPOSTSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rating
-        fields = '__all__'
+        fields = "__all__"
 
 
 class RatingDELETESerializer(serializers.ModelSerializer):
-    '''Сериализатор для удаления оценки.'''
+    """Сериализатор для удаления оценки."""
 
     def validate(self, data):
-        employee = data.get('employee')
-        user = data.get('user')
+        employee = data.get("employee")
+        user = data.get("user")
 
         already_rated = user.rates.filter(employee_id=employee.id).exists()
 
         if employee.id == user.id:
-            raise serializers.ValidationError(
-                {"error": "Недопустимое действие."}
-            )
+            raise serializers.ValidationError({"error": "Недопустимое действие."})
 
         if not already_rated:
             raise serializers.ValidationError(
@@ -795,15 +751,12 @@ class RatingDELETESerializer(serializers.ModelSerializer):
 
 
 class OrgStructureSerializer(serializers.ModelSerializer):
-    '''Сериализатор для орг. структуры'''
+    """Сериализатор для орг. структуры"""
 
-    supervizor = serializers.SerializerMethodField(
-        read_only=True
-    )
+    supervizor = serializers.SerializerMethodField(read_only=True)
 
     structural_division = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name'
+        read_only=True, slug_field="name"
     )
 
     class Meta:
@@ -828,7 +781,9 @@ class OrgStructureSerializer(serializers.ModelSerializer):
     def get_supervizor(self, object):
         if object:
             try:
-                supervizor = object.structural_division.positions.filter(job_title='Руководитель').first()
+                supervizor = object.structural_division.positions.filter(
+                    job_title="Руководитель"
+                ).first()
             except Exception:
                 return None
 
@@ -838,12 +793,12 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             "id": supervizor.id,
             "name": supervizor.name,
             "surname": supervizor.surname,
-            "patronym": supervizor.patronym
+            "patronym": supervizor.patronym,
         }
 
 
 class ProfileInStrucureSerializer(serializers.ModelSerializer):
-    '''Сериализатор для профиля в Орг. структуре'''
+    """Сериализатор для профиля в Орг. структуре"""
 
     class Meta:
         model = Employee
@@ -860,7 +815,7 @@ class ProfileInStrucureSerializer(serializers.ModelSerializer):
 
 
 class StructuralSubdivisionSerializer(serializers.ModelSerializer):
-    '''Сериализатор структурного подразделения'''
+    """Сериализатор структурного подразделения"""
 
     positions = ProfileInStrucureSerializer(many=True)
 
@@ -875,31 +830,23 @@ class StructuralSubdivisionSerializer(serializers.ModelSerializer):
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
-    '''Сериализатор организаций для страницы Орг. структуры'''
+    """Сериализатор организаций для страницы Орг. структуры"""
 
     structural_subdivisions = StructuralSubdivisionSerializer(many=True)
 
     class Meta:
         model = Organization
-        fields = (
-            "id",
-            "name",
-            "address",
-            "structural_subdivisions"
-        )
+        fields = ("id", "name", "address", "structural_subdivisions")
 
 
 class ProfileInOrganizationSerializer(UserSerializer):
-    '''Сериализатор для изменения орг. структуры'''
+    """Сериализатор для изменения орг. структуры"""
 
     organization = serializers.SlugRelatedField(
-        slug_field='name',
-        queryset=Organization.objects.all(),
-        required=False
+        slug_field="name", queryset=Organization.objects.all(), required=False
     )
     structural_division = serializers.SlugRelatedField(
-        slug_field='name',
-        queryset=StructuralSubdivision.objects.all()
+        slug_field="name", queryset=StructuralSubdivision.objects.all()
     )
 
     class Meta(UserSerializer.Meta):
@@ -914,9 +861,8 @@ class ProfileInOrganizationSerializer(UserSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-
-        structural_division = validated_data.pop('structural_division')
-        validated_data.pop('organization', None)
+        structural_division = validated_data.pop("structural_division")
+        validated_data.pop("organization", None)
 
         if structural_division:
             structural_division.positions.add(instance)
@@ -927,7 +873,6 @@ class ProfileInOrganizationSerializer(UserSerializer):
 
 
 class HierarchySerializer(UserSerializer):
-
     class Meta(UserSerializer.Meta):
         model = Employee
         fields = (

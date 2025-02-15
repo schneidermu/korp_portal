@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import News, Poll, Choice, Attachment
+from .models import Attachment, Choice, News, Poll
 
 
 class AttachmentInline(admin.TabularInline):
@@ -10,9 +10,7 @@ class AttachmentInline(admin.TabularInline):
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    inlines = (
-        AttachmentInline,
-    )
+    inlines = (AttachmentInline,)
 
 
 class ChoiceInline(admin.TabularInline):
@@ -22,6 +20,4 @@ class ChoiceInline(admin.TabularInline):
 
 @admin.register(Poll)
 class PollAdmin(admin.ModelAdmin):
-    inlines = (
-        ChoiceInline,
-    )
+    inlines = (ChoiceInline,)

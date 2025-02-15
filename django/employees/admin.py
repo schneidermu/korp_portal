@@ -1,29 +1,51 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import University, Employee, Organization, Rating, Characteristic, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, StructuralSubdivision, Diploma
+from .models import (
+    Career,
+    Characteristic,
+    Competence,
+    Conference,
+    Course,
+    Diploma,
+    Employee,
+    Hobby,
+    Organization,
+    Performance,
+    Rating,
+    Reward,
+    Sport,
+    StructuralSubdivision,
+    Training,
+    University,
+    Victory,
+    Volunteer,
+)
 
 
 @admin.register(Employee)
 class EmployeeAdmin(UserAdmin):
-
     fieldsets = UserAdmin.fieldsets + (
-        ('Общая информация', {
-            'fields': (
-                'name',
-                'surname',
-                'patronym',
-                'chief',
-                'structural_division',
-                'birth_date',
-                'telephone_number',
-                'job_title',
-                'class_rank',
-                'status',
-                'avatar',
-            )
-        }),
+        (
+            "Общая информация",
+            {
+                "fields": (
+                    "name",
+                    "surname",
+                    "patronym",
+                    "chief",
+                    "structural_division",
+                    "birth_date",
+                    "telephone_number",
+                    "job_title",
+                    "class_rank",
+                    "status",
+                    "avatar",
+                )
+            },
+        ),
     )
+
 
 # Инлайны для характеристики сотрудника
 class CourseInline(admin.TabularInline):
@@ -105,8 +127,9 @@ class CharacteristicAdmin(admin.ModelAdmin):
         SportInline,
         VolunteerInline,
         DiplomaInline,
-        UniversityInline
+        UniversityInline,
     )
+
 
 class CharacteristicLinkInline(admin.TabularInline):
     model = Characteristic
