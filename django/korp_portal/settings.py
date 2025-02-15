@@ -17,6 +17,9 @@ import ldap
 from django_auth_ldap.config import LDAPSearch, GroupOfUniqueNamesType
 
 
+FORCE_SCRIPT_NAME = os.getenv('SCRIPT_NAME', '')
+
+
 AUTH_LDAP_SERVER_URI = os.getenv("LDAP_URI", "0")
 LDAP_USER = os.getenv("LDAP_USER", "0")
 LDAP_ROOT = os.getenv("LDAP_ROOT", "0")
@@ -125,6 +128,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -210,8 +214,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = FORCE_SCRIPT_NAME + '/static/'
 STATIC_ROOT = BASE_DIR / 'collected_static'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
