@@ -292,7 +292,6 @@ export const useFetchUsersSubset = ({
   const query = [];
   if (unitId !== undefined) query.push(`structural_division__id=${unitId}`);
   if (bossId !== undefined) query.push(`chief__id=${bossId}`);
-  // TODO: return {data: undefined}
 
   const uri = "/colleagues/?" + query.join("&");
   const key = query.length === 0 ? null : uri;
@@ -414,7 +413,6 @@ export const saveUser = async (token: string, user: User) => {
       return data;
     })
     .then((userData) => {
-      console.log({ userData });
       const user = toUser(userData);
       const opt = {
         revalidate: false,

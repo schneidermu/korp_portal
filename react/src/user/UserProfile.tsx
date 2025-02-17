@@ -309,10 +309,8 @@ const EducationSection = ({
 
   const popCourse = () => updateUser(({ courses }) => courses.pop());
 
-  const changeFile = (i: number, url: string | null) => {
-    console.log("update user set file", url);
+  const changeFile = (i: number, url: string | null) =>
     updateUser((user) => (user.courses[i].attachment = url));
-  };
 
   const courses = (
     <Timeline
@@ -1155,7 +1153,6 @@ export const UserProfile = () => {
     userId == "me" || auth.userId === userId ? "Мой профиль" : user.firstName;
 
   const handleSubmit: FormEventHandler = (event) => {
-    console.log("submit");
     event.preventDefault();
     if (editing) {
       saveUser(auth.token, userState).catch(() => setUserState(user));
