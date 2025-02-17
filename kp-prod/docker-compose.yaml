@@ -1,11 +1,6 @@
 services:
   django:
     build: ../django/
-    command: >
-      sh -c "python manage.py makemigrations &&
-        python manage.py migrate --noinput &&
-        python manage.py collectstatic --noinput &&
-        gunicorn --bind 0.0.0.0:8000 korp_portal.wsgi"
     environment:
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
@@ -22,6 +17,7 @@ services:
       CHALLENGE_URL: "${CHALLENGE_URL}"
       GROUP_USER: "${DJANGO_GROUP_USER}"
       GROUP_ADMIN: "${DJANGO_GROUP_ADMIN}"
+      FORCE_SCRIPT_NAME: "${BACKEND_PREFIX}"
     volumes:
       - ./volumes/media:/media
     ports:
