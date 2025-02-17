@@ -119,7 +119,12 @@ const RowControls = ({ controls }: { controls: [string, () => void][] }) => {
   return (
     <div className="flex text-dark-gray gap-6 ml-4">
       {controls.map(([name, handle]) => (
-        <button className="hover:underline" type="button" onClick={handle}>
+        <button
+          key={name}
+          className="hover:underline"
+          type="button"
+          onClick={handle}
+        >
           {name}
         </button>
       ))}
@@ -1016,8 +1021,8 @@ const AboutMeSection = ({
         />
       ) : (
         <div>
-          {user.about.split("\n").map((para, i) => (
-            <p key={i}>{para}</p>
+          {user.about.split("\n").map((para) => (
+            <p key={para}>{para}</p>
           ))}
         </div>
       )}
@@ -1201,7 +1206,7 @@ export const UserProfile = () => {
                 updateUser={updateUserState}
                 editing={editing}
               />
-              <SectionSep key={`sep-${i}`} />
+              <SectionSep />
             </Fragment>
           ))}
           <FeedbackSection user={user} />
