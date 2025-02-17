@@ -56,9 +56,6 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
         )}
       >
         <div className="flex flex-col gap-[35px] mt-[25px] mb-[40px]">
-          <a className="hover:underline cursor-pointer" onClick={() => {}}>
-            Орг. структура
-          </a>
           <Link to={listLink} className="hover:underline cursor-pointer">
             Список сотрудников
           </Link>
