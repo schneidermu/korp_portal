@@ -13,7 +13,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
 
-import { tokenFetch, useAuth } from "@/auth/slice";
+import { useAuth } from "@/auth/slice";
 import {
   fileExtention,
   fullNameShort,
@@ -40,8 +40,6 @@ import editIcon from "@/assets/edit.svg";
 import externalIcon from "@/assets/external.svg";
 import layersIcon from "@/assets/layers.svg";
 import layoutIcon from "@/assets/layout.svg";
-import starYellowIcon from "@/assets/star-yellow.svg";
-import starIcon from "@/assets/star.svg";
 import upArrowIcon from "@/assets/up-arrow.svg";
 
 import Sticky from "react-stickynode";
@@ -1026,68 +1024,6 @@ const AboutMeSection = ({
   );
 };
 
-const FeedbackSection = ({ user }: { user: User }) => {
-  const auth = useAuth();
-  const [mark, setMark] = useState<number | undefined>(undefined);
-  const [hoverMark, setHoverMark] = useState<number | undefined>(undefined);
-
-  if (!auth) return;
-
-  const onClick = (i: number) => {
-    if (i === mark) {
-      setMark(undefined);
-      return;
-    }
-    setMark(i);
-    tokenFetch(auth.token, `/colleagues/${user.id}/rate/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        rate: 1 + i,
-        employee: user.id,
-        user: auth.userId,
-      }),
-    });
-  };
-
-  const stars = [...Array(5)].map((_, i) => {
-    const icon =
-      (mark !== undefined && hoverMark === undefined && i <= mark) ||
-      (hoverMark !== undefined && i <= hoverMark)
-        ? starYellowIcon
-        : starIcon;
-    return (
-      <button
-        type="button"
-        key={i}
-        onClick={() => onClick(i)}
-        onMouseEnter={() => setHoverMark(i)}
-      >
-        <Icon src={icon} width="52px" height="52px" />
-      </button>
-    );
-  });
-
-  const rating = user.avgRating?.toFixed(1)?.replace(".", ",");
-
-  return (
-    <section>
-      <SectionTitle title="Обратная связь" />
-      <div className="flex gap-12 items-center">
-        <div
-          className="w-fit flex gap-[45px] cursor-pointer"
-          onMouseLeave={() => setHoverMark(undefined)}
-        >
-          {stars}
-        </div>
-        <div className="text-[36px]">{rating}</div>
-      </div>
-    </section>
-  );
-};
-
 const revokeUnusedURLs = (oldUser: User, user: User) => {
   const s1 = userBlobURLs(oldUser);
   const s2 = userBlobURLs(user);
@@ -1196,15 +1132,14 @@ export const UserProfile = () => {
           </div>
           {sections.map((Section, i) => (
             <Fragment key={i}>
+              {i > 0 && <SectionSep />}
               <Section
                 user={userState}
                 updateUser={updateUserState}
                 editing={editing}
               />
-              <SectionSep />
             </Fragment>
           ))}
-          <FeedbackSection user={user} />
         </form>
       </PageSkel>
     </AnimatePage>
