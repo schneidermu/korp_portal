@@ -1180,7 +1180,7 @@ export const UserProfile = () => {
           className={clsx("mr-[36px] ml-[64px] pb-[155px] -mt-12", "relative")}
           onSubmit={handleSubmit}
         >
-          {editable && (
+          <div className={clsx(editable || "invisible")}>
             <Sticky top={40} innerZ={1}>
               <div className="flex justify-end">
                 <EditControls
@@ -1193,7 +1193,7 @@ export const UserProfile = () => {
                 />
               </div>
             </Sticky>
-          )}
+          </div>
           {sections.map((Section, i) => (
             <Fragment key={i}>
               <Section
