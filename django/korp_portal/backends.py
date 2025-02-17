@@ -1,7 +1,8 @@
-import ldap
-from django_auth_ldap.backend import LDAPBackend, _LDAPUser, _report_error, logger
-import requests
 import os
+
+import ldap
+import requests
+from django_auth_ldap.backend import LDAPBackend, _LDAPUser, _report_error, logger
 
 url = os.getenv("CHALLENGE_URL", "0")
 
@@ -15,9 +16,7 @@ class _CustomLDAPUser(_LDAPUser):
         user = None
 
         try:
-            data = {
-                "p_auth": password
-            }
+            data = {"p_auth": password}
             response = requests.post(url, cookies=cookies, data=data)
 
             if response.status_code != 200:
@@ -42,7 +41,6 @@ class _CustomLDAPUser(_LDAPUser):
 
 class CustomLDAPBackend(LDAPBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-
         cookies = request.COOKIES
 
         username = kwargs.get(self.get_user_model().USERNAME_FIELD, username)

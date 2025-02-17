@@ -1,29 +1,51 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import University, Employee, Organization, Rating, Characteristic, Course, Career, Competence, Training, Hobby, Reward, Conference, Victory, Performance, Sport, Volunteer, StructuralSubdivision, Diploma
+from .models import (
+    Career,
+    Characteristic,
+    Competence,
+    Conference,
+    Course,
+    Diploma,
+    Employee,
+    Hobby,
+    Organization,
+    Performance,
+    Rating,
+    Reward,
+    Sport,
+    StructuralSubdivision,
+    Training,
+    University,
+    Victory,
+    Volunteer,
+)
 
 
 @admin.register(Employee)
 class EmployeeAdmin(UserAdmin):
-
     fieldsets = UserAdmin.fieldsets + (
-        ('Общая информация', {
-            'fields': (
-                'name',
-                'surname',
-                'patronym',
-                'chief',
-                'structural_division',
-                'birth_date',
-                'telephone_number',
-                'job_title',
-                'class_rank',
-                'status',
-                'avatar',
-            )
-        }),
+        (
+            "Общая информация",
+            {
+                "fields": (
+                    "name",
+                    "surname",
+                    "patronym",
+                    "chief",
+                    "structural_division",
+                    "birth_date",
+                    "telephone_number",
+                    "job_title",
+                    "class_rank",
+                    "status",
+                    "avatar",
+                )
+            },
+        ),
     )
+
 
 # Инлайны для характеристики сотрудника
 class CourseInline(admin.TabularInline):
@@ -105,22 +127,8 @@ class CharacteristicAdmin(admin.ModelAdmin):
         SportInline,
         VolunteerInline,
         DiplomaInline,
-        UniversityInline
+        UniversityInline,
     )
-
-#    list_display = ('fio', 'average_rating')
-
-#    def average_rating(self, obj):
-#        return obj.employee.average_rating
-
-#    def fio(self, obj):
-#        return obj.employee.fio
-
-#    def organization(self, obj):
-#        return obj.employee.organization
-
-#    fio.short_description = "ФИО"
-#    average_rating.short_description = "Рейтинг"
 
 
 class CharacteristicLinkInline(admin.TabularInline):
@@ -146,5 +154,3 @@ class StructuralSubdivisionAdmin(admin.ModelAdmin):
 @admin.register(Career)
 class CareerAdmin(admin.ModelAdmin):
     pass
-
-#TODO: админка 

@@ -10,12 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
 
 import ldap
-from django_auth_ldap.config import LDAPSearch, GroupOfUniqueNamesType
-
+from django_auth_ldap.config import GroupOfUniqueNamesType, LDAPSearch
 
 FORCE_SCRIPT_NAME = os.getenv('SCRIPT_NAME', '')
 
@@ -28,15 +27,15 @@ AUTH_LDAP_BIND_DN = f"cn={LDAP_USER},ou=users,{LDAP_ROOT}"
 AUTH_LDAP_BIND_PASSWORD = os.getenv("LDAP_PASSWORD", "0")
 
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    f'ou=users,{LDAP_ROOT}',
+    f"ou=users,{LDAP_ROOT}",
     ldap.SCOPE_SUBTREE,
-    '(uid=%(user)s)',
+    "(uid=%(user)s)",
 )
 
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
-    f'ou=groups,{LDAP_ROOT}',
+    f"ou=groups,{LDAP_ROOT}",
     ldap.SCOPE_SUBTREE,
-    '(objectClass=groupOfUniqueNames)',
+    "(objectClass=groupOfUniqueNames)",
 )
 
 AUTH_LDAP_GROUP_TYPE = GroupOfUniqueNamesType()
@@ -44,36 +43,58 @@ AUTH_LDAP_GROUP_TYPE = GroupOfUniqueNamesType()
 AUTH_LDAP_MIRROR_GROUPS = True
 
 AUTH_LDAP_USER_ATTR_MAP = {
-    'id': 'employeeNumber',
-    'email': 'uid',
-    'password': 'userPassword',
-    'name': 'givenName',
-    'patronym': 'displayName',
-    'surname': 'sn',
-    'job_title': 'title',
+    "id": "employeeNumber",
+    "email": "uid",
+    "password": "userPassword",
+    "name": "givenName",
+    "patronym": "displayName",
+    "surname": "sn",
+    "job_title": "title",
 }
 
 AUTH_LDAP_GROUP_ATTR_MAP = {
-    'name': 'cn',
-    'description': 'description',
-    'members': 'uniqueMember',
+    "name": "cn",
+    "description": "description",
+    "members": "uniqueMember",
 }
 
 GROUP_USER = os.getenv('GROUP_USER', 'kp_user')
 GROUP_ADMIN = os.getenv('GROUP_ADMIN', 'kp_admin')
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    'is_active': f'cn={GROUP_USER},ou=groups,{LDAP_ROOT}',
-    'is_staff': f'cn={GROUP_USER},ou=groups,{LDAP_ROOT}',
-    'is_superuser': f'cn={GROUP_ADMIN},ou=groups,{LDAP_ROOT}',
+    "is_active": f"cn=active,ou=groups,{LDAP_ROOT}",
+    "is_staff": f"cn=staff,ou=groups,{LDAP_ROOT}",
+    "is_superuser": f"cn=superuser,ou=groups,{LDAP_ROOT}",
 }
 
 AUTHENTICATION_BACKENDS = (
-    'korp_portal.backends.CustomLDAPBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    "korp_portal.backends.CustomLDAPBackend",
+    "django.contrib.auth.backends.ModelBackend",
 )
 
-LOGGING = { 'version': 1, 'disable_existing_loggers': False, 'handlers': { 'mail_admins': { 'level': 'ERROR', 'class': 'django.utils.log.AdminEmailHandler' }, 'stream_to_console': { 'level': 'DEBUG', 'class': 'logging.StreamHandler' }, }, 'loggers': { 'django.request': { 'handlers': ['mail_admins'], 'level': 'ERROR', 'propagate': True, }, 'django_auth_ldap': { 'handlers': ['stream_to_console'], 'level': 'DEBUG', 'propagate': True, }, } } 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "mail_admins": {
+            "level": "ERROR",
+            "class": "django.utils.log.AdminEmailHandler",
+        },
+        "stream_to_console": {"level": "DEBUG", "class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["mail_admins"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+        "django_auth_ldap": {
+            "handlers": ["stream_to_console"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+    },
+}
 ldap.OPT_DEBUG_LEVEL = 1
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -87,19 +108,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', '').lower() in ['1', 'true', 'yes']
+DEBUG = os.getenv("DEBUG", "").lower() in ["1", "true", "yes"]
 
-ALLOWED_HOSTS = ['localhost']
-if os.getenv('ALLOWED_HOSTS', '') != '':
-    ALLOWED_HOSTS.extend(os.environ['ALLOWED_HOSTS'].split(','))
+ALLOWED_HOSTS = ["localhost"]
+if os.getenv("ALLOWED_HOSTS", "") != "":
+    ALLOWED_HOSTS.extend(os.environ["ALLOWED_HOSTS"].split(","))
 
-CORS_URLS_REGEX = r'^/api/.*$'
+CORS_URLS_REGEX = r"^/api/.*$"
 
-CORS_ALLOWED_ORIGIN_REGEXES = [r'^http://([a-z0-9]+\.)*localhost(:[0-9]+)?$']
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^http://([a-z0-9]+\.)*localhost(:[0-9]+)?$"]
 
 CORS_ALLOWED_ORIGINS = []
-if os.getenv('ALLOWED_ORIGINS', '') != '':
-    CORS_ALLOWED_ORIGINS.extend(os.environ['ALLOWED_ORIGINS'].split(','))
+if os.getenv("ALLOWED_ORIGINS", "") != "":
+    CORS_ALLOWED_ORIGINS.extend(os.environ["ALLOWED_ORIGINS"].split(","))
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -139,12 +160,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "korp_portal.urls"
 
-TEMPLATES_DIR = BASE_DIR / 'templates'
+TEMPLATES_DIR = BASE_DIR / "templates"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS":  [TEMPLATES_DIR],
+        "DIRS": [TEMPLATES_DIR],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -164,13 +185,13 @@ WSGI_APPLICATION = "korp_portal.wsgi.application"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'django'),
-        'USER': os.getenv('POSTGRES_USER', 'django'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
-        'PORT': os.getenv('DB_PORT', 5432)
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB", "django"),
+        "USER": os.getenv("POSTGRES_USER", "django"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
+        "HOST": os.getenv("DB_HOST", "127.0.0.1"),
+        "PORT": os.getenv("DB_PORT", 5432),
     }
 }
 
@@ -194,8 +215,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = '/media/'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = "/media/"
 
 
 # Internationalization
@@ -213,8 +234,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = FORCE_SCRIPT_NAME + '/static/'
-STATIC_ROOT = BASE_DIR / 'collected_static'
+STATIC_URL = FORCE_SCRIPT_NAME + "/static/"
+STATIC_ROOT = BASE_DIR / "collected_static"
 
 STORAGES = {
     "default": {
@@ -231,19 +252,18 @@ STORAGES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
 }
 
 DJOSER = {
-    'HIDE_USERS': False,
-    'SERIALIZERS': {
-        'user': 'api.serializers.ProfileSerializer',
-        'user_list': 'api.serializers.ProfileSerializer',
-        'current_user': 'api.serializers.ProfileSerializer',
-        'user_create': 'api.serializers.ProfileCreateSerializer',
+    "HIDE_USERS": False,
+    "SERIALIZERS": {
+        "user": "api.serializers.ProfileSerializer",
+        "user_list": "api.serializers.ProfileSerializer",
+        "current_user": "api.serializers.ProfileSerializer",
+        "user_create": "api.serializers.ProfileCreateSerializer",
     },
-    'HIDE_USERS': False,
 }
