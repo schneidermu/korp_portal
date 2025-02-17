@@ -101,12 +101,11 @@ export const PropertySelect = ({
       value={value}
       onChange={(e) => handleChange(e.target.value, e.target.textContent ?? "")}
     >
-      {options &&
-        options.map(([value, text]) => (
-          <option key={value} value={value}>
-            {text}
-          </option>
-        ))}
+      {options?.map(([value, text]) => (
+        <option key={value} value={value}>
+          {text}
+        </option>
+      ))}
     </select>
   ) : (
     <span>{text}</span>

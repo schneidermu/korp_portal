@@ -564,9 +564,7 @@ const CareerPositionsTable = ({
   const changeLeaveYear = (i: number, value: string) =>
     updateUser((user) => {
       const year_leave = Number(
-        user.career[i].year_leave === null
-          ? value.replace(/[^0-9]/g, "")
-          : value,
+        user.career[i].year_leave === null ? value.replace(/\D/g, "") : value,
       );
       if (Number.isNaN(year_leave)) {
         user.career[i].year_leave = null;
