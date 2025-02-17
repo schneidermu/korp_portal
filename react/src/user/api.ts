@@ -74,18 +74,18 @@ const toUser = (data: UserData): User => {
     email: data.username,
     username: data.username,
     isAdmin: data.is_superuser,
-    lastName: data.surname || "?",
-    firstName: data.name || "?",
+    lastName: data.surname ?? "?",
+    firstName: data.name ?? "?",
     patronym: data.patronym,
-    status: data.status || "На рабочем месте",
+    status: data.status ?? "На рабочем месте",
     dateOfBirth: data.birth_date,
-    phoneNumber: data.telephone_number || "",
-    workExperience: char?.experience || null,
-    about: char?.about || "",
-    skills: char?.competences[0]?.name || null,
-    photo: data.avatar || null,
-    position: data.job_title || "",
-    serviceRank: data.class_rank || "",
+    phoneNumber: data.telephone_number ?? "",
+    workExperience: char?.experience ?? null,
+    about: char?.about ?? "",
+    skills: char?.competences[0]?.name ?? null,
+    photo: data.avatar ?? null,
+    position: data.job_title ?? "",
+    serviceRank: data.class_rank ?? "",
     bossId: data.chief,
     unit: unit
       ? {
@@ -107,29 +107,29 @@ const toUser = (data: UserData): User => {
     training:
       char?.trainings.map((t) => ({
         name: t.name,
-        attachment: t.file || null,
+        attachment: t.file ?? null,
       })) || [],
     education:
       char?.universitys.map((u) => ({
-        year: u.year || 9999,
+        year: u.year ?? 0,
         university: u.name,
-        major: u.faculty || "?",
+        major: u.faculty ?? "",
       })) || [],
     courses:
       char?.courses.map((c) => ({
-        year: c.year || 9999,
+        year: c.year ?? 0,
         name: c.name,
-        attachment: c.file || null,
+        attachment: c.file ?? null,
       })) || [],
     communityWork:
       char?.volunteers.map(({ name, file }) => ({
         name,
-        attachment: file || null,
+        attachment: file ?? null,
       })) || [],
     awards:
       char?.rewards.map(({ name, file }) => ({
         name,
-        attachment: file || null,
+        attachment: file ?? null,
       })) || [],
   };
 };
@@ -178,19 +178,19 @@ const fromUser = (user: User): UserData => ({
       name: c.name,
       year: c.year,
       month: null,
-      file: c.attachment || undefined,
+      file: c.attachment ?? undefined,
     })),
     rewards: user.awards.map((a) => ({
       name: a.name,
-      file: a.attachment || undefined,
+      file: a.attachment ?? undefined,
     })),
     trainings: user.training.map((t) => ({
       name: t.name,
-      file: t.attachment || undefined,
+      file: t.attachment ?? undefined,
     })),
     volunteers: user.communityWork.map(({ name, attachment: image }) => ({
       name,
-      file: image || undefined,
+      file: image ?? undefined,
     })),
   },
 });
@@ -353,7 +353,7 @@ export const useFetchUser = (userId?: string | null) => {
 
 export const uploadFile = async (token: string, uri: string | null) => {
   if (!uri?.startsWith("blob:")) {
-    return uri || undefined;
+    return uri ?? undefined;
   }
   const ext = fileExtention(uri);
   if (!ext) {
@@ -384,7 +384,7 @@ export const saveUser = async (token: string, user: User) => {
 
   await Promise.all([
     uploadFile(token, user.photo).then((file) => {
-      data.avatar = file || null;
+      data.avatar = file ?? null;
     }),
     ...attrs.flatMap(([attr, apiAttr]) =>
       (user[attr] || []).map(({ attachment }, i) =>

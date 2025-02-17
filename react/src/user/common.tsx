@@ -72,7 +72,7 @@ export const PropertyInput = ({
       onChange={(e) => handleChange(e.target.value)}
     />
   ) : (
-    <span>{text || value}</span>
+    <span>{text ?? value}</span>
   );
 };
 
@@ -99,7 +99,7 @@ export const PropertySelect = ({
         "border rounded bg-white border-black",
       )}
       value={value}
-      onChange={(e) => handleChange(e.target.value, e.target.textContent || "")}
+      onChange={(e) => handleChange(e.target.value, e.target.textContent ?? "")}
     >
       {options &&
         options.map(([value, text]) => (
