@@ -9,18 +9,12 @@ import {
 
 import clsx from "clsx/lite";
 import { produce } from "immer";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
 
 import { useAuth } from "@/auth/slice";
-import {
-  fileExtention,
-  fullNameShort,
-  resolveMediaPath,
-  trimExtention,
-  userPhotoPath,
-} from "@/common/util";
+import { fileExtention, resolveMediaPath, trimExtention } from "@/common/util";
 import { saveUser, useFetchColleagues, useFetchUser } from "./api";
 import { UpdateUserFn, User, userBlobURLs } from "./types";
 
@@ -29,9 +23,9 @@ import { Attachment } from "@/common/Attachment";
 import { SlideButton } from "@/common/SlideButton";
 
 import { Icon } from "@/common/Icon";
-import { Picture } from "@/common/Picture";
 import { EditableProperty, FileInput, PropertyInput } from "./common";
 import { ProfileCard } from "./ProfileCard";
+import { UserAvatarLink } from "./UserAvatarLink";
 
 import bookIcon from "@/assets/book.svg";
 import creditCardIcon from "@/assets/credit-card.svg";
@@ -737,17 +731,6 @@ const ViewButton = ({
   );
 };
 
-const UserAvatarLink = ({ user }: { user: User }) => {
-  return (
-    <Link to={`/profile/${user.id}`} className="shrink-0 w-fit hover:underline">
-      <div className="rounded-photo overflow-hidden">
-        <Picture width="210px" height="210px" url={userPhotoPath(user)} />
-      </div>
-      <div className="text-center mt-[16px]">{fullNameShort(user)}</div>
-    </Link>
-  );
-};
-
 const TeamSection = ({ user }: { user: User }) => {
   const [showBosses, setShowBosses] = useState(false);
 
@@ -766,7 +749,13 @@ const TeamSection = ({ user }: { user: User }) => {
   }
 
   const items = users.map((user) => (
-    <UserAvatarLink key={user.id} user={user} />
+    <UserAvatarLink
+      key={user.id}
+      user={user}
+      width="210px"
+      height="210px"
+      fontSize="24px"
+    />
   ));
 
   return (
