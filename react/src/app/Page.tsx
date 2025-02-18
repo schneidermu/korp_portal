@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 
 import { useLogin } from "@/auth/login";
 
+import { DPA } from "@/dpa/DPA";
 import { NavBar } from "./NavBar";
 
 export const PageSkel = ({
@@ -65,6 +66,7 @@ export const Page = () => {
       <div className="flex flex-col gap-[45px] max-w-[1404px] mx-auto mt-[45px] text-[24px]">
         <NavBar></NavBar>
         <Outlet />
+        <DPA />
       </div>
     </div>
   );
