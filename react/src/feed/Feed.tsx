@@ -3,11 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import clsx from "clsx/lite";
 import { AnimatePresence } from "motion/react";
 
+import { useIntSearchParam } from "@/common/useSearchParam";
 import { resolveMediaPath } from "@/common/util";
 import { useFeed } from "./api";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
 import { Gallery, Modal } from "@/common/Gallery";
+import { OrgPicker } from "@/common/OrgPicker";
 import { News } from "./News";
 import { Poll } from "./Poll";
 
@@ -39,7 +41,9 @@ const Separator = () => {
 };
 
 export const Feed = () => {
-  const { data: posts, vote, setPoll, loadMore, allAreLoaded } = useFeed();
+  const [orgId, setOrgId] = useIntSearchParam("org");
+
+  const { data: posts, vote, setPoll, loadMore, allAreLoaded } = useFeed(orgId);
   const [overlayPost, setOverlayPost] = useState<number | null>(null);
   const [overlayImg, setOverlayImg] = useState<number | null>(null);
 
@@ -57,7 +61,15 @@ export const Feed = () => {
 
   return (
     <AnimatePage>
-      <PageSkel title="Новости" heading="Новости">
+      <PageSkel
+        title="Новости"
+        heading="Новости"
+        slot={
+          <div className="basis-1/4">
+            <OrgPicker orgId={orgId} setOrgId={setOrgId} />
+          </div>
+        }
+      >
         <div>
           {posts.map((post, i) => (
             <div

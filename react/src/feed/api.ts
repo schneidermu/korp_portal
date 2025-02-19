@@ -89,15 +89,20 @@ const usePosts = <P extends Post, Data>(
   kind: P["kind"],
   toPost: (data: Data, userId: string) => P,
   limit: number,
+  orgId: number | null,
 ) => {
   const fetcher = useTokenFetcher();
   const { userId } = useAuth();
 
   const getKey = (index: number, prevPage: Paged<Data>) => {
-    if (index === 0) return `/${kind}/?limit=${limit}`;
+    let key = `/${kind}/?limit=${limit}`;
+    if (orgId !== null) {
+      key += `&organization__id=${orgId}`;
+    }
+    if (index === 0) return key;
     if (prevPage && prevPage.next === null) return null;
     const offset = limit * index;
-    return `/${kind}/?limit=${limit}&offset=${offset}`;
+    return `${key}&offset=${offset}`;
   };
 
   const {
@@ -195,16 +200,18 @@ const usePosts = <P extends Post, Data>(
   };
 };
 
-const useNews = (limit: number) => usePosts("news", toNews, limit);
-const usePolls = (limit: number) => usePosts("polls", toPoll, limit);
+const useNews = (limit: number, orgId: number | null) =>
+  usePosts("news", toNews, limit, orgId);
+const usePolls = (limit: number, orgId: number | null) =>
+  usePosts("polls", toPoll, limit, orgId);
 
 type Count = { [key in Post["kind"]]: number };
 
-export const useFeed = () => {
+export const useFeed = (orgId: number | null) => {
   const [size, setSize] = useState(1);
 
-  const news = useNews(FEED_PAGE_LIMIT);
-  const polls = usePolls(FEED_PAGE_LIMIT);
+  const news = useNews(FEED_PAGE_LIMIT, orgId);
+  const polls = usePolls(FEED_PAGE_LIMIT, orgId);
 
   const posts = useMemo(() => {
     const posts: Post[] = [...(news.data ?? []), ...(polls.data ?? [])];
