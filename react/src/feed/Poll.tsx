@@ -5,6 +5,7 @@ import { produce } from "immer";
 
 import { useAuth } from "@/auth/slice";
 import { formatDate } from "@/common/util";
+import { useFetchUser } from "@/user/api";
 import * as types from "./types";
 
 import { Icon } from "@/common/Icon";
@@ -12,7 +13,6 @@ import { UserAvatarLink } from "@/user/UserAvatarLink";
 
 import checkIcon from "@/assets/check.svg";
 import tickIcon from "@/assets/tick.svg";
-import { useFetchUser } from "@/user/api";
 
 const calcChoicePct = (poll: types.Poll, choice: types.Choice) => {
   const pct = poll.voted ? (100 * choice.votes) / poll.votes || 0 : 0;

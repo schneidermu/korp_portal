@@ -3,11 +3,13 @@ import { useMemo, useState } from "react";
 import { produce } from "immer";
 import useSWRInfinite from "swr/infinite";
 
-import { FEED_PAGE_LIMIT } from "@/app/const";
+import { BIRTHDAY_NEWS_EXPIRY, FEED_PAGE_LIMIT, MS_PER_DAY } from "@/app/const";
 
 import { useAuth, useTokenFetcher } from "@/auth/slice";
 import { Paged } from "@/common/types";
-import { News, Poll, Post } from "./types";
+import { Birthday, News, Poll, Post } from "./types";
+import { useFetchUsers } from "@/user/api";
+import { User } from "@/user/types";
 
 interface NewsData {
   id: number;
@@ -200,6 +202,65 @@ const usePosts = <P extends Post, Data>(
   };
 };
 
+const useBirthdays = (orgId: number | null): Birthday[] => {
+  const { data: users } = useFetchUsers(orgId);
+
+  if (!users) return [];
+
+  const birthdays = new Map<string, User[]>();
+
+  for (const user of users.values()) {
+    if (user.dateOfBirth === null) {
+      continue;
+    }
+
+    const now = new Date();
+
+    const birthday = new Date(user.dateOfBirth);
+    let prevBirthday = new Date(
+      now.getFullYear(),
+      birthday.getMonth(),
+      birthday.getDate(),
+    );
+    if (now.getTime() - prevBirthday.getTime() < 0) {
+      prevBirthday = new Date(
+        now.getFullYear() - 1,
+        birthday.getMonth(),
+        birthday.getDate(),
+      );
+    }
+
+    const daysPassed = (now.getTime() - prevBirthday.getTime()) / MS_PER_DAY;
+
+    if (daysPassed >= BIRTHDAY_NEWS_EXPIRY + 1) {
+      continue;
+    }
+
+    const date =
+      prevBirthday.getFullYear().toString() + user.dateOfBirth.slice(4);
+
+    const users = birthdays.get(date) ?? [];
+    birthdays.set(date, users);
+    users.push(user);
+  }
+
+  const dates = [...birthdays.keys()];
+  dates.sort();
+
+  const posts: Birthday[] = [];
+  for (let i = dates.length - 1; i >= 0; i--) {
+    const date = dates[i];
+    posts.push({
+      kind: "birthday",
+      id: date,
+      publishedAt: new Date(date),
+      users: birthdays.get(date) ?? [],
+    });
+  }
+
+  return posts;
+};
+
 const useNews = (limit: number, orgId: number | null) =>
   usePosts("news", toNews, limit, orgId);
 const usePolls = (limit: number, orgId: number | null) =>
@@ -212,13 +273,18 @@ export const useFeed = (orgId: number | null) => {
 
   const news = useNews(FEED_PAGE_LIMIT, orgId);
   const polls = usePolls(FEED_PAGE_LIMIT, orgId);
+  const birthdays = useBirthdays(orgId);
 
   const posts = useMemo(() => {
-    const posts: Post[] = [...(news.data ?? []), ...(polls.data ?? [])];
+    const posts: Post[] = [
+      ...birthdays,
+      ...(news.data ?? []),
+      ...(polls.data ?? []),
+    ];
     // Reverse chronological order.
     posts.sort((p1, p2) => p2.publishedAt.getTime() - p1.publishedAt.getTime());
     return posts;
-  }, [news, polls]);
+  }, [birthdays, news, polls]);
 
   const loadMore = useMemo(
     () => () => {
@@ -226,7 +292,7 @@ export const useFeed = (orgId: number | null) => {
         return false;
       }
 
-      const extraCounts: Count = { news: 0, polls: 0 };
+      const extraCounts: Count = { news: 0, polls: 0, birthday: 0 };
       for (const post of posts.slice(size * FEED_PAGE_LIMIT)) {
         extraCounts[post.kind] += 1;
       }

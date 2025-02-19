@@ -1,3 +1,5 @@
+import { User } from "@/user/types";
+
 export interface News {
   kind: "news";
   id: number;
@@ -30,4 +32,11 @@ export interface Poll {
   isMultipleChoice: boolean;
 }
 
-export type Post = News | Poll;
+export interface Birthday {
+  kind: "birthday";
+  id: string;
+  publishedAt: Date;
+  users: User[];
+}
+
+export type Post = News | Poll | Birthday;

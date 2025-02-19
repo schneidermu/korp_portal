@@ -5,6 +5,12 @@ export const BACKEND_API_PREFIX = BACKEND_PREFIX + "/api";
 export const FEED_PAGE_LIMIT = 5;
 export const LOCALE = "ru-RU";
 
+/**
+ * The number of days that news about someone's birthday remains visible in the feed
+ * after the actual birthday date.
+ */
+export const BIRTHDAY_NEWS_EXPIRY = 14;
+
 export const ACCEPT_IMAGES = [".jpg", ".jpeg", ".png"] as const;
 export const ACCEPT_DOCUMENTS = [
   ...ACCEPT_IMAGES,
@@ -29,3 +35,5 @@ export const DPA_CLOSE_DELAY: number = 1000;
  * * DPA = согласие на обработку персональных данных
  */
 export const DPA_TERMS_URL: string = "https://example.com";
+
+export const MS_PER_DAY = 1000 * 60 * 60 * 24;

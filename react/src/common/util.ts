@@ -69,6 +69,11 @@ export const formatDateLong = new Intl.DateTimeFormat(LOCALE, {
   day: "numeric",
 }).format;
 
+export const formatDatePretty = new Intl.DateTimeFormat(LOCALE, {
+  month: "long",
+  day: "numeric",
+}).format;
+
 export const resolveMediaPath = (path: string) => {
   if (path.startsWith("blob:")) {
     return path.replace(/\.[a-z0-9]+$/, "");

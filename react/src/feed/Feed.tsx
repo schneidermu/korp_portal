@@ -12,6 +12,7 @@ import { Gallery, Modal } from "@/common/Gallery";
 import { OrgPicker } from "@/common/OrgPicker";
 import { News } from "./News";
 import { Poll } from "./Poll";
+import { Birthday } from "./Birthday";
 
 const useReachBottom = (handleBottom: () => boolean) => {
   useEffect(() => {
@@ -86,7 +87,7 @@ export const Feed = () => {
                   handleOpen={() => setOverlayPost(i)}
                   setOverlayImg={setOverlayImg}
                 />
-              ) : (
+              ) : post.kind === "polls" ? (
                 <Poll
                   poll={post}
                   handleOpen={() => setOverlayPost(i)}
@@ -94,6 +95,11 @@ export const Feed = () => {
                   setPoll={setPoll}
                   showResults={showPollResults}
                   setShowResults={setShowPollResults}
+                />
+              ) : (
+                <Birthday
+                  birthday={post}
+                  handleOpen={() => setOverlayPost(i)}
                 />
               )}
             </div>
@@ -139,7 +145,7 @@ export const Feed = () => {
                       news={posts[overlayPost]}
                       setOverlayImg={setOverlayImg}
                     />
-                  ) : (
+                  ) : posts[overlayPost].kind === "polls" ? (
                     <Poll
                       full
                       poll={posts[overlayPost]}
@@ -148,6 +154,8 @@ export const Feed = () => {
                       showResults={showPollResults}
                       setShowResults={setShowPollResults}
                     />
+                  ) : (
+                    <Birthday full birthday={posts[overlayPost]} />
                   )}
                 </Gallery>
               )}
