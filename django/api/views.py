@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from django.db import transaction
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from employees.models import Employee, Organization, Rating
@@ -12,9 +14,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from django.db import transaction
-from django.shortcuts import get_object_or_404
-
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 from .serializers import (
     FileUploadSerializer,
@@ -26,6 +25,7 @@ from .serializers import (
     ProfileInOrganizationSerializer,
     RatingDELETESerializer,
     RatingPOSTSerializer,
+    RatingPUTSerializer,
     VoteCreateSerializer,
 )
 
@@ -176,16 +176,22 @@ class ColleagueProfileViewset(UserViewSet):
         methods=[
             "post",
         ],
-        http_method_names=["post", "delete"],
+        http_method_names=["post", "put", "delete"],
         permission_classes=(IsAuthenticated,),
         serializer_class=RatingPOSTSerializer,
     )
     def rate(self, request, id):
         serializer = self.validate_rating(RatingPOSTSerializer, request, id)
+        employee = serializer.validated_data.get("employee")
         serializer.save()
 
         return Response(
-            {"message": "Вы успешно оценили сотрудника."}, status=status.HTTP_200_OK
+            {
+                "message": "Вы успешно оценили сотрудника.",
+                "average_rating": employee.average_rating,
+                "num_rates": employee.rated.count(),
+            },
+            status=status.HTTP_200_OK,
         )
 
     @transaction.atomic
@@ -198,8 +204,28 @@ class ColleagueProfileViewset(UserViewSet):
         Rating.objects.get(user=request.user, employee=employee).delete()
 
         return Response(
-            {"message": "Вы успешно удалили свою оценку."},
+            {
+                "message": "Вы успешно удалили свою оценку.",
+                "average_rating": employee.average_rating,
+                "num_rates": employee.rated.count(),
+            },
             status=status.HTTP_204_NO_CONTENT,
+        )
+
+    @transaction.atomic
+    @rate.mapping.put
+    def change_or_rate(self, request, id):
+        serializer = self.validate_rating(RatingPUTSerializer, request, id)
+        employee = serializer.validated_data.get("employee")
+        serializer.save()
+
+        return Response(
+            {
+                "message": "Вы успешно оценили сотрудника.",
+                "average_rating": employee.average_rating,
+                "num_rates": employee.rated.count(),
+            },
+            status=status.HTTP_200_OK,
         )
 
 

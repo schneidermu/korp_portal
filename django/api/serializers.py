@@ -1,5 +1,6 @@
 import os.path
 
+from django.db import transaction
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from employees.models import (
@@ -27,8 +28,6 @@ from homepage.constants import CHARFIELD_LENGTH
 from homepage.models import Attachment, Choice, News, Poll
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
-from django.db import transaction
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
@@ -542,6 +541,8 @@ class ProfileSerializer(UserSerializer):
     organization = OrganizationInProfileSerializer(read_only=True)
 
     subordinates_count = serializers.SerializerMethodField(read_only=True)
+    num_rates = serializers.SerializerMethodField(read_only=True)
+    rated_by_me = serializers.SerializerMethodField(read_only=True)
 
     class Meta(UserSerializer.Meta):
         model = Employee
@@ -570,6 +571,8 @@ class ProfileSerializer(UserSerializer):
             "supervizor",
             "team",
             "subordinates_count",
+            "num_rates",
+            "rated_by_me",
         )
         extra_kwargs = {"is_superuser": {"read_only": True}}
 
@@ -600,11 +603,24 @@ class ProfileSerializer(UserSerializer):
         try:
             ids = object.structural_division.positions.values("id")
         except Exception:
-            return []
+            ids = []
         return ids
 
     def get_subordinates_count(self, obj):
         return obj.subordinates.count()
+
+    def get_num_rates(self, obj):
+        return obj.rated.count()
+
+    def get_rated_by_me(self, obj):
+        user = self.context["request"].user
+
+        rating = obj.rated.filter(user=user).first()
+        if rating:
+            rate = rating.rate
+        else:
+            rate = None
+        return rate
 
     @staticmethod
     def add_related_fields(characteristic_update, characteristic, name, model_class):
@@ -724,6 +740,37 @@ class RatingPOSTSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         fields = "__all__"
+
+
+class RatingPUTSerializer(RatingPOSTSerializer):
+    """Сериализатор для оценивания (PUT)."""
+
+    def validate(self, data):
+        employee = data.get("employee")
+        user = data.get("user")
+        rate = data.get("rate")
+
+        if employee.id == user.id:
+            raise serializers.ValidationError(
+                {"error": "Вы не можете оценить самого себя."}
+            )
+        if rate < 1 or rate > 5:
+            raise serializers.ValidationError({"error": "Недопустимая оценка."})
+
+        return data
+
+    @transaction.atomic
+    def create(self, validated_data):
+        user = validated_data.get("user")
+        rating = Rating.objects.filter(user=user).first()
+
+        if rating is None:
+            rating = Rating.objects.create(**validated_data)
+        else:
+            rating.rate = validated_data.get("rate")
+            rating.save()
+
+        return rating
 
 
 class RatingDELETESerializer(serializers.ModelSerializer):
