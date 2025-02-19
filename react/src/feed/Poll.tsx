@@ -90,7 +90,9 @@ const Choice = ({
         checked={chosen}
         onChange={() => poll.voted || toggleChosen()}
       />
-      <div className="grow">{choice.text}</div>
+      <div className="grow overflow-hidden text-nowrap text-ellipsis">
+        {choice.text}
+      </div>
       {chosen && !poll.isMultipleChoice && (
         <Icon src={tickIcon} className="mx-[18px]" />
       )}
