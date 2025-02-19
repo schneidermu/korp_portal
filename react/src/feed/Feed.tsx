@@ -46,6 +46,7 @@ export const Feed = () => {
   const { data: posts, vote, setPoll, loadMore, allAreLoaded } = useFeed(orgId);
   const [overlayPost, setOverlayPost] = useState<number | null>(null);
   const [overlayImg, setOverlayImg] = useState<number | null>(null);
+  const [showPollResults, setShowPollResults] = useState(false);
 
   const refs = useRef<(HTMLDivElement | null)[]>(Array(posts?.length));
 
@@ -91,6 +92,8 @@ export const Feed = () => {
                   handleOpen={() => setOverlayPost(i)}
                   vote={vote}
                   setPoll={setPoll}
+                  showResults={showPollResults}
+                  setShowResults={setShowPollResults}
                 />
               )}
             </div>
@@ -109,7 +112,10 @@ export const Feed = () => {
                 <Gallery
                   hideControls={overlayImg !== null}
                   key="post"
-                  close={() => setOverlayPost(null)}
+                  close={() => {
+                    setShowPollResults(false);
+                    setOverlayPost(null);
+                  }}
                   left={
                     overlayPost <= 0
                       ? undefined
@@ -139,6 +145,8 @@ export const Feed = () => {
                       poll={posts[overlayPost]}
                       vote={vote}
                       setPoll={setPoll}
+                      showResults={showPollResults}
+                      setShowResults={setShowPollResults}
                     />
                   )}
                 </Gallery>

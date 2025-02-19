@@ -23,10 +23,12 @@ const Choice = ({
   poll,
   choice,
   setPoll,
+  showResults,
 }: {
   poll: types.Poll;
   choice: types.Choice;
   setPoll: (poll: types.Poll) => void;
+  showResults: () => void;
 }) => {
   const { userId } = useAuth();
 
@@ -63,10 +65,14 @@ const Choice = ({
         "hover:bg-choice-selected",
         "flex items-center",
         "pl-[30px] py-[20px]",
+        poll.voted && !poll.isAnonymous && "cursor-pointer",
       )}
+      onClick={(event) => {
+        event.stopPropagation();
+        if (poll.voted && !poll.isAnonymous) showResults();
+      }}
     >
       <input
-        disabled={poll.voted}
         style={{
           backgroundImage:
             chosen && poll.isMultipleChoice ? `url(${checkIcon})` : undefined,
@@ -82,7 +88,7 @@ const Choice = ({
         type={poll.isMultipleChoice ? "checkbox" : "radio"}
         key={choice.id}
         checked={chosen}
-        onChange={toggleChosen}
+        onChange={() => poll.voted || toggleChosen()}
       />
       <div className="grow">{choice.text}</div>
       {chosen && !poll.isMultipleChoice && (
@@ -115,7 +121,16 @@ export const PollContent = ({
   const choices = [...poll.choices]
     .sort(([id1], [id2]) => id1 - id2)
     .map(([id, choice]) => (
-      <Choice key={id} poll={poll} choice={choice} setPoll={setPoll} />
+      <Choice
+        key={id}
+        poll={poll}
+        choice={choice}
+        setPoll={setPoll}
+        showResults={() => {
+          showResults();
+          if (handleOpen) handleOpen();
+        }}
+      />
     ));
 
   const votes = poll.votes;
@@ -143,9 +158,16 @@ export const PollContent = ({
           {poll.question}
         </h2>
       </a>
-      <div className="mt-[50px] mb-[70px] text-center font-extralight">
+      <button
+        disabled={poll.isAnonymous}
+        className="mt-[50px] mb-[70px] w-full font-extralight"
+        onClick={(event) => {
+          event.stopPropagation();
+          showResults();
+        }}
+      >
         {poll.isAnonymous ? "Анонимный опрос" : "Публичный опрос"}
-      </div>
+      </button>
       <div className="ml-[5%] mr-[10%]">
         <div className="flex flex-col gap-[24px]">{choices}</div>
         {!poll.voted && (
@@ -166,13 +188,15 @@ export const PollContent = ({
           </button>
         )}
         <button
-          disabled={!full}
           className={clsx(
             "w-full mb-[72px] mt-[40px]",
             "font-extralight text-dark-gray",
             full && "hover:underline",
           )}
-          onClick={showResults}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (poll.voted && !poll.isAnonymous) showResults();
+          }}
         >
           {votedText}
         </button>
@@ -279,15 +303,17 @@ export const Poll = ({
   vote,
   handleOpen,
   setPoll,
+  showResults,
+  setShowResults,
 }: {
   poll: types.Poll;
   full?: boolean;
   vote: (poll: types.Poll) => void;
   handleOpen?: () => void;
   setPoll: (poll: types.Poll) => void;
+  showResults: boolean;
+  setShowResults: (show: boolean) => void;
 }) => {
-  const [showResults, setShowResults] = useState(false);
-
   return (
     <article className="mt-[60px] mx-[65px] mb-[50px] text-[32px]">
       <div className="flex items-center justify-end">
@@ -304,7 +330,7 @@ export const Poll = ({
           full && "mt-[45px] px-[70px] border",
         )}
       >
-        {showResults ? (
+        {full && showResults ? (
           <PollResults poll={poll} handleOpen={handleOpen} />
         ) : (
           <PollContent
@@ -312,7 +338,10 @@ export const Poll = ({
             vote={vote}
             handleOpen={handleOpen}
             full={full}
-            showResults={() => setShowResults(true)}
+            showResults={() => {
+              setShowResults(true);
+              if (handleOpen) handleOpen();
+            }}
             setPoll={setPoll}
           />
         )}
