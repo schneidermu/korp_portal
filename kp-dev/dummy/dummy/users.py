@@ -26,6 +26,14 @@ ABOUT_SENTENCES = load_json("data/about_sentences.json")
 SKILLS = load_json("data/skills.json")
 CAREER_PATHS = load_json("data/career_paths.json")
 
+STATUSES = [
+    "В командировке",
+    "В отпуске",
+    "На больничном",
+    "На рабочем месте",
+    "Нет на месте",
+]
+
 
 class User:
     def __init__(
@@ -87,6 +95,13 @@ class User:
         self.career_years.append((y0 + exp, None))
         self.career_years = self.career_years[::-1]
 
+        self.phone = "+7" + str(randint(800_000_00_00, 999_999_99_99))
+        self.inner_phone = str(randint(10, 99)) + "-" + str(randint(0, 99))
+        self.office = "к. " + str(randint(100, 1000))
+
+        self.service_rank = f"Советник {randint(1, 6)} ранга"
+        self.status = random.choice(STATUSES)
+
     @property
     def birth_year(self):
         return self.birth_date.year
@@ -109,9 +124,11 @@ class User:
             "email": self.email,
             "username": self.email,
             "job_title": self.job_title,
-            "class_rank": None,
-            "status": None,
-            "telephone_number": None,
+            "class_rank": self.service_rank,
+            "status": self.status,
+            "telephone_number": self.phone,
+            "inner_telephone_number": self.inner_phone,
+            "office": self.office,
             "is_superuser": self.is_superuser,
             "is_active": True,
             "is_staff": True,
