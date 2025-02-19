@@ -1106,7 +1106,7 @@ export const UserProfile = () => {
           onSubmit={handleSubmit}
         >
           <div className={clsx(editable || "invisible")}>
-            <Sticky top={40} innerZ={1}>
+            <Sticky top={70} innerZ={1}>
               <div className="flex justify-end">
                 <EditControls
                   editing={editing}
