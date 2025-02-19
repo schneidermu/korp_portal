@@ -85,6 +85,7 @@ class User:
             self.career_years.append((y0 + exp, y0 + exp + t))
             exp += t
         self.career_years.append((y0 + exp, None))
+        self.career_years = self.career_years[::-1]
 
     @property
     def birth_year(self):
