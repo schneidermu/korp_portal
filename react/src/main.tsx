@@ -18,6 +18,8 @@ import "./index.css";
 
 const swrConfig: SWRConfiguration = {
   keepPreviousData: true,
+  revalidateOnFocus: false,
+  revalidateIfStale: false,
 };
 
 enableMapSet();

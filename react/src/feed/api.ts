@@ -113,12 +113,7 @@ const usePosts = <P extends Post, Data>(
           ...page,
           results: page.results.map((post) => toPost(post, userId)),
         })),
-    {
-      revalidateFirstPage: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      revalidateIfStale: false,
-    },
+    { revalidateFirstPage: false },
   );
 
   const pagesSetPoll = (poll: Poll): typeof pages => {

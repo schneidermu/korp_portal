@@ -208,8 +208,6 @@ export const useFetchUsers = (orgId: number | null) => {
         .then((usersData: UserData[]) => usersData.map(toUser))
         .then((users: User[]) => new Map(users.map((user) => [user.id, user]))),
     {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
       keepPreviousData: false,
     },
   );
@@ -296,23 +294,17 @@ export const useFetchUsersSubset = ({
   const uri = "/colleagues/?" + query.join("&");
   const key = query.length === 0 ? null : uri;
 
-  return useSWR(
-    key,
-    async (path: string) =>
-      tokenFetcher(path)
-        .then((res) => res.json())
-        .then((usersData: UserData[]) => {
-          const users = usersData.map(toUser);
-          users.sort(cmpUsers);
-          for (const user of users.values()) {
-            mutate(`/colleagues/${user.id}/`, user, { revalidate: false });
-          }
-          return users;
-        }),
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    },
+  return useSWR(key, async (path: string) =>
+    tokenFetcher(path)
+      .then((res) => res.json())
+      .then((usersData: UserData[]) => {
+        const users = usersData.map(toUser);
+        users.sort(cmpUsers);
+        for (const user of users.values()) {
+          mutate(`/colleagues/${user.id}/`, user, { revalidate: false });
+        }
+        return users;
+      }),
   );
 };
 
@@ -338,10 +330,6 @@ export const useFetchUser = (userId?: string | null) => {
         .then((data) => {
           return toUser(data);
         }),
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    },
   );
 
   return {
