@@ -35,7 +35,9 @@ export const useOrganization = (orgId: number) => {
 export const useFetchOrgs = () => {
   const tokenFetch = useTokenFetcher();
 
-  return useSWR<Organization[]>("/organization/", () =>
-    tokenFetch("/organization/").then((res) => res.json()),
+  return useSWR<Organization[]>("/organization/", (path: string) =>
+    tokenFetch(path)
+      .then((res) => res.json())
+      .then((raws) => raws.map(toOrganization)),
   );
 };
