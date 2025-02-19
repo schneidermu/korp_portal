@@ -2,7 +2,7 @@ import useSWR from "swr";
 
 import { Organization } from "./types";
 
-import { fetcher, useTokenFetcher } from "@/auth/slice";
+import { useTokenFetcher } from "@/auth/slice";
 
 interface OrganizationData {
   id: number;
@@ -20,17 +20,6 @@ const toOrganization = (data: OrganizationData): Organization => ({
   address: data.address,
   units: data.structural_subdivisions,
 });
-
-export const useOrganization = (orgId: number) => {
-  const { data } = useSWR<Organization>(
-    `/organization/${orgId}/`,
-    (path: string) =>
-      fetcher(path)
-        .then((res) => res.json())
-        .then(toOrganization),
-  );
-  return { data };
-};
 
 export const useFetchOrgs = () => {
   const tokenFetch = useTokenFetcher();
