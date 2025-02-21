@@ -3,20 +3,18 @@ import {
   Fragment,
   ReactNode,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
 import clsx from "clsx/lite";
-import { produce } from "immer";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
 
 import { useAuth } from "@/auth/slice";
-import { fileExtention, resolveMediaPath, trimExtention } from "@/common/util";
+import { fileExtention, resolveMediaPath } from "@/common/util";
 import { saveUser, useFetchColleagues, useFetchUser } from "./api";
-import { UpdateUserFn, User, userBlobURLs } from "./types";
+import { UpdateUserFn, User } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
 import { Attachment } from "@/common/Attachment";
@@ -37,6 +35,7 @@ import layoutIcon from "@/assets/layout.svg";
 import upArrowIcon from "@/assets/up-arrow.svg";
 
 import Sticky from "react-stickynode";
+import { useUserState } from "./hooks";
 
 const SectionSep = () => {
   return (
@@ -1013,59 +1012,21 @@ const AboutMeSection = ({
   );
 };
 
-const revokeUnusedURLs = (oldUser: User, user: User) => {
-  const s1 = userBlobURLs(oldUser);
-  const s2 = userBlobURLs(user);
-  for (const url of s1) {
-    if (s2.has(url)) {
-      continue;
-    }
-    URL.revokeObjectURL(trimExtention(url));
-  }
-};
-
 export const UserProfile = () => {
   const navigate = useNavigate();
   const params = useParams();
   const auth = useAuth();
   const userId = params.userId ?? auth.userId;
   const { user } = useFetchUser(userId);
+  const [userState, updateUserState] = useUserState(user);
 
   if (!params.userId && userId) {
     navigate(`/profile/${userId}`);
   }
 
   const [editing, setEditing] = useState(false);
-  const [userState, setUserState] = useState<User | undefined>(undefined);
-
-  const updateUserState = useMemo<UpdateUserFn>(
-    () => (recipe) => {
-      if (typeof recipe !== "function") {
-        setUserState((user) => {
-          if (user) {
-            revokeUnusedURLs(user, recipe);
-          }
-          return recipe;
-        });
-        return;
-      }
-      setUserState((user) => {
-        if (!user) {
-          return;
-        }
-        return produce(user, (draft) => {
-          recipe(draft);
-          revokeUnusedURLs(user, draft);
-        });
-      });
-    },
-    [setUserState],
-  );
 
   useEffect(() => {
-    if (user) {
-      updateUserState(user);
-    }
     // FIXME:
     // setEditing(false);
   }, [updateUserState, user]);
@@ -1080,7 +1041,7 @@ export const UserProfile = () => {
   const handleSubmit: FormEventHandler = (event) => {
     event.preventDefault();
     if (editing) {
-      saveUser(auth.token, userState).catch(() => setUserState(user));
+      saveUser(auth.token, userState).catch(() => updateUserState(user));
     }
     setEditing(false);
   };
@@ -1112,7 +1073,7 @@ export const UserProfile = () => {
                   editing={editing}
                   edit={() => setEditing(true)}
                   reset={() => {
-                    setUserState(user);
+                    updateUserState(user);
                     setEditing(false);
                   }}
                 />
