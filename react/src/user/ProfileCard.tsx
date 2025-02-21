@@ -1,11 +1,8 @@
-import { useState } from "react";
-
 import clsx from "clsx/lite";
 import { Link } from "react-router-dom";
 
 import { ACCEPT_IMAGES } from "@/app/const";
 
-import { tokenFetch, useAuth } from "@/auth/slice";
 import {
   formatDateOfBirth,
   formatMobilePhone,
@@ -19,6 +16,7 @@ import { UpdateUserFn, User, USER_STATUS, UserStatus } from "./types";
 
 import { Icon } from "@/common/Icon";
 import { Picture } from "@/common/Picture";
+import { Rating } from "@/rating/Rating";
 import {
   EditableProperty,
   FileInput,
@@ -34,8 +32,6 @@ import peopleIcon from "@/assets/people.svg";
 import personIcon from "@/assets/person.svg";
 import phoneIcon from "@/assets/phone.svg";
 import pinIcon from "@/assets/pin.svg";
-import starYellowIcon from "@/assets/star-yellow.svg";
-import starIcon from "@/assets/star.svg";
 
 const Avatar = ({
   user,
@@ -78,74 +74,6 @@ const Avatar = ({
         </div>
       )}
     </Link>
-  );
-};
-
-const FeedbackWidget = ({ user }: { user: User }) => {
-  const auth = useAuth();
-  const [mark, setMark] = useState<number | undefined>(undefined);
-  const [hoverMark, setHoverMark] = useState<number | undefined>(undefined);
-
-  if (!auth) return;
-
-  const onClick = async (i: number) => {
-    if (i === mark) {
-      setMark(undefined);
-      return;
-    }
-    setMark(i);
-    await tokenFetch(auth.token, `/colleagues/${user.id}/rate/`, {
-      method: "DELETE",
-    });
-    tokenFetch(auth.token, `/colleagues/${user.id}/rate/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        rate: 1 + i,
-        employee: user.id,
-        user: auth.userId,
-      }),
-    });
-  };
-
-  const isInteractive = user.id !== auth.userId;
-
-  const stars = [...Array(5)].map((_, i) => {
-    const icon =
-      (mark !== undefined && hoverMark === undefined && i <= mark) ||
-      (hoverMark !== undefined && i <= hoverMark)
-        ? starYellowIcon
-        : starIcon;
-    return (
-      <button
-        type="button"
-        className={clsx(isInteractive || "cursor-default")}
-        key={i}
-        onClick={() => isInteractive && onClick(i)}
-        onMouseEnter={() => isInteractive && setHoverMark(i)}
-      >
-        <Icon src={icon} width="29px" height="29px" />
-      </button>
-    );
-  });
-
-  const rating = user.avgRating?.toFixed(1)?.replace(".", ",");
-
-  return (
-    <div className="flex gap-[10px] items-center">
-      <div
-        className={clsx(
-          "w-fit flex gap-[10px]",
-          isInteractive && "cursor-pointer",
-        )}
-        onMouseLeave={() => setHoverMark(undefined)}
-      >
-        {stars}
-      </div>
-      <div className="text-[20px]">{rating}</div>
-    </div>
   );
 };
 
@@ -318,7 +246,7 @@ export const ProfileCard = ({
         </div>
       </div>
 
-      <FeedbackWidget user={user} />
+      <Rating user={user} updateUser={updateUser} />
     </section>
   );
 };

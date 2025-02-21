@@ -1,5 +1,7 @@
 import { WritableDraft } from "immer";
 
+import { Option } from "effect/Option";
+
 import {
   formatDateLong,
   fullNameLong,
@@ -43,7 +45,9 @@ export type User = {
   bossId: string | null;
   unit: null | Unit;
   organization: null | { id: number; name: string };
-  avgRating: number | null;
+  avgRating: Option<number>;
+  myRating: Option<number>;
+  numRates: number;
   career: {
     position: string;
     year_start: number;

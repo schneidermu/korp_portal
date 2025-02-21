@@ -5,6 +5,8 @@ import { tokenFetch, useTokenFetcher } from "@/auth/slice";
 import { fileExtention, fullNameLong, trimExtention } from "@/common/util";
 import { User, UserStatus } from "./types";
 
+import { Option } from "effect";
+
 type UserData = {
   id: string; // UUID
   email: string | null;
@@ -26,6 +28,8 @@ type UserData = {
   };
   organization?: null | { id: number; name: string };
   average_rating: number | null;
+  num_rates: number;
+  rated_by_me: number | null;
   avatar: string | null; // URI
   characteristic: null | {
     experience: string | null;
@@ -95,7 +99,9 @@ const toUser = (data: UserData): User => {
         }
       : null,
     organization: data.organization || null,
-    avgRating: data.average_rating,
+    avgRating: Option.fromNullable(data.average_rating),
+    myRating: Option.fromNullable(data.rated_by_me),
+    numRates: data.num_rates,
     career:
       char?.careers.map((c) => ({
         position: c.name,
@@ -154,7 +160,9 @@ const fromUser = (user: User): UserData => ({
     parent_structural_subdivision: user.unit.parentId,
   },
   organization: user.organization,
-  average_rating: user.avgRating,
+  average_rating: Option.getOrNull(user.avgRating),
+  rated_by_me: Option.getOrNull(user.myRating),
+  num_rates: user.numRates,
   avatar: user.photo,
   characteristic: {
     experience: user.workExperience,
