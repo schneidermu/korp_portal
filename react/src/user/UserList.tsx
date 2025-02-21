@@ -7,6 +7,7 @@ import {
   useQuerySearchParam,
 } from "@/common/useSearchParam";
 import { sortUsers, useFetchUsers } from "./api";
+import { useUserState } from "./hooks";
 import { filterUsers, User } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
@@ -23,6 +24,26 @@ const FILTER_FIELDS = new Set<keyof User>([
   "phoneNumber",
   "serviceRank",
 ]);
+
+const UserCard = ({ user }: { user: User }) => {
+  const [userState, updateUserState] = useUserState(user);
+
+  if (!userState) {
+    return undefined;
+  }
+
+  return (
+    <div
+      key={user.id}
+      className={clsx(
+        "pt-[52px] pr-[25px] pb-[92px] pl-[36px]",
+        "border-[3px] border-light-gray rounded",
+      )}
+    >
+      <ProfileCard user={userState} updateUser={updateUserState} />
+    </div>
+  );
+};
 
 export const UserList = () => {
   const [orgId, setOrgId] = useIntSearchParam("org");
@@ -60,15 +81,7 @@ export const UserList = () => {
       >
         <div className="flex flex-col gap-[56px] mr-[36px] ml-[64px] pb-[60px]">
           {users.map((user) => (
-            <div
-              key={user.id}
-              className={clsx(
-                "pt-[52px] pr-[25px] pb-[92px] pl-[36px]",
-                "border-[3px] border-light-gray rounded",
-              )}
-            >
-              <ProfileCard user={user} />
-            </div>
+            <UserCard user={user} />
           ))}
         </div>
       </PageSkel>
