@@ -12,6 +12,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.1",
     "clsx": "^2.1.1",
+    "effect": "^3.13.2",
     "immer": "^10.1.1",
     "motion": "^11.18.2",
     "react": "^18.3.1",
