@@ -1,11 +1,10 @@
 import uuid
 
-from homepage.constants import CHARFIELD_LENGTH
-
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
+from homepage.constants import CHARFIELD_LENGTH
 
 
 def return_name(instance, filename):
@@ -84,12 +83,17 @@ class Employee(AbstractUser):
         null=True,
     )
 
+    agreed_with_data_processing = models.BooleanField(
+        verbose_name="Согласен на обработку персональных данных",
+        blank=False,
+        default=False,
+    )
+
     inner_telephone_number = models.CharField(
         verbose_name="Внутренний номер телефона",
         blank=True,
         null=True,
     )
-
     office = models.CharField(
         verbose_name="Кабинет",
         blank=True,

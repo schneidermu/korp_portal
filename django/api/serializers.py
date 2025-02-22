@@ -573,8 +573,12 @@ class ProfileSerializer(UserSerializer):
             "subordinates_count",
             "num_rates",
             "rated_by_me",
+            "agreed_with_data_processing",
         )
-        extra_kwargs = {"is_superuser": {"read_only": True}}
+        extra_kwargs = {
+            "is_superuser": {"read_only": True},
+            "agreed_with_data_processing": {"read_only": True},
+        }
 
     def validate_avatar(self, value):
         if value is None:

@@ -1,8 +1,8 @@
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from django.urls import include, path
-
 from .views import (
+    AgreeWithDataProcessingView,
     ColleagueProfileViewset,
     FileUploadAPIView,
     HierarchyViewSet,
@@ -26,4 +26,9 @@ urlpatterns = [
     path("", include(router_version1.urls)),
     path("auth/", include("djoser.urls.authtoken")),
     path("upload-file/", FileUploadAPIView.as_view(), name="upload-file"),
+    path(
+        "agree_with_data_processing/",
+        AgreeWithDataProcessingView.as_view(),
+        name="agree_with_data_processing",
+    ),
 ]
