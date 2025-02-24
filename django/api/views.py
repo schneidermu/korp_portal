@@ -274,3 +274,16 @@ class HierarchyViewSet(ListModelMixin, RetrieveModelMixin, viewsets.GenericViewS
     serializer_class = HierarchySerializer
     permission_classes = (IsAuthenticated,)
     queryset = Employee.objects.all()
+
+
+class AgreeWithDataProcessingView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user
+        user.agreed_with_data_processing = True
+        user.save(update_fields=["agreed_with_data_processing"])
+        return Response(
+            {"message": "Согласие на обрабокту персональных данных отправлено."},
+            status=status.HTTP_200_OK,
+        )
