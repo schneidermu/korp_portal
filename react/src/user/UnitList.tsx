@@ -15,7 +15,13 @@ import {
   useQuerySearchParam,
 } from "@/common/useSearchParam";
 
-const FILTER_FIELDS = new Set<keyof User>(["unit", "position", "phoneNumber"]);
+const FILTER_FIELDS = new Set<keyof User>([
+  "unit",
+  "position",
+  "phoneNumber",
+  "innerPhoneNumber",
+  "office",
+]);
 
 /**
  * Group users by their units, flattening the unit hierarchy tree.
@@ -196,14 +202,18 @@ export const UnitList = () => {
                       <div className={clsx(cellClass, "text-nowrap")}>
                         {formatMobilePhone(user.phoneNumber)}
                       </div>
-                      <div className={clsx(cellClass, "text-nowrap")}></div>
+                      <div className={clsx(cellClass, "text-nowrap")}>
+                        {user.innerPhoneNumber}
+                      </div>
                       <div
                         className={clsx(
                           cellClass,
                           "text-nowrap",
                           isLastRow && "rounded-br",
                         )}
-                      ></div>
+                      >
+                        {user.office}
+                      </div>
                     </Fragment>
                   );
                 })}

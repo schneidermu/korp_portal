@@ -18,6 +18,8 @@ type UserData = {
   status: UserStatus | null;
   birth_date: string | null;
   telephone_number: string | null;
+  inner_telephone_number: string | null;
+  office: string | null;
   job_title: string | null;
   class_rank: string | null;
   chief: string | null; // UUID
@@ -84,6 +86,8 @@ const toUser = (data: UserData): User => {
     status: data.status ?? "На рабочем месте",
     dateOfBirth: data.birth_date,
     phoneNumber: data.telephone_number ?? "",
+    innerPhoneNumber: data.inner_telephone_number ?? "",
+    office: data.office ?? "",
     workExperience: char?.experience ?? null,
     about: char?.about ?? "",
     skills: char?.competences[0]?.name ?? null,
@@ -151,6 +155,8 @@ const fromUser = (user: User): UserData => ({
   status: user.status,
   birth_date: user.dateOfBirth,
   telephone_number: user.phoneNumber,
+  inner_telephone_number: user.innerPhoneNumber,
+  office: user.office,
   job_title: user.position,
   class_rank: user.serviceRank,
   chief: user.bossId,

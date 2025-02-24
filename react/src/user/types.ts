@@ -36,6 +36,8 @@ export type User = {
   status: UserStatus;
   dateOfBirth: string | null;
   phoneNumber: string;
+  innerPhoneNumber: string;
+  office: string;
   workExperience: string | null;
   about: string;
   skills: string | null;
@@ -125,6 +127,8 @@ export const filterUsers = (
       email,
       phoneNumber,
       serviceRank,
+      innerPhoneNumber,
+      office,
     } = user;
 
     return (
@@ -142,7 +146,14 @@ export const filterUsers = (
       (fields.has("email") && matchString(term, email)) ||
       (fields.has("phoneNumber") &&
         matchString(stripPhoneNumber(term), phoneNumber)) ||
-      (fields.has("serviceRank") && matchString(term, serviceRank))
+      (fields.has("serviceRank") && matchString(term, serviceRank)) ||
+      (fields.has("innerPhoneNumber") &&
+        matchString(
+          term.replace("-", ""),
+          innerPhoneNumber.replace("-", ""),
+        )) ||
+      (fields.has("office") &&
+        matchString(term.replace(/к(аб?)?.?\s*/g, ""), office))
     );
   });
 };
