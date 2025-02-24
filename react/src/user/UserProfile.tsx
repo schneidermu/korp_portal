@@ -13,7 +13,12 @@ import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
 
 import { useAuth } from "@/auth/slice";
 import { fileExtention, resolveMediaPath } from "@/common/util";
-import { saveUser, useFetchColleagues, useFetchUser } from "./api";
+import {
+  saveUser,
+  useFetchColleagues,
+  useFetchUser,
+  UserNotFoundError,
+} from "./api";
 import { UpdateUserFn, User } from "./types";
 
 import { AnimatePage, PageSkel } from "@/app/Page";
@@ -1017,7 +1022,7 @@ export const UserProfile = () => {
   const params = useParams();
   const auth = useAuth();
   const userId = params.userId ?? auth.userId;
-  const { user } = useFetchUser(userId);
+  const { user, error } = useFetchUser(userId);
   const [userState, updateUserState] = useUserState(user);
 
   useEffect(() => {
@@ -1025,6 +1030,12 @@ export const UserProfile = () => {
       navigate(`/profile/${userId}`);
     }
   }, [navigate, params.userId, userId]);
+
+  useEffect(() => {
+    if (error === UserNotFoundError) {
+      navigate(`/404`);
+    }
+  }, [navigate, error]);
 
   const [editing, setEditing] = useState(false);
 

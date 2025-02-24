@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import { enableMapSet } from "immer";
 import { Provider } from "react-redux";
-import { HashRouter, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { SWRConfig, SWRConfiguration } from "swr";
 
 import { store } from "@/app/store.ts";
@@ -13,6 +13,7 @@ import { Feed } from "@/feed/Feed.tsx";
 import { UnitList } from "@/user/UnitList";
 import { UserList } from "@/user/UserList.tsx";
 import { UserProfile } from "@/user/UserProfile.tsx";
+import { NotFoundPage } from "./common/NotFoundPage";
 
 import "./index.css";
 
@@ -36,6 +37,8 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/profile/:userId" element={<UserProfile />} />
               <Route path="list/:query?" element={<UserList />} />
               <Route path="/units/:query?" element={<UnitList />} />
+              <Route path="/404" element={<NotFoundPage />} />
+              <Route path="*" element={<Navigate to="/404" replace />} />
             </Route>
           </Routes>
         </HashRouter>

@@ -7,6 +7,8 @@ import { User, UserStatus } from "./types";
 
 import { Option } from "effect";
 
+export const UserNotFoundError = new Error("User not found");
+
 type UserData = {
   id: string; // UUID
   email: string | null;
@@ -349,7 +351,12 @@ export const useFetchUser = (userId?: string | null) => {
     userId ? `/colleagues/${userId}/` : null,
     async (path: string) =>
       tokenFetcher(path)
-        .then((data) => data.json())
+        .then((res) => {
+          if (res.status === 404) {
+            throw UserNotFoundError;
+          }
+          return res.json();
+        })
         .then((data) => {
           return toUser(data);
         }),
