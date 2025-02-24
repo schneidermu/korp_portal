@@ -55,6 +55,10 @@ services:
       LDAP_USER: "$LDAP_USER"
       LDAP_BASE_DN: "$LDAP_BASE_DN"
       CHALLENGE_URL: "$CHALLENGE_URL"
+      POSTGRES_DB_LIFERAY: "$POSTGRES_DB_LIFERAY"
+      POSTGRES_USER_LIFERAY: "$POSTGRES_USER_LIFERAY"
+      POSTGRES_PASSWORD_LIFERAY: "$POSTGRES_PASSWORD_LIFERAY"
+      PROD: "$PROD"
     volumes:
       - static:/app/collected_static
       - ./volumes/media:/media
@@ -62,7 +66,7 @@ services:
       database:
         condition: service_healthy
     ports:
-      - 8000:8000
+      - 8021:8000
 
   openldap:
     image: bitnami/openldap:2.6.9

@@ -63,7 +63,7 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
 
 AUTHENTICATION_BACKENDS = (
     "korp_portal.backends.CustomLDAPBackend",
-    "django.contrib.auth.backends.ModelBackend",
+    "korp_portal.backends.LiferayDatabaseBackend",
 )
 
 LOGGING = {
@@ -127,6 +127,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_extensions",
     "django_bootstrap5",
     "drf_yasg",
     "rest_framework",

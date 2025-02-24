@@ -1,10 +1,29 @@
+import logging
 import os
 
 import ldap
+import psycopg2
 import requests
+from django.conf import settings
+from django.contrib.auth.backends import ModelBackend
 from django_auth_ldap.backend import LDAPBackend, _LDAPUser, _report_error, logger
+from employees.models import Employee
 
 url = os.getenv("CHALLENGE_URL", "0")
+liferay_db_name = os.getenv("POSTGRES_DB_LIFERAY", "0")
+liferay_db_user = os.getenv("POSTGRES_USER_LIFERAY", "0")
+liferay_db_password = os.getenv("POSTGRES_PASSWORD_LIFERAY", "0")
+db_host = os.getenv("DB_HOST", "127.0.0.1")
+db_port = os.getenv("DB_PORT", "5432")
+
+connection = psycopg2.connect(
+    database=liferay_db_name,
+    user=liferay_db_user,
+    password=liferay_db_password,
+    host=db_host,
+    port=db_port,
+)
+cursor = connection.cursor()
 
 
 class _CustomLDAPUser(_LDAPUser):
@@ -63,3 +82,36 @@ class CustomLDAPBackend(LDAPBackend):
         Returns an authenticated Django user or None.
         """
         return ldap_user.authenticate(password, cookies)
+
+
+class LiferayDatabaseBackend(ModelBackend):
+    def authenticate(self, request, username=None, password=None):
+        cookies = request.COOKIES
+        data = {"p_auth": password}
+        response = requests.post(url, cookies=cookies, data=data)
+        if response.status_code != 200:
+            return None
+
+        try:
+            user = Employee.objects.get(email=username)
+        except Employee.DoesNotExist:
+            cursor.execute(
+                "SELECT firstname, middlename, lastname, jobtitle, companyid FROM user_ WHERE emailaddress = %s;",
+                (username,),
+            )
+            name, patronym, surname, job_title, companyid = cursor.fetchone()
+            cursor.execute(
+                "SELECT birthday FROM contact_ WHERE emailaddress = %s;", (username,)
+            )
+            birth_date = cursor.fetchone()
+            user = Employee(
+                email=username,
+                username=username,
+                name=name,
+                surname=surname,
+                patronym=patronym,
+                birth_date=birth_date,
+                job_title=job_title,
+            )
+            user.save()
+        return user
