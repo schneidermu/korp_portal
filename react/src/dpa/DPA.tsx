@@ -5,9 +5,12 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { DPA_CLOSE_DELAY, DPA_TERMS_URL } from "@/app/const";
 
+import { useTokenFetcher } from "@/auth/slice";
 import { Icon } from "@/common/Icon";
 
 import tickIcon from "@/assets/tick.svg";
+import { useFetchUser } from "@/user/api";
+import { mutate } from "swr";
 
 const OneshotCheckbox = ({
   className,
@@ -54,9 +57,40 @@ const OneshotCheckbox = ({
  * * DPA = согласие на обработку персональных данных
  */
 export const DPA = () => {
+  const tokenFetch = useTokenFetcher();
+  const { user } = useFetchUser("me");
+
   const [checked, setChecked] = useState(false);
 
-  const check = () => setTimeout(() => setChecked(true), DPA_CLOSE_DELAY);
+  if (!user || user.agreeDataProcessing) {
+    return undefined;
+  }
+
+  const check = () => {
+    let timeout = false;
+    let ok = false;
+    setTimeout(() => {
+      timeout = true;
+      if (ok) setChecked(ok);
+    }, DPA_CLOSE_DELAY);
+
+    tokenFetch("/agree_with_data_processing/", { method: "POST" }).then(
+      ({ status }) => {
+        if (status === 200) {
+          ok = true;
+          mutate(
+            `/colleages/${user.id}`,
+            {
+              ...user,
+              agreeDataProcessing: true,
+            },
+            { revalidate: false },
+          );
+          if (timeout) setChecked(true);
+        }
+      },
+    );
+  };
 
   return (
     <AnimatePresence>

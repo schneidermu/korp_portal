@@ -33,6 +33,7 @@ type UserData = {
   num_rates: number;
   rated_by_me: number | null;
   avatar: string | null; // URI
+  agreed_with_data_processing: boolean;
   characteristic: null | {
     experience: string | null;
     about: string | null;
@@ -106,6 +107,7 @@ const toUser = (data: UserData): User => {
     avgRating: Option.fromNullable(data.average_rating),
     myRating: Option.fromNullable(data.rated_by_me),
     numRates: data.num_rates,
+    agreeDataProcessing: data.agreed_with_data_processing,
     career:
       char?.careers.map((c) => ({
         position: c.name,
@@ -170,6 +172,7 @@ const fromUser = (user: User): UserData => ({
   rated_by_me: Option.getOrNull(user.myRating),
   num_rates: user.numRates,
   avatar: user.photo,
+  agreed_with_data_processing: user.agreeDataProcessing,
   characteristic: {
     experience: user.workExperience,
     about: user.about,

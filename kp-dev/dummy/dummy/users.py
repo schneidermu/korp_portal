@@ -148,6 +148,7 @@ class User:
             "date_joined": "2025-01-01",
             "avatar": self.avatar,
             "password": PASSWORD,
+            "agreed_with_data_processing": False,
         }
 
     def to_char_dict(self, id: int) -> dict[str, Value]:

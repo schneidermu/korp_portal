@@ -50,6 +50,7 @@ export type User = {
   avgRating: Option<number>;
   myRating: Option<number>;
   numRates: number;
+  agreeDataProcessing: boolean;
   career: {
     position: string;
     year_start: number;
