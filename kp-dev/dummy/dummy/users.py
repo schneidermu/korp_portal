@@ -1,6 +1,6 @@
 import random
 from datetime import date
-from random import randint
+from random import choices, randint
 from uuid import uuid4
 
 from .table import Value, gen_table
@@ -33,6 +33,14 @@ STATUSES = [
     "На рабочем месте",
     "Нет на месте",
 ]
+
+
+def pronounce_years_ru(y: int) -> str:
+    if y % 10 == 1:
+        return f"{y} год"
+    if y % 10 in (2, 3, 4):
+        return f"{y} года"
+    return f"{y} лет"
 
 
 class User:
@@ -141,7 +149,7 @@ class User:
         return {
             "id": id,
             "employee_id": self.id,
-            "experience": None,
+            "experience": pronounce_years_ru(self.experience),
             "about": self.about,
         }
 
@@ -284,6 +292,17 @@ def main():
     for org_id, plan in plans.items():
         gen_subdivs(subdivs, users, org_id, plan, n=3)
 
+    ratings = []
+    for user1 in users.values():
+        for user2 in random.sample(list(users.values()), k=randint(0, 20)):
+            ratings.append(
+                {
+                    "user_id": user1.id,
+                    "employee_id": user2.id,
+                    "rate": choices([1, 2, 3, 4, 5], [1, 8, 27, 64, 125])[0],
+                }
+            )
+
     print(
         gen_table("employees_organization", orgs),
         gen_table("employees_structuralsubdivision", subdivs),
@@ -314,6 +333,9 @@ def main():
         gen_table(
             "employees_competence",
             [user.to_skills_dict(i) for i, user in enumerate(users.values(), start=1)],
+        ),
+        gen_table(
+            "employees_rating", [{"id": i, **r} for i, r in enumerate(ratings, start=1)]
         ),
         sep="\n",
     )
