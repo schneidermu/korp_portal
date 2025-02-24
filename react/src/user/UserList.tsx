@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 
 import clsx from "clsx/lite";
 
@@ -25,7 +25,7 @@ const FILTER_FIELDS = new Set<keyof User>([
   "serviceRank",
 ]);
 
-const UserCard = ({ userId }: { userId: string }) => {
+const UserCard = React.memo(function UserCard({ userId }: { userId: string }) {
   const { user } = useFetchUser(userId);
   const [userState, updateUserState] = useUserState(user);
 
@@ -35,7 +35,6 @@ const UserCard = ({ userId }: { userId: string }) => {
 
   return (
     <div
-      key={user.id}
       className={clsx(
         "pt-[52px] pr-[25px] pb-[92px] pl-[36px]",
         "border-[3px] border-light-gray rounded",
@@ -44,7 +43,7 @@ const UserCard = ({ userId }: { userId: string }) => {
       <ProfileCard user={userState} updateUser={updateUserState} />
     </div>
   );
-};
+});
 
 export const UserList = () => {
   const [orgId, setOrgId] = useIntSearchParam("org");
@@ -68,7 +67,7 @@ export const UserList = () => {
 
   return (
     <AnimatePage id={id}>
-      <SearchBar query={query} setQuery={({ query }) => setQuery(query)} />
+      <SearchBar query={query} setQuery={setQuery} />
       <div className="h-[45px]"></div>
       <PageSkel
         title="Список сотрудников"
@@ -82,7 +81,7 @@ export const UserList = () => {
       >
         <div className="flex flex-col gap-[56px] mr-[36px] ml-[64px] pb-[60px]">
           {users.map((user) => (
-            <UserCard userId={user.id} />
+            <UserCard key={user.id} userId={user.id} />
           ))}
         </div>
       </PageSkel>

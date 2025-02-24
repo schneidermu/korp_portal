@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { useSearchParams } from "react-router-dom";
 
@@ -50,12 +50,20 @@ export const useIntSearchParam = (name: string) =>
 
 export const useQuerySearchParam = (name: string, sep = "+") => {
   const [param, setParam] = useSearchParam(name);
+  const [term, setTerm] = useState("");
 
-  const query = param?.split(sep) || [];
+  const query = useMemo(() => {
+    const q = param?.split(sep) || [];
+    q.push(term);
+    return q;
+  }, [sep, param, term]);
 
   const setQuery = useCallback(
-    (query: string[]) => setParam(query.join(sep) || null),
-    [sep, setParam],
+    (query: string[]) => {
+      setTerm(query[query.length - 1] || "");
+      setParam(query.slice(0, -1).join(sep) || null);
+    },
+    [sep, setParam, setTerm],
   );
 
   return [query, setQuery] as const;

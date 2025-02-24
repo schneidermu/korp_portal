@@ -27,10 +27,10 @@ export const SearchBar = ({
   setQuery,
 }: {
   query: string[];
-  setQuery: (args: { query: string[]; reload: boolean }) => void;
+  setQuery: (query: string[]) => void;
 }) => {
-  const addTerm = () => {
-    setQuery({ query: [...query, ""], reload: true });
+  const enterTerm = () => {
+    setQuery([...query, ""]);
   };
 
   return (
@@ -42,10 +42,11 @@ export const SearchBar = ({
           "rounded border-[4px] border-light-gray",
         )}
       >
-        <button onClick={addTerm}>
+        <button onClick={enterTerm}>
           <Icon src={searchIcon} width="40px" height="40px" />
         </button>
         <input
+          autoFocus
           className={clsx(
             "w-full text-[30px]",
             "placeholder:text-medium-gray placeholder:font-medium",
@@ -54,15 +55,12 @@ export const SearchBar = ({
           type="search"
           placeholder="Поиск..."
           value={query[query.length - 1] || ""}
-          onChange={(event) => {
-            setQuery({
-              query: [...query.slice(0, -1), event.target.value],
-              reload: false,
-            });
-          }}
+          onChange={({ target: { value } }) =>
+            setQuery([...query.slice(0, -1), value])
+          }
           onKeyDown={(event) => {
             if (event.key === "Enter") {
-              addTerm();
+              enterTerm();
             }
           }}
         />
@@ -72,12 +70,9 @@ export const SearchBar = ({
           <QueryTerm
             key={term}
             term={term}
-            handleClick={() => {
-              setQuery({
-                query: [...query.slice(0, i), ...query.slice(i + 1)],
-                reload: true,
-              });
-            }}
+            handleClick={() =>
+              setQuery([...query.slice(0, i), ...query.slice(i + 1)])
+            }
           />
         ))}
       </div>

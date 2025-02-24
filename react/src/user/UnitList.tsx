@@ -119,9 +119,11 @@ export const UnitList = () => {
 
   const id = query.slice(0, -1).join("+");
 
+  console.log({ id });
+
   return (
     <AnimatePage id={id}>
-      <SearchBar query={query} setQuery={({ query }) => setQuery(query)} />
+      <SearchBar query={query} setQuery={setQuery} />
       <div className="h-[45px]"></div>
       <PageSkel
         title="Список отделов"
