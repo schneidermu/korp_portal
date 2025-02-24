@@ -75,7 +75,11 @@ export const DPA = () => {
           <OneshotCheckbox className="flex mt-[6px]" onCheck={check} />
           <span className="text-[26px]">
             я даю согласие на обработку{" "}
-            <a href={DPA_TERMS_URL} className="underline text-[#2164be]">
+            <a
+              href={DPA_TERMS_URL}
+              target="_blank"
+              className="underline text-[#2164be]"
+            >
               персональных данных
             </a>
           </span>
