@@ -6,7 +6,7 @@ import {
   useIntSearchParam,
   useQuerySearchParam,
 } from "@/common/useSearchParam";
-import { sortUsers, useFetchUsers } from "./api";
+import { sortUsers, useFetchUser, useFetchUsers } from "./api";
 import { useUserState } from "./hooks";
 import { filterUsers, User } from "./types";
 
@@ -25,10 +25,11 @@ const FILTER_FIELDS = new Set<keyof User>([
   "serviceRank",
 ]);
 
-const UserCard = ({ user }: { user: User }) => {
+const UserCard = ({ userId }: { userId: string }) => {
+  const { user } = useFetchUser(userId);
   const [userState, updateUserState] = useUserState(user);
 
-  if (!userState) {
+  if (!user || !userState) {
     return undefined;
   }
 
@@ -81,7 +82,7 @@ export const UserList = () => {
       >
         <div className="flex flex-col gap-[56px] mr-[36px] ml-[64px] pb-[60px]">
           {users.map((user) => (
-            <UserCard user={user} />
+            <UserCard userId={user.id} />
           ))}
         </div>
       </PageSkel>

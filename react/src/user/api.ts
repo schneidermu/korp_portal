@@ -214,7 +214,13 @@ export const useFetchUsers = (orgId: number | null) => {
       tokenFetcher(path)
         .then((res) => res.json())
         .then((usersData: UserData[]) => usersData.map(toUser))
-        .then((users: User[]) => new Map(users.map((user) => [user.id, user]))),
+        .then((users: User[]) => {
+          users.sort(cmpUsers);
+          for (const user of users.values()) {
+            mutate(`/colleagues/${user.id}/`, user, { revalidate: false });
+          }
+          return new Map(users.map((user) => [user.id, user]));
+        }),
     {
       keepPreviousData: false,
     },
