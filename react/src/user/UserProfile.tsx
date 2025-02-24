@@ -1020,9 +1020,11 @@ export const UserProfile = () => {
   const { user } = useFetchUser(userId);
   const [userState, updateUserState] = useUserState(user);
 
-  if (!params.userId && userId) {
-    navigate(`/profile/${userId}`);
-  }
+  useEffect(() => {
+    if (!params.userId && userId) {
+      navigate(`/profile/${userId}`);
+    }
+  }, [navigate, params.userId, userId]);
 
   const [editing, setEditing] = useState(false);
 
