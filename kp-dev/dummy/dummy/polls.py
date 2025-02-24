@@ -1,7 +1,7 @@
 from .table import Value, gen_table
 from .util import load_json
 
-questions = load_json("data/polls.json")
+QUESTIONS = load_json("data/polls.json")
 
 
 class PollsGen:
@@ -10,7 +10,7 @@ class PollsGen:
         self.choices: list[dict[str, Value]] = []
 
         for poll_id, (question, is_multiple_choice, choices) in enumerate(
-            questions, start=1
+            QUESTIONS, start=1
         ):
             date = f"2024-05-{6 + 2 * poll_id:02d}"
             self.polls.append(

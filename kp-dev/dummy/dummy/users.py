@@ -23,6 +23,8 @@ MAX_COWORKERS = 7
 WORKING_AGE = 20
 CURRENT_YEAR = 2025
 
+RATING_WEIGHTS = [1, 8, 27, 64, 125]
+
 MALE_NAMES = load_json("data/male_names.json")
 FEMALE_NAMES = load_json("data/female_names.json")
 ABOUT_SENTENCES = load_json("data/about_sentences.json")
@@ -145,7 +147,7 @@ class User:
             "is_superuser": self.is_superuser,
             "is_active": True,
             "is_staff": True,
-            "date_joined": "2025-01-01",
+            "date_joined": f"{CURRENT_YEAR}-01-01",
             "avatar": self.avatar,
             "password": PASSWORD,
             "agreed_with_data_processing": False,
@@ -300,7 +302,7 @@ class UsersGen:
                     {
                         "user_id": user1.id,
                         "employee_id": user2.id,
-                        "rate": choices([1, 2, 3, 4, 5], [1, 8, 27, 64, 125])[0],
+                        "rate": choices([1, 2, 3, 4, 5], RATING_WEIGHTS)[0],
                     }
                 )
 
