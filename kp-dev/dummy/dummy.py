@@ -1,6 +1,8 @@
 import random
 
-from dummy import news, polls, users
+from dummy import news
+from dummy.polls import PollsGen
+from dummy.users import UsersGen
 
 print("""
 SET statement_timeout = 0;
@@ -17,6 +19,10 @@ SET row_security = off;
 
 random.seed(37)
 
-users.main()
-polls.gen()
 news.gen()
+
+polls_data = PollsGen()
+users_data = UsersGen()
+
+polls_data.print()
+users_data.print()

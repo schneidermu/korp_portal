@@ -254,88 +254,97 @@ def gen_subdivs(
             )
 
 
-def main():
-    orgs = [
-        {"id": 1, "name": "ЦА ФАВР", "address": "Москва, Кедрова 8к1"},
-        {"id": 2, "name": "Ленское БВУ", "address": "Якутск, Курашова 28/3"},
-    ]
-    plans = {
-        1: (
-            "Руководство",
-            [
-                (
-                    "Управление 123",
-                    [
-                        "Отдел 123.4",
-                        "Отдел 123.5",
-                    ],
-                ),
-                (
-                    "Управление Abc",
-                    [
-                        "Отдел Abc.D",
-                        "Отдел Abc.E",
-                    ],
-                ),
-            ],
-        ),
-        2: (
-            "Руководство",
-            [
-                "Отдел X",
-                "Отдел Y",
-            ],
-        ),
-    }
-    users = {}
-    subdivs = []
-    for org_id, plan in plans.items():
-        gen_subdivs(subdivs, users, org_id, plan)
-
-    ratings = []
-    for user1 in users.values():
-        for user2 in random.sample(list(users.values()), k=randint(0, 20)):
-            ratings.append(
-                {
-                    "user_id": user1.id,
-                    "employee_id": user2.id,
-                    "rate": choices([1, 2, 3, 4, 5], [1, 8, 27, 64, 125])[0],
-                }
-            )
-
-    print(
-        gen_table("employees_organization", orgs),
-        gen_table("employees_structuralsubdivision", subdivs),
-        gen_table(
-            "employees_employee",
-            [user.to_employee_dict() for user in users.values()],
-            seq_col=None,
-        ),
-        gen_table(
-            "employees_characteristic",
-            [user.to_char_dict(i) for i, user in enumerate(users.values(), start=1)],
-        ),
-        gen_table(
-            "employees_career",
-            [
-                {"id": id, **d}
-                for id, d in enumerate(
-                    flatten(
+class UsersGen:
+    def __init__(self):
+        self.orgs = [
+            {"id": 1, "name": "ЦА ФАВР", "address": "Москва, Кедрова 8к1"},
+            {"id": 2, "name": "Ленское БВУ", "address": "Якутск, Курашова 28/3"},
+        ]
+        plans = {
+            1: (
+                "Руководство",
+                [
+                    (
+                        "Управление 123",
                         [
-                            user.to_career_dicts(i)
-                            for i, user in enumerate(users.values(), start=1)
-                        ]
+                            "Отдел 123.4",
+                            "Отдел 123.5",
+                        ],
                     ),
-                    start=1,
+                    (
+                        "Управление Abc",
+                        [
+                            "Отдел Abc.D",
+                            "Отдел Abc.E",
+                        ],
+                    ),
+                ],
+            ),
+            2: (
+                "Руководство",
+                [
+                    "Отдел X",
+                    "Отдел Y",
+                ],
+            ),
+        }
+        self.users = {}
+        self.subdivs = []
+        for org_id, plan in plans.items():
+            gen_subdivs(self.subdivs, self.users, org_id, plan)
+
+        self.ratings = []
+        for user1 in self.users.values():
+            for user2 in random.sample(list(self.users.values()), k=randint(0, 20)):
+                self.ratings.append(
+                    {
+                        "user_id": user1.id,
+                        "employee_id": user2.id,
+                        "rate": choices([1, 2, 3, 4, 5], [1, 8, 27, 64, 125])[0],
+                    }
                 )
-            ],
-        ),
-        gen_table(
-            "employees_competence",
-            [user.to_skills_dict(i) for i, user in enumerate(users.values(), start=1)],
-        ),
-        gen_table(
-            "employees_rating", [{"id": i, **r} for i, r in enumerate(ratings, start=1)]
-        ),
-        sep="\n",
-    )
+
+    def print(self):
+        print(
+            gen_table("employees_organization", self.orgs),
+            gen_table("employees_structuralsubdivision", self.subdivs),
+            gen_table(
+                "employees_employee",
+                [user.to_employee_dict() for user in self.users.values()],
+                seq_col=None,
+            ),
+            gen_table(
+                "employees_characteristic",
+                [
+                    user.to_char_dict(i)
+                    for i, user in enumerate(self.users.values(), start=1)
+                ],
+            ),
+            gen_table(
+                "employees_career",
+                [
+                    {"id": id, **d}
+                    for id, d in enumerate(
+                        flatten(
+                            [
+                                user.to_career_dicts(i)
+                                for i, user in enumerate(self.users.values(), start=1)
+                            ]
+                        ),
+                        start=1,
+                    )
+                ],
+            ),
+            gen_table(
+                "employees_competence",
+                [
+                    user.to_skills_dict(i)
+                    for i, user in enumerate(self.users.values(), start=1)
+                ],
+            ),
+            gen_table(
+                "employees_rating",
+                [{"id": i, **r} for i, r in enumerate(self.ratings, start=1)],
+            ),
+            sep="\n",
+        )
