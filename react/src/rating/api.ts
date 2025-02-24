@@ -1,38 +1,35 @@
 import { Number, Option } from "effect";
 
 import { useTokenFetcher } from "@/auth/slice";
-import { UpdateUserFn, User } from "@/user/types";
+import { User } from "@/user/types";
+import { mutate } from "swr";
 
-export const useUpdateRating = ({
-  user,
-  updateUser,
-}: {
-  user: User;
-  updateUser: UpdateUserFn;
-}) => {
+export const useUpdateRating = () => {
   const tokenFetch = useTokenFetcher();
 
-  const deleteRating = async () =>
-    tokenFetch(`/colleagues/${user.id}/rate/`, { method: "DELETE" }).then(
-      (res) => {
+  return async (user: User, rating: Option.Option<number>) => {
+    const key = `/colleagues/${user.id}/`;
+
+    const deleteRating = async () =>
+      tokenFetch(`/colleagues/${user.id}/rate/`, { method: "DELETE" }).then(
+        (res) => {
+          if (res.status >= 400) {
+            mutate(key, user, { revalidate: false });
+          }
+        },
+      );
+
+    const postRating = async (rating: number) =>
+      tokenFetch(`/colleagues/${user.id}/rate/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rate: rating }),
+      }).then((res) => {
         if (res.status >= 400) {
-          updateUser(user);
+          mutate(key, user, { revalidate: false });
         }
-      },
-    );
+      });
 
-  const postRating = async (rating: number) =>
-    tokenFetch(`/colleagues/${user.id}/rate/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rate: rating }),
-    }).then((res) => {
-      if (res.status >= 400) {
-        updateUser(user);
-      }
-    });
-
-  return async (rating: Option.Option<number>) => {
     let num = user.numRates;
     let sum = Option.map(user.avgRating, (r) => r * num).pipe(
       Option.getOrElse(() => 0),
@@ -50,12 +47,16 @@ export const useUpdateRating = ({
 
     const avgRating = Number.divide(sum, num).pipe(Option.map(Number.round(1)));
 
-    updateUser({
-      ...user,
-      myRating: rating,
-      numRates: num,
-      avgRating,
-    });
+    mutate(
+      key,
+      {
+        ...user,
+        myRating: rating,
+        numRates: num,
+        avgRating,
+      },
+      { revalidate: false },
+    );
 
     if (Option.isSome(user.myRating)) {
       await deleteRating();

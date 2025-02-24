@@ -246,7 +246,7 @@ export const ProfileCard = ({
         </div>
       </div>
 
-      <Rating user={user} updateUser={updateUser} />
+      <Rating user={user} />
     </section>
   );
 };

@@ -4,7 +4,7 @@ import clsx from "clsx/lite";
 import { Option } from "effect";
 
 import { useAuth } from "@/auth/slice";
-import { UpdateUserFn, User } from "@/user/types";
+import { User } from "@/user/types";
 import { useUpdateRating } from "./api";
 
 import { Icon } from "@/common/Icon";
@@ -53,15 +53,9 @@ const Stars = ({
   );
 };
 
-export const Rating = ({
-  user,
-  updateUser,
-}: {
-  user: User;
-  updateUser: UpdateUserFn;
-}) => {
+export const Rating = ({ user }: { user: User }) => {
   const { userId } = useAuth();
-  const updateRating = useUpdateRating({ user, updateUser });
+  const updateRating = useUpdateRating();
 
   const rating = Option.map(
     user.avgRating,
@@ -73,7 +67,7 @@ export const Rating = ({
       <Stars
         stars={user.myRating}
         disabled={user.id === userId}
-        onRate={updateRating}
+        onRate={(rating) => updateRating(user, rating)}
       />
       <div className="text-[20px]">{Option.getOrUndefined(rating)}</div>
     </div>
