@@ -101,6 +101,8 @@ class User:
             self.career_years.append((y0 + exp, y0 + exp + t))
             exp += t
         self.career_years.append((y0 + exp, None))
+
+        self.career_path = self.career_path[::-1]
         self.career_years = self.career_years[::-1]
 
         self.phone = "+7" + str(randint(800_000_00_00, 999_999_99_99))
