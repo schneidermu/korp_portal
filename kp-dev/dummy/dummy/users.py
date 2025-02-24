@@ -17,6 +17,9 @@ PASSWORD = "pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp
 NUM_MALE_AVATARS = 8
 NUM_FEMALE_AVATARS = 3
 
+MIN_COWORKERS = 3
+MAX_COWORKERS = 7
+
 WORKING_AGE = 20
 CURRENT_YEAR = 2025
 
@@ -182,7 +185,6 @@ class Subdiv:
 
 def gen_users(
     users: dict[str, User],
-    n: int,
     chief_id: str | None,
     subdiv_id: int | None,
     sex: str | None = None,
@@ -197,7 +199,7 @@ def gen_users(
         boss_title,
     )
     users[boss.email] = boss
-    for _ in range(n):
+    for _ in range(randint(MIN_COWORKERS, MAX_COWORKERS)):
         while True:
             user = User(boss.id, subdiv_id)
             if user.email not in users:
@@ -211,7 +213,6 @@ def gen_subdivs(
     users: dict[str, User],
     org_id: int,
     plan,
-    n: int,
     parent_id: int | None = None,
     boss: User | None = None,
 ):
@@ -228,7 +229,6 @@ def gen_subdivs(
         boss_title = random.choice(BOSS_TITLES)
         gen_users(
             users,
-            n=5,
             chief_id=chief_id,
             subdiv_id=id,
             boss_title=boss_title,
@@ -237,11 +237,9 @@ def gen_subdivs(
         name, children = plan
         subdiv["name"] = name
         boss_title = random.choice(BOSS_TITLES)
-        new_boss = gen_users(users, n, chief_id, subdiv_id=id, boss_title=boss_title)
+        new_boss = gen_users(users, chief_id, subdiv_id=id, boss_title=boss_title)
         subdivs.append(subdiv)
-        gen_subdivs(
-            subdivs, users, org_id, plan=children, n=n, parent_id=id, boss=new_boss
-        )
+        gen_subdivs(subdivs, users, org_id, plan=children, parent_id=id, boss=new_boss)
     else:
         assert isinstance(plan, list)
         for sibling in plan:
@@ -250,7 +248,6 @@ def gen_subdivs(
                 users,
                 org_id,
                 plan=sibling,
-                n=n,
                 parent_id=parent_id,
                 boss=boss,
             )
@@ -292,7 +289,7 @@ def main():
     users = {}
     subdivs = []
     for org_id, plan in plans.items():
-        gen_subdivs(subdivs, users, org_id, plan, n=3)
+        gen_subdivs(subdivs, users, org_id, plan)
 
     ratings = []
     for user1 in users.values():
