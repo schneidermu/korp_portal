@@ -4,7 +4,7 @@
 
 - пользователь и отдельная база в PostgreSQL
 - доступ к базе Liferay на том же сервере (таблицы `user_` и `contact_`)
-- запуск на том же домене, что и Liferay
+- запуск на том же домене, что и Liferay (под префиксом `BACKEND_PREFIX`)
 
 Конфигурация:
 
@@ -35,6 +35,7 @@ cp sample.env .env
 - `BACKEND_PORT`
 - `DB_PORT`, `POSTGRES_DB`, `POSTGRES_USER`
 - `POSTGRES_DB_LIFERAY`
+- `BACKEND_PREFIX`
 
 Запуск:
 
@@ -45,3 +46,8 @@ cd kp-prod
 docker compose up -d
 docker compose logs -f
 ```
+
+Настройка прокси:
+
+- Перенаправлять запросы под префиксом `BACKEND_PREFIX`
+- Префикс удалять не надо
