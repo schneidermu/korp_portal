@@ -62,7 +62,7 @@ services:
       ALLOWED_HOSTS: "${HOSTNAME}"
       DEBUG: "${DEBUG}"
       CHALLENGE_URL: "${CHALLENGE_URL}"
-      SCRIPT_NAME: /kp
+      SCRIPT_NAME: "${BACKEND_PREFIX}"
     volumes:
       - ./volumes/media:/media
     depends_on:
