@@ -34,6 +34,8 @@ export const DPA_CLOSE_DELAY: number = 1000;
  *
  * * DPA = согласие на обработку персональных данных
  */
-export const DPA_TERMS_URL: string = "https://example.com";
+export const DPA_TERMS_URL: string =
+  BACKEND_PREFIX +
+  "/media/doc/Положение_о_защите_и_обработке_персональных_данных.pdf";
 
 export const MS_PER_DAY = 1000 * 60 * 60 * 24;
