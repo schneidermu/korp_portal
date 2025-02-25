@@ -67,10 +67,7 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
     "is_superuser": f"cn=superuser,ou=groups,{LDAP_ROOT}",
 }
 
-AUTHENTICATION_BACKENDS = (
-    "korp_portal.backends.CustomLDAPBackend",
-    "django.contrib.auth.backends.ModelBackend",
-)
+AUTHENTICATION_BACKENDS = ("korp_portal.backends.LiferayDatabaseBackend",)
 
 LOGGING = {
     "version": 1,
@@ -133,6 +130,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_extensions",
     "django_bootstrap5",
     "drf_yasg",
     "rest_framework",
