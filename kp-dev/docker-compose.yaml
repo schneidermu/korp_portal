@@ -1,6 +1,5 @@
 volumes:
   pg_data:
-  openldap_data:
 
 services:
   database:
@@ -62,13 +61,7 @@ services:
       SECRET_KEY: "${SECRET_KEY}"
       ALLOWED_HOSTS: "${HOSTNAME}"
       DEBUG: "${DEBUG}"
-      LDAP_PASSWORD: "${LDAP_PASSWORD}"
-      LDAP_URI: ldap://openldap:1389
-      LDAP_USER: "${LDAP_USER}"
-      LDAP_ROOT: "${LDAP_ROOT}"
       CHALLENGE_URL: "${CHALLENGE_URL}"
-      GROUP_USER: "${DJANGO_GROUP_USER}"
-      GROUP_ADMIN: "${DJANGO_GROUP_ADMIN}"
       SCRIPT_NAME: /kp
     volumes:
       - ./volumes/media:/media
@@ -98,12 +91,3 @@ services:
       - "traefik.instance=kp"
       - "traefik.http.routers.vite.rule=Host(`${HOSTNAME}`) && PathPrefix(`${FRONTEND_PREFIX}/`)"
       - "traefik.http.routers.vite.entrypoints=web"
-
-  openldap:
-    image: bitnami/openldap:2.6.9
-    environment:
-      LDAP_ROOT: "${LDAP_ROOT}"
-      LDAP_USERS: "${LDAP_USER}"
-      LDAP_PASSWORDS: "${LDAP_PASSWORD}"
-    volumes:
-      - openldap_data:/bitnami/openldap

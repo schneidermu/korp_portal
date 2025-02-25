@@ -3,9 +3,8 @@
 Требования к окружению:
 
 - пользователь и отдельная база в PostgreSQL
-- пользователь LDAP
-- включённый экспорт из Liferay в LDAP
-- запуск на том же домене/IP, что и Liferay
+- доступ к базе Liferay на том же сервере (таблицы `user_` и `contact_`)
+- запуск на том же домене, что и Liferay
 
 Конфигурация:
 
@@ -30,14 +29,12 @@ cp sample.env .env
 
 - `HOSTNAME`
 - `DB_HOST`, `POSTGRES_PASSWORD`
-- `LDAP_ROOT`, `LDAP_PASSWORD`
 
 Сверить дефолтные значения для:
 
 - `BACKEND_PORT`
 - `DB_PORT`, `POSTGRES_DB`, `POSTGRES_USER`
-- `LDAP_USER`
-- `DJANGO_GROUP_USER`, `DJANGO_GROUP_ADMIN`
+- `POSTGRES_DB_LIFERAY`
 
 Запуск:
 
