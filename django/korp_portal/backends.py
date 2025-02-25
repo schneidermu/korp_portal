@@ -96,14 +96,20 @@ class LiferayDatabaseBackend(ModelBackend):
             user = Employee.objects.get(email=username)
         except Employee.DoesNotExist:
             cursor.execute(
-                "SELECT firstname, middlename, lastname, jobtitle, companyid FROM user_ WHERE emailaddress = %s;",
+                """
+                SELECT
+                    u.firstname, u.middlename, u.lastname,
+                    u.jobtitle, u.companyid, c.birthday
+                FROM user_ u
+                INNER JOIN contact_ c
+                USING (emailaddress)
+                WHERE emailaddress = %s;
+                """,
                 (username,),
             )
-            name, patronym, surname, job_title, companyid = cursor.fetchone()
-            cursor.execute(
-                "SELECT birthday FROM contact_ WHERE emailaddress = %s;", (username,)
+            name, patronym, surname, job_title, companyid, birth_date = (
+                cursor.fetchone()
             )
-            birth_date = cursor.fetchone()[0]
             user = Employee(
                 email=username,
                 username=username,
