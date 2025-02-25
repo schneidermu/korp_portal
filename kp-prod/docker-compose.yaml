@@ -13,7 +13,7 @@ services:
       DEBUG: 0
       PROD: 1
       CHALLENGE_URL: "${CHALLENGE_URL}"
-      FORCE_SCRIPT_NAME: "${BACKEND_PREFIX}"
+      SCRIPT_NAME: "${BACKEND_PREFIX}"
     volumes:
       - ./volumes/media:/media
     ports:
