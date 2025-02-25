@@ -10,16 +10,16 @@ from django_auth_ldap.backend import LDAPBackend, _LDAPUser, _report_error, logg
 from employees.models import Employee
 
 url = os.getenv("CHALLENGE_URL", "0")
-liferay_db_name = os.getenv("POSTGRES_DB_LIFERAY", "0")
-liferay_db_user = os.getenv("POSTGRES_USER_LIFERAY", "0")
-liferay_db_password = os.getenv("POSTGRES_PASSWORD_LIFERAY", "0")
+db_name = os.getenv("POSTGRES_DB_LIFERAY", "0")
+db_user = os.getenv("POSTGRES_USER", "0")
+db_password = os.getenv("POSTGRES_PASSWORD", "0")
 db_host = os.getenv("DB_HOST", "127.0.0.1")
 db_port = os.getenv("DB_PORT", "5432")
 
 connection = psycopg2.connect(
-    database=liferay_db_name,
-    user=liferay_db_user,
-    password=liferay_db_password,
+    database=db_name,
+    user=db_user,
+    password=db_password,
     host=db_host,
     port=db_port,
 )
