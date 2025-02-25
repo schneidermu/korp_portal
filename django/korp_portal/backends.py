@@ -103,7 +103,7 @@ class LiferayDatabaseBackend(ModelBackend):
             cursor.execute(
                 "SELECT birthday FROM contact_ WHERE emailaddress = %s;", (username,)
             )
-            birth_date = cursor.fetchone()
+            birth_date = cursor.fetchone()[0]
             user = Employee(
                 email=username,
                 username=username,
