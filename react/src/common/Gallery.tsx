@@ -114,7 +114,7 @@ export const Gallery = ({
               <SlideButton direction="left" onClick={left} hide={!left} />
             )}
           </div>
-          <div className="bg-white">{children}</div>
+          <div className="bg-white max-h-[1300px]">{children}</div>
           <div className="relative flex items-center">
             {hideControls || (
               <>

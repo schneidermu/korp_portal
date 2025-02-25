@@ -126,6 +126,7 @@ export const Feed = () => {
                     overlayPost <= 0
                       ? undefined
                       : () => {
+                          setShowPollResults(false);
                           setOverlayPost(overlayPost - 1);
                           scrollToCard(overlayPost - 1);
                         }
@@ -134,6 +135,7 @@ export const Feed = () => {
                     overlayPost >= posts.length - 1
                       ? undefined
                       : () => {
+                          setShowPollResults(false);
                           setOverlayPost(overlayPost + 1);
                           scrollToCard(overlayPost + 1);
                         }

@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { Fragment } from "react";
 
 import clsx from "clsx/lite";
 import { produce } from "immer";
+import { Link } from "react-router-dom";
 
 import { useAuth } from "@/auth/slice";
-import { formatDate } from "@/common/util";
+import { formatDate, fullNameLong, userPhotoPath } from "@/common/util";
 import { useFetchUser } from "@/user/api";
 import * as types from "./types";
 
 import { Icon } from "@/common/Icon";
+import { Picture } from "@/common/Picture";
 import { UserAvatarLink } from "@/user/UserAvatarLink";
 
 import checkIcon from "@/assets/check.svg";
@@ -217,21 +219,37 @@ export const Avatar = ({ userId }: { userId: string }) => {
   );
 };
 
-export const PollResults = ({
+const PollChoiceResultsUserCard = ({ userId }: { userId: string }) => {
+  const { user } = useFetchUser(userId);
+
+  if (!user) return;
+
+  const profileLink = `/profile/${user.id}`;
+  const photoURL = userPhotoPath(user);
+
+  return (
+    <div className="flex items-center gap-[56px]">
+      <Link to={profileLink}>
+        <Picture width="120px" height="120px" url={photoURL} />
+      </Link>
+      <Link to={profileLink} className="hover:underline">
+        {fullNameLong(user)}
+      </Link>
+    </div>
+  );
+};
+
+const PollChoiceResults = ({
   poll,
-  handleOpen,
+  choice,
 }: {
   poll: types.Poll;
-  handleOpen?: () => void;
+  choice: types.Choice;
 }) => {
-  const [viewedChoice, setViewedChoice] = useState(
-    [...poll.choices.values()][0],
-  );
-
-  const pct = calcChoicePct(poll, viewedChoice);
+  const pct = calcChoicePct(poll, choice);
   const pctPretty = pct.toString().replace(".", ",") + "%";
 
-  const votes = viewedChoice.votes;
+  const votes = choice.votes;
   const voteSuffix =
     votes % 10 === 1 ? "" : [2, 3, 4].includes(votes % 10) ? "а" : "ов";
 
@@ -239,61 +257,36 @@ export const PollResults = ({
 
   return (
     <div>
-      <a
-        className="block mt-[44px] cursor-pointer"
-        onClick={(event) => {
-          event.stopPropagation();
-          if (handleOpen) handleOpen();
-        }}
-      >
-        <h2 className={clsx("text-[32px]")}>{poll.question}</h2>
-      </a>
-
-      <div
-        className={clsx(
-          "flex gap-[10px] overflow-x-scroll px-[40px] py-[30px]",
-          "mt-[30px] mb-[60px]",
-          "bg-[#DDEAFC66]",
-        )}
-      >
-        {[...poll.choices.values()].map((choice) => (
-          <button
-            key={choice.id}
-            type="submit"
-            className={clsx(
-              "px-[20px] py-[10px] rounded-[8px]",
-              "shrink-0",
-              viewedChoice.id !== choice.id && "text-[#1956A8] hover:underline",
-              viewedChoice.id === choice.id && "bg-[#2164BE] text-white",
-            )}
-            onClick={() => setViewedChoice(choice)}
-          >
-            {choice.text}
-          </button>
-        ))}
+      <div className="flex justify-between text-[32px] mb-[36px] px-1">
+        <h3>
+          {choice.text} — {pctPretty}
+        </h3>
+        <div>{votedText}</div>
       </div>
-
-      <div className="ml-[60px] mr-[50px]">
-        <div className="flex">
-          <div>{viewedChoice.text}</div>
-          <div className="grow"></div>
-          <Icon src={tickIcon} width={40} height={40} />
-          <div className="ml-[16px]">{pctPretty}</div>
-        </div>
-        <div className="mt-[20px] mb-[36px] h-[12px] bg-[#D9D9D9] rounded-full">
-          <div
-            style={{ width: pct + "%" }}
-            className="h-full bg-[#2164BE] rounded-full"
-          ></div>
-        </div>
-        <div className="text-[#8C8C8C] text-[30px]">{votedText}</div>
-
-        <div className="grid grid-cols-5 mt-[75px] mb-[135px] h-[310px]">
-          {poll.myChoices.has(viewedChoice.id) && <Avatar userId="me" />}
-          {[...viewedChoice.voters].map((userId) => (
-            <Avatar key={userId} userId={userId} />
+      {choice.votes > 0 && (
+        <div className="rounded border border-medium-gray px-[48px] py-[40px]">
+          {[...choice.voters].map((userId, i) => (
+            <Fragment key={userId}>
+              {i > 0 && (
+                <hr className="mt-[42px] mb-[32px] border-medium-gray" />
+              )}
+              <PollChoiceResultsUserCard userId={userId} />
+            </Fragment>
           ))}
         </div>
+      )}
+    </div>
+  );
+};
+
+export const PollResults = ({ poll }: { poll: types.Poll }) => {
+  return (
+    <div className="px-[40px] flex flex-col gap-[105px] h-full font-light">
+      <h2 className="text-center text-[36px]">{poll.question}</h2>
+      <div className="flex flex-col gap-[68px] grow shrink overflow-y-auto px-[80px]">
+        {[...poll.choices.values()].map((choice) => (
+          <PollChoiceResults key={choice.id} poll={poll} choice={choice} />
+        ))}
       </div>
     </div>
   );
@@ -317,8 +310,13 @@ export const Poll = ({
   setShowResults: (show: boolean) => void;
 }) => {
   return (
-    <article className="mt-[60px] mx-[65px] mb-[50px] text-[32px]">
-      <div className="flex items-center justify-end">
+    <article className="pt-[60px] px-[65px] pb-[50px] text-[32px] h-full flex flex-col">
+      <div className="flex items-center justify-end relative">
+        {showResults && (
+          <div className="absolute text-[36px] right-[50%] translate-x-[50%] font-light">
+            Результаты
+          </div>
+        )}
         <time
           className={clsx("text-date shrink-0", full || "text-[24px]")}
           dateTime={poll.publishedAt.toString()}
@@ -328,12 +326,13 @@ export const Poll = ({
       </div>
       <div
         className={clsx(
-          "rounded border-medium-gray",
-          full && "mt-[45px] px-[70px] border",
+          "rounded border-medium-gray flex-grow min-h-0 shrink",
+          full && !showResults && "mt-[45px] px-[70px] border",
+          full && showResults && "mt-[94px]",
         )}
       >
         {full && showResults ? (
-          <PollResults poll={poll} handleOpen={handleOpen} />
+          <PollResults poll={poll} />
         ) : (
           <PollContent
             poll={poll}
