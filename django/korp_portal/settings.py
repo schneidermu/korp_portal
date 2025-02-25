@@ -61,10 +61,7 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
     "is_superuser": f"cn=superuser,ou=groups,{LDAP_BASE_DN}",
 }
 
-AUTHENTICATION_BACKENDS = (
-    "korp_portal.backends.CustomLDAPBackend",
-    "korp_portal.backends.LiferayDatabaseBackend",
-)
+AUTHENTICATION_BACKENDS = ("korp_portal.backends.LiferayDatabaseBackend",)
 
 LOGGING = {
     "version": 1,
