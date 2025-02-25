@@ -163,7 +163,7 @@ export const PollContent = ({
         </h2>
       </a>
       <button
-        disabled={poll.isAnonymous}
+        disabled={poll.isAnonymous || !poll.voted}
         className="mt-[50px] mb-[70px] w-full font-extralight"
         onClick={(event) => {
           event.stopPropagation();
@@ -192,6 +192,7 @@ export const PollContent = ({
           </button>
         )}
         <button
+          disabled={poll.isAnonymous || !poll.voted}
           className={clsx(
             "w-full mb-[72px] mt-[40px]",
             "font-extralight text-dark-gray",
@@ -199,7 +200,7 @@ export const PollContent = ({
           )}
           onClick={(event) => {
             event.stopPropagation();
-            if (poll.voted && !poll.isAnonymous) showResults();
+            showResults();
           }}
         >
           {votedText}
