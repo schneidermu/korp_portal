@@ -247,6 +247,8 @@ const PollChoiceResults = ({
   poll: types.Poll;
   choice: types.Choice;
 }) => {
+  const { userId } = useAuth();
+
   const pct = calcChoicePct(poll, choice);
   const pctPretty = pct.toString().replace(".", ",") + "%";
 
@@ -255,6 +257,11 @@ const PollChoiceResults = ({
     votes % 10 === 1 ? "" : [2, 3, 4].includes(votes % 10) ? "а" : "ов";
 
   const votedText = `${votes} голос${voteSuffix}`;
+
+  const voters = [...choice.voters];
+  if (poll.myChoices.has(choice.id)) {
+    voters.unshift(userId);
+  }
 
   return (
     <div>
@@ -266,7 +273,7 @@ const PollChoiceResults = ({
       </div>
       {choice.votes > 0 && (
         <div className="rounded border border-medium-gray px-[48px] py-[40px]">
-          {[...choice.voters].map((userId, i) => (
+          {voters.map((userId, i) => (
             <Fragment key={userId}>
               {i > 0 && (
                 <hr className="mt-[42px] mb-[32px] border-medium-gray" />
