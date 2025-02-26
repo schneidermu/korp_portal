@@ -203,7 +203,7 @@ export const InfoGrid = ({
         >
           {!editing && user.organization !== null && user.unit !== null ? (
             <Link
-              to={`/list?org=${user.organization.id}&q=${user.unit.name}%2B`}
+              to={`/list?org=${user.organization.id}&q=${user.unit.name}`}
               className="hover:underline"
             >
               {user.unit.name}

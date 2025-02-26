@@ -172,7 +172,7 @@ export const UnitList = () => {
                     to={
                       "?" +
                       new URLSearchParams([
-                        ["q", unit.name + "+"],
+                        ["q", unit.name],
                         ...(orgId === null ? [] : [["org", orgId.toString()]]),
                       ])
                     }
