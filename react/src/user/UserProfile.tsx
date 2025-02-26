@@ -588,6 +588,13 @@ const CareerPositionsTable = ({
   const pushPosition = () =>
     updateUser((user) => {
       if (user.career.length === 0) {
+        user.career.push({
+          year_start: new Date().getFullYear(),
+          year_leave: null,
+          month_start: null,
+          month_leave: null,
+          position: "",
+        });
         return;
       }
       const year_leave = user.career[user.career.length - 1].year_start;
@@ -618,11 +625,13 @@ const CareerPositionsTable = ({
       </div>
       <div className={clsx(headerClass, "rounded-tr")}>Должность</div>
 
-      <CareerPositionsTableControls
-        editing={editing}
-        add={unshiftPosition}
-        remove={shiftPosition}
-      />
+      {user.career.length > 0 && (
+        <CareerPositionsTableControls
+          editing={editing}
+          add={unshiftPosition}
+          remove={shiftPosition}
+        />
+      )}
 
       {user.career.map(({ year_start, year_leave, position }, i) => (
         <Fragment key={i}>
