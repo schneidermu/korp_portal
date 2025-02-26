@@ -265,11 +265,13 @@ const PollChoiceResults = ({
 
   return (
     <div>
-      <div className="flex justify-between text-[32px] mb-[36px] px-1">
-        <h3>
-          {choice.text} — {pctPretty}
+      <div className="flex text-[32px] mb-[36px] px-1">
+        <h3 className="text-nowrap overflow-x-hidden text-ellipsis">
+          {choice.text}
         </h3>
-        <div>{votedText}</div>
+        <div className="text-nowrap ml-2"> — {pctPretty}</div>
+        <div className="grow"></div>
+        <div className="text-nowrap ml-8">{votedText}</div>
       </div>
       {choice.votes > 0 && (
         <div className="rounded border border-medium-gray px-[48px] py-[40px]">
@@ -318,7 +320,7 @@ export const Poll = ({
   setShowResults: (show: boolean) => void;
 }) => {
   return (
-    <article className="pt-[60px] px-[65px] pb-[50px] text-[32px] h-full flex flex-col">
+    <article className="pt-[60px] px-[65px] pb-[50px] text-[32px] h-full flex flex-col max-w-[1403px]">
       <div className="flex items-center justify-end relative">
         {showResults && (
           <div className="absolute text-[36px] right-[50%] translate-x-[50%] font-light">
