@@ -62,10 +62,12 @@ export const Rating = ({ user }: { user: User }) => {
     (r) => r.toFixed(1).replace(".", ",") + ` / ${user.numRates}`,
   );
 
+  const stars = user.id !== userId ? user.myRating : user.avgRating;
+
   return (
     <div className="flex gap-[10px] items-center">
       <Stars
-        stars={user.myRating}
+        stars={stars}
         disabled={user.id === userId}
         onRate={(rating) => updateRating(user, rating)}
       />
