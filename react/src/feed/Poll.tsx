@@ -17,7 +17,7 @@ import checkIcon from "@/assets/check.svg";
 import tickIcon from "@/assets/tick.svg";
 
 const calcChoicePct = (poll: types.Poll, choice: types.Choice) => {
-  const pct = poll.voted ? (100 * choice.votes) / poll.votes || 0 : 0;
+  const pct = poll.votes > 0 ? (100 * choice.votes) / poll.votes || 0 : 0;
   return Math.round(10 * pct) / 10;
 };
 
