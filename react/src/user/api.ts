@@ -191,7 +191,8 @@ const fromUser = (user: User): UserData => ({
       faculty: e.major,
       year: e.year,
       month: null,
-      file: undefined,
+      // FIXME
+      file: "/media/avatar/male/1.png",
     })),
     courses: user.courses.map((c) => ({
       name: c.name,
