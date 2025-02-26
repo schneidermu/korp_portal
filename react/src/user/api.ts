@@ -37,7 +37,7 @@ type UserData = {
   avatar: string | null; // URI
   agreed_with_data_processing: boolean;
   characteristic: null | {
-    experience: string | null;
+    experience: string;
     about: string | null;
     competences: { name: string }[];
     careers: {
@@ -176,7 +176,7 @@ const fromUser = (user: User): UserData => ({
   avatar: user.photo,
   agreed_with_data_processing: user.agreeDataProcessing,
   characteristic: {
-    experience: user.workExperience,
+    experience: user.workExperience ?? "",
     about: user.about,
     competences: user.skills === null ? [] : [{ name: user.skills }],
     careers: user.career.map((c) => ({
