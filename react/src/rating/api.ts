@@ -45,7 +45,7 @@ export const useUpdateRating = () => {
       sum += rating.value;
     }
 
-    const avgRating = Number.divide(sum, num).pipe(Option.map(Number.round(1)));
+    const avgRating = Number.divide(sum, num);
 
     mutate(
       key,
