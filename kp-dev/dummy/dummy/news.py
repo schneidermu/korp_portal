@@ -1,4 +1,7 @@
+import datetime
 from itertools import permutations
+
+from .util import random_date_between
 
 
 def gen():
@@ -8,12 +11,15 @@ def gen():
     print(
         "COPY public.homepage_news (id, is_published, created_at, pub_date, title, text, video) FROM stdin;"
     )
+    prev_date = datetime.date(2024, 1, 1)
     for i in range(24):
+        date = random_date_between(prev_date, datetime.date.today())
+        prev_date = date
         print(
             i + 1,
             "t",
-            f"2024-05-{i+1:02d} 10:00:00",
-            f"2024-05-{i+1:02d} 12:00:00",
+            f"{date.isoformat()} 10:00:00",
+            f"{date.isoformat()} 12:00:00",
             f"({i+1}) {title}",
             text,
             r"\N",
@@ -28,7 +34,7 @@ def gen():
         "COPY public.homepage_news_organization (id, organization_id, news_id) FROM stdin;"
     )
     for i in range(24):
-        print(i + 1, 1, i + 1, sep="\t")
+        print(i + 1, 2, i + 1, sep="\t")
     print(r"\.")
     print()
     print(
