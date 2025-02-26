@@ -132,14 +132,16 @@ class User:
         self.birth_date = random_date_between(BIRTH_DATE_MIN, BIRTH_DATE_MAX)
 
         if sex is None:
-            sex = random.choice(["male", "female"])
+            self.sex = random.choice(["male", "female"])
 
         if name is not None:
             self.surname, self.name, self.patronym = name
         else:
-            i = randint(1, NUM_MALE_AVATARS if sex == "male" else NUM_FEMALE_AVATARS)
-            self.avatar = f"/media/avatar/{sex}/{i}.png"
-            names = MALE_NAMES if sex == "male" else FEMALE_NAMES
+            i = randint(
+                1, NUM_MALE_AVATARS if self.sex == "male" else NUM_FEMALE_AVATARS
+            )
+            self.avatar = f"/media/avatar/{self.sex}/{i}.png"
+            names = MALE_NAMES if self.sex == "male" else FEMALE_NAMES
 
             self.surname = random.choice(names[0])
             self.name = random.choice(names[1])
@@ -430,6 +432,40 @@ subdivs: dict[int, list[Subdiv]] = {}
 
 for org_id, plan in plans.items():
     gen_subdivs(subdivs, users, org_id, plan)
+
+email = random.choice(
+    list(
+        email
+        for email, user in users.items()
+        if user.sex == "male" and user.subdiv is not None and user.subdiv.org_id == 2
+    )
+)
+old_id = users[email].id
+users["petrov2"] = users[email]
+users["petrov2"].email = "petrov2@voda.gov.ru"
+users["petrov2"].surname = "Петров"
+users["petrov2"].id = "c3143187-a418-5262-23a0-7a6a457a841b"
+for user in users.values():
+    if user.chief_id == old_id:
+        user.chief_id = users["petrov2"].id
+del users[email]
+
+email = random.choice(
+    list(
+        email
+        for email, user in users.items()
+        if user.sex == "female" and user.subdiv is not None and user.subdiv.org_id == 1
+    )
+)
+old_id = users[email].id
+users["mariya3"] = users[email]
+users["mariya3"].email = "mariya3@voda.gov.ru"
+users["mariya3"].name = "Мария"
+users["mariya3"].id = "7a52bad7-a5fe-9b01-2532-15e4e5a3de47"
+for user in users.values():
+    if user.chief_id == old_id:
+        user.chief_id = users["mariya3"].id
+del users[email]
 
 ratings = gen_ratings(orgs, users)
 
