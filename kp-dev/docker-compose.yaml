@@ -46,7 +46,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.instance=kp"
-      - "traefik.http.routers.liferay.rule=Host(`${HOSTNAME}`)"
+      - "traefik.http.routers.liferay.rule=PathPrefix(`/`)"
       - "traefik.http.routers.liferay.entrypoints=web"
       - "traefik.http.services.liferay.loadbalancer.server.port=8080"
 
@@ -71,7 +71,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.instance=kp"
-      - "traefik.http.routers.django.rule=Host(`${HOSTNAME}`) && PathPrefix(`${BACKEND_PREFIX}/`)"
+      - "traefik.http.routers.django.rule=PathPrefix(`${BACKEND_PREFIX}/`)"
       - "traefik.http.routers.django.entrypoints=web"
 
   react:
@@ -89,5 +89,5 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.instance=kp"
-      - "traefik.http.routers.vite.rule=Host(`${HOSTNAME}`) && PathPrefix(`${FRONTEND_PREFIX}/`)"
+      - "traefik.http.routers.vite.rule=PathPrefix(`${FRONTEND_PREFIX}/`)"
       - "traefik.http.routers.vite.entrypoints=web"
