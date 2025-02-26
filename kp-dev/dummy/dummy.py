@@ -181,7 +181,7 @@ class User:
 
     @property
     def job_title(self):
-        return self.career_path[-1]
+        return self.career_path[0]
 
     def to_employee_dict(self) -> dict[str, Value]:
         return {
