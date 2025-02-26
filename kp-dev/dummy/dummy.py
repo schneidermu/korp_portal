@@ -175,7 +175,8 @@ class User:
         self.career_years = self.career_years[::-1]
 
         self.phone = "+7" + str(randint(800_000_00_00, 999_999_99_99))
-        self.inner_phone = str(randint(10, 99)) + "-" + str(randint(0, 99))
+        inner_phone = randint(0, 9999)
+        self.inner_phone = f"{inner_phone // 100:02d}-{inner_phone % 100:02d}"
         self.office = "к. " + str(randint(100, 1000))
 
         self.service_rank = f"Советник {randint(1, 6)} ранга"
