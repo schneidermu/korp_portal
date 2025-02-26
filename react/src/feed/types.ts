@@ -30,6 +30,7 @@ export interface Poll {
   voted: boolean;
   isAnonymous: boolean;
   isMultipleChoice: boolean;
+  orgs: Set<number>;
 }
 
 export interface Birthday {

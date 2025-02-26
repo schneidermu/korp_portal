@@ -47,6 +47,7 @@ interface PollData {
   is_multiple_choice: boolean;
   pub_date: string;
   voted_count: number;
+  organization: number[];
 }
 
 const toPoll = (data: PollData, userId: string): Poll => {
@@ -84,6 +85,7 @@ const toPoll = (data: PollData, userId: string): Poll => {
     isAnonymous: data.is_anonymous,
     isMultipleChoice: data.is_multiple_choice,
     publishedAt: new Date(data.pub_date),
+    orgs: new Set(data.organization),
   };
 };
 
