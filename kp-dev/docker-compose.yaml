@@ -3,7 +3,7 @@ volumes:
 
 services:
   database:
-    image: postgres:15.6-alpine
+    image: postgres:13.16-alpine
     environment:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
     volumes:
@@ -59,7 +59,7 @@ services:
       POSTGRES_DB_LIFERAY: "${POSTGRES_DB_LIFERAY}"
       DB_HOST: database
       SECRET_KEY: "${SECRET_KEY}"
-      ALLOWED_HOSTS: "${HOSTNAME}"
+      ALLOWED_HOSTS: "${HOSTNAME},kp1.localhost,kp2.localhost,kp3.localhost"
       DEBUG: "${DEBUG}"
       CHALLENGE_URL: "${CHALLENGE_URL}"
       SCRIPT_NAME: "${BACKEND_PREFIX}"

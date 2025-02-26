@@ -9,7 +9,7 @@ export const LOCALE = "ru-RU";
  * The number of days that news about someone's birthday remains visible in the feed
  * after the actual birthday date.
  */
-export const BIRTHDAY_NEWS_EXPIRY = 14;
+export const BIRTHDAY_NEWS_EXPIRY = 21;
 
 export const ACCEPT_IMAGES = [".jpg", ".jpeg", ".png"] as const;
 export const ACCEPT_DOCUMENTS = [
