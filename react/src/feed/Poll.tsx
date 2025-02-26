@@ -32,13 +32,14 @@ const Choice = ({
   setPoll: (poll: types.Poll) => void;
   showResults: () => void;
 }) => {
-  const { userId } = useAuth();
+  const { userId, orgId } = useAuth();
 
   if (userId === undefined) {
     return;
   }
 
   const chosen = poll.myChoices.has(choice.id);
+  const canVote = orgId !== null && poll.orgs.has(orgId);
 
   const toggleChosen = () =>
     setPoll(
@@ -46,7 +47,7 @@ const Choice = ({
         if (!poll.isMultipleChoice) {
           poll.myChoices.clear();
         }
-        if (!chosen) {
+        if (!chosen && canVote) {
           poll.myChoices.add(choice.id);
         } else {
           poll.myChoices.delete(choice.id);
@@ -60,14 +61,14 @@ const Choice = ({
   return (
     <label
       style={{
-        background: poll.voted ? bg : undefined,
+        background: poll.voted || !canVote ? bg : undefined,
       }}
       className={clsx(
         "select-none bg-choice border border-choice-border rounded-choice",
         "hover:bg-choice-selected",
         "flex items-center",
         "pl-[30px] py-[20px]",
-        poll.voted && !poll.isAnonymous && "cursor-pointer",
+        canVote && poll.voted && !poll.isAnonymous && "cursor-pointer",
       )}
       onClick={(event) => {
         event.stopPropagation();
@@ -98,7 +99,7 @@ const Choice = ({
       {chosen && !poll.isMultipleChoice && (
         <Icon src={tickIcon} className="mx-[18px]" />
       )}
-      {poll.voted && (
+      {(poll.voted || !canVote) && (
         <div className="ml-[18px] mr-[5px] w-[100px]">
           {pct.toString().replace(".", ",")}%
         </div>
@@ -122,6 +123,8 @@ export const PollContent = ({
   setPoll: (poll: types.Poll) => void;
   showResults: () => void;
 }) => {
+  const { orgId } = useAuth();
+
   const choices = [...poll.choices]
     .sort(([id1], [id2]) => id1 - id2)
     .map(([id, choice]) => (
@@ -146,6 +149,8 @@ export const PollContent = ({
       ? "Пока никто не проголосовал"
       : `Проголосовал${voteSuffix} ${votes} человек${peopleSuffix}`;
 
+  const canVote = orgId !== null && poll.orgs.has(orgId);
+
   return (
     <div>
       <a
@@ -163,7 +168,7 @@ export const PollContent = ({
         </h2>
       </a>
       <button
-        disabled={poll.isAnonymous || !poll.voted}
+        disabled={poll.isAnonymous || (!poll.voted && canVote)}
         className="mt-[50px] mb-[70px] w-full font-extralight"
         onClick={(event) => {
           event.stopPropagation();
@@ -174,7 +179,7 @@ export const PollContent = ({
       </button>
       <div className="ml-[5%] mr-[10%]">
         <div className="flex flex-col gap-[24px]">{choices}</div>
-        {!poll.voted && (
+        {canVote && !poll.voted && (
           <button
             className={clsx(
               "mt-[54px] px-[30px] py-[6px] w-fit",
@@ -192,7 +197,7 @@ export const PollContent = ({
           </button>
         )}
         <button
-          disabled={poll.isAnonymous || !poll.voted}
+          disabled={poll.isAnonymous || (!poll.voted && canVote)}
           className={clsx(
             "w-full mb-[72px] mt-[40px]",
             "font-extralight text-dark-gray",
