@@ -271,7 +271,12 @@ const PollChoiceResults = ({
   return (
     <div>
       <div className="flex text-[32px] mb-[36px] px-1">
-        <h3 className="text-nowrap overflow-x-hidden text-ellipsis">
+        <h3
+          className={clsx(
+            "text-nowrap overflow-x-hidden text-ellipsis",
+            poll.myChoices.has(choice.id) && "underline",
+          )}
+        >
           {choice.text}
         </h3>
         <div className="text-nowrap ml-2"> — {pctPretty}</div>
