@@ -41,6 +41,10 @@ FEMALE_NAMES = load_json("data/female_names.json")
 ABOUT_SENTENCES = load_json("data/about_sentences.json")
 SKILLS = load_json("data/skills.json")
 CAREER_PATHS = load_json("data/career_paths.json")
+UNIVERSITIES = load_json("data/universities.json")
+
+ANOTHER_UNIVERSITY_CHANCE = 0.2
+MAX_UNIVERSITIES = 4
 
 POLL_QUESTIONS = load_json("data/polls.json")
 POLL_ANONYMOUS_CHANCE = 0.3
@@ -64,17 +68,17 @@ plans = {
         "Руководство",
         [
             (
-                "Управление 123",
+                "Управление гидрологии и мониторинга",
                 [
-                    "Отдел 123.4",
-                    "Отдел 123.5",
+                    "Отдел мониторинга качества воды",
+                    "Отдел гидрологических прогнозов",
                 ],
             ),
             (
-                "Управление Abc",
+                "Управление экологии и охраны водных ресурсов",
                 [
-                    "Отдел Abc.D",
-                    "Отдел Abc.E",
+                    "Отдел охраны водных экосистем",
+                    "Отдел управления водными объектами",
                 ],
             ),
         ],
@@ -82,8 +86,8 @@ plans = {
     2: (
         "Руководство",
         [
-            "Отдел X",
-            "Отдел Y",
+            "Отдел водоснабжения и водоотведения",
+            "Отдел научных исследований и инноваций",
         ],
     ),
 }
@@ -175,6 +179,28 @@ class User:
         self.service_rank = f"Советник {randint(1, 6)} ранга"
         self.status = random.choice(STATUSES)
 
+        uni = random.choice(list(UNIVERSITIES))
+        self.universities = [
+            {
+                "name": uni,
+                "faculty": random.choice(UNIVERSITIES[uni]),
+                "year": self.birth_year + WORKING_AGE + randint(-2, 2),
+                "file": "",
+            }
+        ]
+        k = random.binomialvariate(n=MAX_UNIVERSITIES, p=ANOTHER_UNIVERSITY_CHANCE)
+        for _ in range(k):
+            uni = random.choice(list(UNIVERSITIES))
+            self.universities.append(
+                {
+                    "name": uni,
+                    "faculty": random.choice(UNIVERSITIES[uni]),
+                    "year": self.universities[-1]["year"] + 5 + randint(-1, 3),
+                    "file": "",
+                }
+            )
+        self.universities = self.universities[::-1]
+
     @property
     def birth_year(self):
         return self.birth_date.year
@@ -231,6 +257,9 @@ class User:
                 self.career_path, self.career_years
             )
         ]
+
+    def to_uni_dict(self, char_id):
+        return [{"characteristic_id": char_id, **uni} for uni in self.universities]
 
     def to_skills_dict(self, id: int):
         return {"characteristic_id": id, "id": id, "name": self.skills}
@@ -445,6 +474,21 @@ print(
                 flatten(
                     [
                         user.to_career_dicts(i)
+                        for i, user in enumerate(users.values(), start=1)
+                    ]
+                ),
+                start=1,
+            )
+        ],
+    ),
+    gen_table(
+        "employees_university",
+        [
+            {"id": id, **d}
+            for id, d in enumerate(
+                flatten(
+                    [
+                        user.to_uni_dict(i)
                         for i, user in enumerate(users.values(), start=1)
                     ]
                 ),
