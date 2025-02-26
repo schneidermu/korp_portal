@@ -230,10 +230,10 @@ const PollChoiceResultsUserCard = ({ userId }: { userId: string }) => {
 
   return (
     <div className="flex items-center gap-[56px]">
-      <Link to={profileLink}>
+      <Link target="_blank" to={profileLink}>
         <Picture width="120px" height="120px" url={photoURL} />
       </Link>
-      <Link to={profileLink} className="hover:underline">
+      <Link target="_blank" to={profileLink} className="hover:underline">
         {fullNameLong(user)}
       </Link>
     </div>

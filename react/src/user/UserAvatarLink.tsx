@@ -17,7 +17,11 @@ export const UserAvatarLink = ({
   fontSize: string;
 }) => {
   return (
-    <Link to={`/profile/${user.id}`} className="shrink-0 w-fit hover:underline">
+    <Link
+      target="_blank"
+      to={`/profile/${user.id}`}
+      className="shrink-0 w-fit hover:underline"
+    >
       <div className="rounded-photo overflow-hidden">
         <Picture width={width} height={height} url={userPhotoPath(user)} />
       </div>
