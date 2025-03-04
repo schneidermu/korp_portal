@@ -1,18 +1,10 @@
 import { Outlet } from "react-router-dom";
 
-import { useLogin } from "@/features/auth/services";
-
 import { DPA } from "@/features/dpa/comps/DPA";
 
 import { NavBar } from "./NavBar";
 
 export const Page = () => {
-  const auth = useLogin();
-
-  if (!auth.isLoggedIn) {
-    return;
-  }
-
   return (
     <div
       style={{ zoom: "60%" }}
