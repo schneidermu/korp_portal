@@ -29,7 +29,7 @@ const Stars = ({
 
   return (
     <div
-      className={clsx("w-fit flex gap-[10px]", disabled || "cursor-pointer")}
+      className={clsx("w-fit flex gap-[14px]", disabled || "cursor-pointer")}
       onMouseLeave={() => setHoverStars(Option.none())}
     >
       {[...Array(5)].map((_, i) => {
@@ -45,7 +45,7 @@ const Stars = ({
             }
             onMouseEnter={() => setHoverStars(Option.some(n))}
           >
-            <Icon src={icon} width="29px" height="29px" />
+            <Icon src={icon} width="17px" height="17px" />
           </button>
         );
       })}
@@ -71,7 +71,7 @@ export const Rating = ({ user }: { user: User }) => {
         disabled={user.id === userId}
         onRate={(rating) => updateRating(user, rating)}
       />
-      <div className="text-[20px]">{Option.getOrUndefined(rating)}</div>
+      <div>{Option.getOrUndefined(rating)}</div>
     </div>
   );
 };

@@ -104,14 +104,15 @@ const formatMobilePhoneProper = (phone: string): string => {
   return `(${p1}) ${p2}-${p3}-${p4}`;
 };
 
-export const formatMobilePhone = (phone: string): string => {
+export const formatMobilePhone = (rawPhone: string): string => {
+  const phone = rawPhone.replace(/[- ()]/g, "");
   if (phone.length === 12 && phone.startsWith("+7")) {
     return `+7 ${formatMobilePhoneProper(phone.slice(2))}`;
   }
   if (phone.length === 11 && phone.startsWith("8")) {
     return `8 ${formatMobilePhoneProper(phone.slice(1))}`;
   }
-  return phone;
+  return rawPhone;
 };
 
 export const stripPhoneNumber = (phone: string): string => {
