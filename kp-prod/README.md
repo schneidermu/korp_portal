@@ -28,6 +28,7 @@ cp sample.env .env
   ```
 
 - `HOSTNAME`
+- `LOCAL_AUTHORITY`
 - `DB_HOST`, `POSTGRES_PASSWORD`
 
 Сверить дефолтные значения для:
