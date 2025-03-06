@@ -88,7 +88,7 @@ class LiferayDatabaseBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None):
         cookies = request.COOKIES
         data = {"p_auth": password}
-        response = requests.post(url, cookies=cookies, data=data)
+        response = requests.post(url, cookies=cookies, data=data, verify=False)
         if response.status_code != 200:
             return None
 
