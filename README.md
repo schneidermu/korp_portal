@@ -22,7 +22,11 @@ docker compose logs -f
 ### Load dummy Django data
 
 ```sh
+# Load dummy.
 ./dummy/load.sh
+
+# Clean database.
+./dummy/clean.sh
 ```
 
 ### Develop Django locally in a venv
