@@ -15,7 +15,7 @@ cp sample.env .env
 ./database/bin/gen-init.sh
 
 docker compose build
-docker compose up -d # database django gateway liferay openldap react
+docker compose up -d # database django traefik liferay react
 docker compose logs -f
 ```
 
