@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 
 import clsx from "clsx/lite";
 import { produce } from "immer";
@@ -246,6 +246,39 @@ const PollChoiceResultsUserCard = ({ userId }: { userId: string }) => {
   );
 };
 
+const PollChoiceResultsVoters = ({ voters }: { voters: string[] }) => {
+  const [collapsed, setCollapsed] = useState(true);
+
+  const numCollapsedVoters = 3;
+
+  const Sep = () => <hr className="mt-[42px] mb-[32px] border-medium-gray" />;
+
+  return (
+    <div className="rounded border border-medium-gray px-[48px] py-[40px]">
+      {voters
+        .slice(0, collapsed ? numCollapsedVoters : undefined)
+        .map((userId, i) => (
+          <Fragment key={userId}>
+            {i > 0 && <Sep />}
+            <PollChoiceResultsUserCard userId={userId} />
+          </Fragment>
+        ))}
+      {voters.length > numCollapsedVoters + 1 && (
+        <>
+          <Sep />
+          <button
+            type="button"
+            className="w-full hover:underline"
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            {collapsed ? "Показать всех" : "Скрыть"}
+          </button>
+        </>
+      )}
+    </div>
+  );
+};
+
 const PollChoiceResults = ({
   poll,
   choice,
@@ -288,18 +321,7 @@ const PollChoiceResults = ({
         <div className="grow"></div>
         <div className="text-nowrap ml-8">{votedText}</div>
       </div>
-      {choice.votes > 0 && (
-        <div className="rounded border border-medium-gray px-[48px] py-[40px]">
-          {voters.map((userId, i) => (
-            <Fragment key={userId}>
-              {i > 0 && (
-                <hr className="mt-[42px] mb-[32px] border-medium-gray" />
-              )}
-              <PollChoiceResultsUserCard userId={userId} />
-            </Fragment>
-          ))}
-        </div>
-      )}
+      {choice.votes > 0 && <PollChoiceResultsVoters voters={voters} />}
     </div>
   );
 };
