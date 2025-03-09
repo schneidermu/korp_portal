@@ -260,7 +260,11 @@ const PollChoiceResults = ({
 
   const votes = choice.votes;
   const voteSuffix =
-    votes % 10 === 1 ? "" : [2, 3, 4].includes(votes % 10) ? "а" : "ов";
+    votes % 10 === 1 && votes !== 11
+      ? ""
+      : [2, 3, 4].includes(votes % 10) && ![12, 13, 14].includes(votes)
+        ? "а"
+        : "ов";
 
   const votedText = `${votes} голос${voteSuffix}`;
 
