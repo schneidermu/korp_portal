@@ -28,6 +28,8 @@ PASSWORD = "pbkdf2_sha256$600000$lvosBDQr57H4gV6kJB77oJ$C/tlh7LyU5QELuZ7sjx0Famp
 NUM_MALE_AVATARS = 8
 NUM_FEMALE_AVATARS = 3
 
+MALE_CHANCE = NUM_MALE_AVATARS / (NUM_MALE_AVATARS + NUM_FEMALE_AVATARS)
+
 MIN_COWORKERS = 3
 MAX_COWORKERS = 7
 
@@ -132,7 +134,7 @@ class User:
         self.birth_date = random_date_between(BIRTH_DATE_MIN, BIRTH_DATE_MAX)
 
         if sex is None:
-            self.sex = random.choice(["male", "female"])
+            self.sex = "male" if random.random() < MALE_CHANCE else "female"
 
         if name is not None:
             self.surname, self.name, self.patronym = name
