@@ -54,6 +54,7 @@ export const News = ({
             <img
               key={src}
               src={resolveMediaPath(src)}
+              loading="lazy"
               className="w-full h-[400px] object-cover select-none"
               onClick={(event) => {
                 if (!full && handleOpen) {
