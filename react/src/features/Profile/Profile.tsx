@@ -40,7 +40,6 @@ import layersIcon from "@/assets/layers.svg";
 import layoutIcon from "@/assets/layout.svg";
 import upArrowIcon from "@/assets/up-arrow.svg";
 
-import Sticky from "react-stickynode";
 import { useUserState } from "../user/hooks";
 
 const SectionSep = () => {
@@ -1090,18 +1089,16 @@ export const UserProfile = () => {
           onSubmit={handleSubmit}
         >
           <div className={clsx(editable || "invisible")}>
-            <Sticky top={70} innerZ={1}>
-              <div className="flex justify-end">
-                <EditControls
-                  editing={editing}
-                  edit={() => setEditing(true)}
-                  reset={() => {
-                    updateUserState(user);
-                    setEditing(false);
-                  }}
-                />
-              </div>
-            </Sticky>
+            <div className="flex justify-end">
+              <EditControls
+                editing={editing}
+                edit={() => setEditing(true)}
+                reset={() => {
+                  updateUserState(user);
+                  setEditing(false);
+                }}
+              />
+            </div>
           </div>
           {sections.map((Section, i) => (
             <Fragment key={i}>
