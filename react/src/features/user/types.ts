@@ -109,6 +109,19 @@ const matchString = (q: string, s: string): boolean => {
   return s.toLowerCase().includes(q);
 };
 
+const matchDate = (term: string, date: Date): boolean => {
+  term = term.replace(/^0/g, "");
+  term = term.replace(/\.0/g, ".");
+
+  const ds = [
+    formatDateLong,
+    (d: Date) => `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`,
+    (d: Date) => `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear() % 100}`,
+  ];
+
+  return ds.some((f) => matchString(term, f(date)));
+};
+
 type FilterFields = Set<keyof User>;
 
 export const filterUsers = (
@@ -141,7 +154,7 @@ export const filterUsers = (
       matchString(term, fullNameShort(user)) ||
       (fields.has("dateOfBirth") &&
         dateOfBirth &&
-        matchString(term, formatDateLong(new Date(dateOfBirth)))) ||
+        matchDate(term, new Date(dateOfBirth))) ||
       (fields.has("position") && matchString(term, position)) ||
       (fields.has("status") && matchString(term, status)) ||
       (fields.has("email") && matchString(term, email)) ||
