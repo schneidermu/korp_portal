@@ -12,6 +12,7 @@ import { UnitList } from "@/features/UnitList/UnitList";
 import { UserList } from "@/features/UserList/UserList";
 
 import { AuthLoader } from "./parts/AuthLoader";
+import { NewPage } from "./parts/NewPage";
 import { Page } from "./parts/Page";
 
 export const App = () => {
@@ -20,7 +21,12 @@ export const App = () => {
       <HashRouter>
         <Routes>
           <Route element={<AuthLoader />}>
-            <Route path="/new" element={<NewProfilePage />} />
+            <Route element={<NewPage />}>
+              <Route
+                path="/new-profile/:userId?"
+                element={<NewProfilePage />}
+              />
+            </Route>
             <Route element={<Page />}>
               <Route path="/" element={<UserProfile />} />
               <Route path="/feed" element={<Feed />} />
