@@ -70,7 +70,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.instance=kp"
+      - "traefik.instance=${TRAEFIK_INSTANCE}"
       - "traefik.http.routers.django.rule=PathPrefix(`${BACKEND_PREFIX}/`)"
       - "traefik.http.routers.django.entrypoints=web"
 
@@ -88,6 +88,6 @@ services:
       - ../react:/app
     labels:
       - "traefik.enable=true"
-      - "traefik.instance=kp"
+      - "traefik.instance=${TRAEFIK_INSTANCE}"
       - "traefik.http.routers.vite.rule=PathPrefix(`${FRONTEND_PREFIX}/`)"
       - "traefik.http.routers.vite.entrypoints=web"
