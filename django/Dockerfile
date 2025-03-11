@@ -21,7 +21,5 @@ RUN python manage.py makemigrations --noinput
 
 USER user
 
-EXPOSE 8000
-
 CMD ["sh", "-c", "python manage.py migrate --noinput && \
-  gunicorn --bind 0.0.0.0:8000 korp_portal.wsgi"]
+  gunicorn --bind 0.0.0.0:${DJANGO_PORT} korp_portal.wsgi"]

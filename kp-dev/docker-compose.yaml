@@ -63,6 +63,7 @@ services:
       DEBUG: "${DEBUG}"
       CHALLENGE_URL: "${CHALLENGE_URL}"
       SCRIPT_NAME: "${BACKEND_PREFIX}"
+      DJANGO_PORT: 8000
     volumes:
       - ./volumes/media:/media
     depends_on:
@@ -73,6 +74,7 @@ services:
       - "traefik.instance=${TRAEFIK_INSTANCE}"
       - "traefik.http.routers.django.rule=PathPrefix(`${BACKEND_PREFIX}/`)"
       - "traefik.http.routers.django.entrypoints=web"
+      - "traefik.http.services.django.loadbalancer.server.port=8000"
 
   react:
     build:

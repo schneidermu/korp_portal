@@ -1,7 +1,11 @@
 services:
   django:
     build: ../django/
+
+    # Resolve local domains (on a VPN).
+    network_mode: host
     environment:
+      DJANGO_PORT: "${BACKEND_PORT}"
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
       POSTGRES_DB: "${POSTGRES_DB}"
@@ -16,5 +20,3 @@ services:
       SCRIPT_NAME: "${BACKEND_PREFIX}"
     volumes:
       - ./volumes/media:/media
-    ports:
-      - "${BACKEND_PORT}:8000"
