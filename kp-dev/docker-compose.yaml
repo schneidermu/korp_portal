@@ -91,3 +91,6 @@ services:
       - "traefik.instance=${TRAEFIK_INSTANCE}"
       - "traefik.http.routers.vite.rule=PathPrefix(`${FRONTEND_PREFIX}/`)"
       - "traefik.http.routers.vite.entrypoints=web"
+
+  whoami:
+    image: containous/whoami
