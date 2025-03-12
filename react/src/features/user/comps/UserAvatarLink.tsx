@@ -1,3 +1,5 @@
+import { HTMLAttributeAnchorTarget } from "react";
+
 import { Link } from "react-router-dom";
 
 import { fullNameShort, userPhotoPath } from "@/shared/utils";
@@ -11,15 +13,17 @@ export const UserAvatarLink = ({
   width,
   height,
   fontSize,
+  target,
 }: {
   user: User;
   width: string;
   height: string;
   fontSize: string;
+  target?: HTMLAttributeAnchorTarget;
 }) => {
   return (
     <Link
-      target="_blank"
+      target={target}
       to={`/profile/${user.id}`}
       className="shrink-0 w-fit hover:underline"
     >
