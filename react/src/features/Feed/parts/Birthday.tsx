@@ -42,7 +42,7 @@ export const Birthday = ({
       >
         {birthday.users.map((user) => (
           <UserAvatarLink
-            target="_blank"
+            target={full ? "_blank" : undefined}
             key={user.id}
             user={user}
             width="230px"
