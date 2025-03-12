@@ -1,7 +1,13 @@
+import { useEffect } from "react";
+
 import { produce } from "immer";
 import useSWR, { mutate } from "swr";
+import useSWRInfinite from "swr/infinite";
+
+import { USERS_PAGE_LIMIT } from "@/app/const";
 
 import { tokenFetch, useTokenFetcher } from "@/features/auth/hooks";
+import { Paged } from "@/shared/types";
 import { fileExtention, fullNameLong, trimExtention } from "@/shared/utils";
 import { User, UserStatus } from "./types";
 
@@ -217,25 +223,54 @@ const fromUser = (user: User): UserData => ({
 export const useFetchUsers = (orgId: number | null) => {
   const tokenFetcher = useTokenFetcher();
 
-  return useSWR(
-    orgId === null
-      ? `/colleagues/`
-      : `/colleagues/?structural_division__organization__id=${orgId}`,
-    async (path: string) =>
-      tokenFetcher(path)
-        .then((res) => res.json())
-        .then((usersData: UserData[]) => usersData.map(toUser))
-        .then((users: User[]) => {
-          users.sort(cmpUsers);
-          for (const user of users.values()) {
-            mutate(`/colleagues/${user.id}/`, user, { revalidate: false });
-          }
-          return new Map(users.map((user) => [user.id, user]));
+  const limit = USERS_PAGE_LIMIT;
+
+  const getKey = (index: number, prevPage: Paged<UserData>) => {
+    let key = `/colleagues/?limit=${limit}`;
+    if (orgId !== null) {
+      key += `&structural_division__organization__id=${orgId}`;
+    }
+    if (index === 0) return key;
+    if (prevPage && prevPage.next === null) return null;
+    const offset = limit * index;
+    return `${key}&offset=${offset}`;
+  };
+
+  const fetcher = async (path: string) =>
+    tokenFetcher(path)
+      .then((res) => res.json())
+      .then((page: Paged<UserData>) => ({
+        ...page,
+        results: page.results.map((data) => {
+          const user = toUser(data);
+          mutate(`/colleagues/${user.id}/`, user, { revalidate: false });
+          return user;
         }),
-    {
-      keepPreviousData: false,
-    },
+      }));
+
+  const {
+    data: pages,
+    error,
+    size,
+    setSize,
+  } = useSWRInfinite<Paged<User>>(getKey, fetcher, {
+    keepPreviousData: false,
+    revalidateFirstPage: false,
+  });
+
+  const data = new Map(
+    pages?.flatMap((page) => page.results.map((user) => [user.id, user])) ?? [],
   );
+
+  const allAreLoaded = pages ? pages[pages.length - 1]?.next === null : false;
+
+  useEffect(() => {
+    if (pages?.length && pages?.length === size) {
+      setSize(size + 1);
+    }
+  }, [size, pages?.length, setSize, allAreLoaded]);
+
+  return { data, error };
 };
 
 export const cmpUsers = (u1: User, u2: User): -1 | 0 | 1 => {
