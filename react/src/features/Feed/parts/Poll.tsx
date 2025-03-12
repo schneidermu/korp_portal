@@ -10,7 +10,6 @@ import { formatDate, fullNameLong, userPhotoPath } from "@/shared/utils";
 
 import * as types from "../types";
 
-import { UserAvatarLink } from "@/features/user/comps/UserAvatarLink";
 import { Icon } from "@/shared/comps/Icon";
 import { Picture } from "@/shared/comps/Picture";
 
@@ -213,16 +212,6 @@ export const PollContent = ({
         </button>
       </div>
     </div>
-  );
-};
-
-export const Avatar = ({ userId }: { userId: string }) => {
-  const { user } = useFetchUser(userId);
-
-  if (!user) return;
-
-  return (
-    <UserAvatarLink user={user} width="150px" height="150px" fontSize="20px" />
   );
 };
 
