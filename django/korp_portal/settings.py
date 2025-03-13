@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+import socket
 from pathlib import Path
 
 import ldap
@@ -107,7 +108,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "").lower() in ["1", "true", "yes"]
 
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = ["localhost", socket.gethostname()]
 if os.getenv("ALLOWED_HOSTS", "") != "":
     ALLOWED_HOSTS.extend(os.environ["ALLOWED_HOSTS"].split(","))
 
@@ -115,7 +116,9 @@ CORS_URLS_REGEX = r"^/api/.*$"
 
 CORS_ALLOWED_ORIGIN_REGEXES = [r"^http://([a-z0-9]+\.)*localhost(:[0-9]+)?$"]
 
-CORS_ALLOWED_ORIGINS = []
+DJANGO_PORT = os.getenv("DJANGO_PORT", 8000)
+
+CORS_ALLOWED_ORIGINS = [f"http://{socket.gethostname()}:{DJANGO_PORT}"]
 if os.getenv("ALLOWED_ORIGINS", "") != "":
     CORS_ALLOWED_ORIGINS.extend(os.environ["ALLOWED_ORIGINS"].split(","))
 
