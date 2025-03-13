@@ -56,7 +56,7 @@ export const UserList = () => {
   const { data: allUsers } = useFetchUsers(orgId);
 
   const users = useMemo(() => {
-    if (!allUsers) {
+    if (!allUsers || orgId === null) {
       return [];
     }
     let users = [...allUsers.values()];
@@ -65,7 +65,7 @@ export const UserList = () => {
     }
     users = users.sort(cmpUsers);
     return users;
-  }, [allUsers, query]);
+  }, [allUsers, query, orgId]);
 
   const id = query.slice(0, -1).join("+");
 
