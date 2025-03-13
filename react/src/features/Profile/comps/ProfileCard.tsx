@@ -113,8 +113,9 @@ export const InfoGrid = ({
     field: MonomorphFields<User, string | null>;
     type?: string;
     pattern?: string;
+    wrap?: boolean;
   }) => (
-    <EditableProperty key={field} icon={icon} name={name}>
+    <EditableProperty key={field} icon={icon} name={name} wrap={!editing}>
       <PropertyInput
         type={type}
         pattern={pattern}
@@ -188,7 +189,12 @@ export const InfoGrid = ({
           icon: awardIcon,
         }),
       ]}
-      <EditableProperty key="organization" name="Организация" icon={pinIcon}>
+      <EditableProperty
+        key="organization"
+        name="Организация"
+        icon={pinIcon}
+        wrap={!editing}
+      >
         {!editing && user.organization !== null ? (
           <Link
             to={`/list?org=${user.organization.id}`}
