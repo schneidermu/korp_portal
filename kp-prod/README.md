@@ -14,6 +14,9 @@ cd kp-prod
 # Создать папку под volumes:
 mkdir -p volumes/media
 
+# Дать права обычному пользователю:
+chown -R 1000:1000 volumes
+
 # Заполнить .env.
 cp sample.env .env
 ```
