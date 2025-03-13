@@ -61,7 +61,8 @@ COPY --from=workspace /war/korp-portal-portlet.war .
 
 COPY . .
 
-RUN yarn build && rm -f dist/index.html && \
+RUN yarn build && \
+  rm -rf dist/index.html dist/dev/ && \
   zip -qr korp-portal-portlet.war dist/
 
 USER 1000
