@@ -108,7 +108,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "").lower() in ["1", "true", "yes"]
 
-ALLOWED_HOSTS = ["localhost", socket.gethostname()]
+ALLOWED_HOSTS = [".localhost", socket.gethostname()]
 if os.getenv("ALLOWED_HOSTS", "") != "":
     ALLOWED_HOSTS.extend(os.environ["ALLOWED_HOSTS"].split(","))
 
