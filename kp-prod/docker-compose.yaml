@@ -14,7 +14,7 @@ services:
       SECRET_KEY: "${SECRET_KEY}"
       ALLOWED_HOSTS: "${HOSTNAME}"
       ALLOWED_ORIGINS: "https://${HOSTNAME}"
-      DEBUG: 0
+      DEBUG: "${DEBUG}"
       PROD: 1
       CHALLENGE_URL: "${CHALLENGE_URL}"
       SCRIPT_NAME: "${BACKEND_PREFIX}"
