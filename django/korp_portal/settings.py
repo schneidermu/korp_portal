@@ -17,7 +17,7 @@ from pathlib import Path
 import ldap
 from django_auth_ldap.config import GroupOfUniqueNamesType, LDAPSearch
 
-FORCE_SCRIPT_NAME = os.getenv('SCRIPT_NAME', '')
+FORCE_SCRIPT_NAME = os.getenv("SCRIPT_NAME", "")
 
 
 AUTH_LDAP_SERVER_URI = os.getenv("LDAP_URI", "0")
@@ -59,8 +59,8 @@ AUTH_LDAP_GROUP_ATTR_MAP = {
     "members": "uniqueMember",
 }
 
-GROUP_USER = os.getenv('GROUP_USER', 'kp_user')
-GROUP_ADMIN = os.getenv('GROUP_ADMIN', 'kp_admin')
+GROUP_USER = os.getenv("GROUP_USER", "kp_user")
+GROUP_ADMIN = os.getenv("GROUP_ADMIN", "kp_admin")
 
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
     "is_active": f"cn=active,ou=groups,{LDAP_ROOT}",
