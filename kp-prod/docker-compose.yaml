@@ -5,7 +5,7 @@ services:
     # Resolve local domains (on a VPN).
     network_mode: host
     environment:
-      DJANGO_PORT: "${BACKEND_PORT}"
+      DJANGO_PORT: "${BACKEND_VM_PORT}"
       POSTGRES_USER: "${POSTGRES_USER}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
       POSTGRES_DB: "${POSTGRES_DB}"
@@ -13,7 +13,7 @@ services:
       DB_HOST: "${DB_HOST}"
       SECRET_KEY: "${SECRET_KEY}"
       ALLOWED_HOSTS: "${HOSTNAME}"
-      ALLOWED_ORIGINS: "${AUTHORITY}"
+      ALLOWED_ORIGINS: "https://${HOSTNAME}"
       DEBUG: 0
       PROD: 1
       CHALLENGE_URL: "${CHALLENGE_URL}"

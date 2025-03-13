@@ -28,7 +28,8 @@ cp sample.env .env
   ```
 
 - `HOSTNAME`
-- `LOCAL_AUTHORITY`
+- `LIFERAY_VM_AUTHORITY`
+- `BACKEND_VM_HOSTNAME`, `BACKEND_VM_PORT`
 - `DB_HOST`, `POSTGRES_PASSWORD`
 
 Сверить дефолтные значения для:
