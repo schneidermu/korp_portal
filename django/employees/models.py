@@ -207,6 +207,7 @@ class AbstractWithPhotoNameModel(models.Model):
         verbose_name="Документ",
         blank=True,
         default=None,
+        null=True,
     )
 
     class Meta:
