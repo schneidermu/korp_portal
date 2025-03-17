@@ -766,13 +766,18 @@ class RatingPUTSerializer(RatingPOSTSerializer):
     @transaction.atomic
     def create(self, validated_data):
         user = validated_data.get("user")
-        rating = Rating.objects.filter(user=user).first()
+        employee = validated_data.get("employee")
+        rating = Rating.objects.filter(user=user, employee=employee).first()
 
         if rating is None:
             rating = Rating.objects.create(**validated_data)
         else:
-            rating.rate = validated_data.get("rate")
-            rating.save()
+            rate = validated_data.get("rate")
+            if rate is None:
+                Rating.objects.delete(user=user, employee=employee)
+            else:
+                rating.rate = rate
+                rating.save()
 
         return rating
 
