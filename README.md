@@ -17,6 +17,9 @@ cp sample.env .env
 docker compose build
 docker compose up -d # database django traefik liferay react
 docker compose logs -f
+
+# After Liferay has initialized the DB:
+./database/bin/grant-liferay-access.sh
 ```
 
 ### Load dummy Django data
