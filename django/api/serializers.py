@@ -772,12 +772,8 @@ class RatingPUTSerializer(RatingPOSTSerializer):
         if rating is None:
             rating = Rating.objects.create(**validated_data)
         else:
-            rate = validated_data.get("rate")
-            if rate is None:
-                Rating.objects.delete(user=user, employee=employee)
-            else:
-                rating.rate = rate
-                rating.save()
+            rating.rate = validated_data.get("rate")
+            rating.save()
 
         return rating
 
