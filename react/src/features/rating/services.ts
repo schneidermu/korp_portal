@@ -10,26 +10,6 @@ export const useUpdateRating = () => {
   return async (user: User, rating: Option.Option<number>) => {
     const key = `/colleagues/${user.id}/`;
 
-    const deleteRating = async () =>
-      tokenFetch(`/colleagues/${user.id}/rate/`, { method: "DELETE" }).then(
-        (res) => {
-          if (res.status >= 400) {
-            mutate(key, user, { revalidate: false });
-          }
-        },
-      );
-
-    const postRating = async (rating: number) =>
-      tokenFetch(`/colleagues/${user.id}/rate/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rate: rating }),
-      }).then((res) => {
-        if (res.status >= 400) {
-          mutate(key, user, { revalidate: false });
-        }
-      });
-
     let num = user.numRates;
     let sum = Option.map(user.avgRating, (r) => r * num).pipe(
       Option.getOrElse(() => 0),
@@ -58,12 +38,21 @@ export const useUpdateRating = () => {
       { revalidate: false },
     );
 
-    if (Option.isSome(user.myRating)) {
-      await deleteRating();
-    }
+    const res = await Option.match(rating, {
+      onSome: (rate) =>
+        tokenFetch(`/colleagues/${user.id}/rate/`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rate }),
+        }),
+      onNone: () =>
+        tokenFetch(`/colleagues/${user.id}/rate/`, {
+          method: "DELETE",
+        }),
+    });
 
-    if (Option.isSome(rating)) {
-      return postRating(rating.value);
+    if (res.status >= 400) {
+      mutate(key, user, { revalidate: false });
     }
   };
 };
