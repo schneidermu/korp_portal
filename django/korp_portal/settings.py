@@ -11,26 +11,30 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+import socket
 from pathlib import Path
 
 import ldap
 from django_auth_ldap.config import GroupOfUniqueNamesType, LDAPSearch
 
+FORCE_SCRIPT_NAME = os.getenv("SCRIPT_NAME", "")
+
+
 AUTH_LDAP_SERVER_URI = os.getenv("LDAP_URI", "0")
 LDAP_USER = os.getenv("LDAP_USER", "0")
-LDAP_BASE_DN = os.getenv("LDAP_BASE_DN", "0")
+LDAP_ROOT = os.getenv("LDAP_ROOT", "0")
 
-AUTH_LDAP_BIND_DN = f"cn={LDAP_USER},{LDAP_BASE_DN}"
+AUTH_LDAP_BIND_DN = f"cn={LDAP_USER},ou=users,{LDAP_ROOT}"
 AUTH_LDAP_BIND_PASSWORD = os.getenv("LDAP_PASSWORD", "0")
 
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    f"ou=users,{LDAP_BASE_DN}",
+    f"ou=users,{LDAP_ROOT}",
     ldap.SCOPE_SUBTREE,
     "(uid=%(user)s)",
 )
 
 AUTH_LDAP_GROUP_SEARCH = LDAPSearch(
-    f"ou=groups,{LDAP_BASE_DN}",
+    f"ou=groups,{LDAP_ROOT}",
     ldap.SCOPE_SUBTREE,
     "(objectClass=groupOfUniqueNames)",
 )
@@ -55,10 +59,13 @@ AUTH_LDAP_GROUP_ATTR_MAP = {
     "members": "uniqueMember",
 }
 
+GROUP_USER = os.getenv("GROUP_USER", "kp_user")
+GROUP_ADMIN = os.getenv("GROUP_ADMIN", "kp_admin")
+
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
-    "is_active": f"cn=active,ou=groups,{LDAP_BASE_DN}",
-    "is_staff": f"cn=staff,ou=groups,{LDAP_BASE_DN}",
-    "is_superuser": f"cn=superuser,ou=groups,{LDAP_BASE_DN}",
+    "is_active": f"cn=active,ou=groups,{LDAP_ROOT}",
+    "is_staff": f"cn=staff,ou=groups,{LDAP_ROOT}",
+    "is_superuser": f"cn=superuser,ou=groups,{LDAP_ROOT}",
 }
 
 AUTHENTICATION_BACKENDS = ("korp_portal.backends.LiferayDatabaseBackend",)
@@ -101,15 +108,17 @@ SECRET_KEY = os.getenv("SECRET_KEY", "")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "").lower() in ["1", "true", "yes"]
 
-ALLOWED_HOSTS = ["localhost"]
+ALLOWED_HOSTS = [".localhost", socket.gethostname()]
 if os.getenv("ALLOWED_HOSTS", "") != "":
     ALLOWED_HOSTS.extend(os.environ["ALLOWED_HOSTS"].split(","))
 
 CORS_URLS_REGEX = r"^/api/.*$"
 
-CORS_ALLOWED_ORIGIN_REGEXES = ["^http://([a-z0-9]+\.)*localhost(:[0-9]+)?$"]
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^http://([a-z0-9]+\.)*localhost(:[0-9]+)?$"]
 
-CORS_ALLOWED_ORIGINS = []
+DJANGO_PORT = os.getenv("DJANGO_PORT", 8000)
+
+CORS_ALLOWED_ORIGINS = [f"http://{socket.gethostname()}:{DJANGO_PORT}"]
 if os.getenv("ALLOWED_ORIGINS", "") != "":
     CORS_ALLOWED_ORIGINS.extend(os.environ["ALLOWED_ORIGINS"].split(","))
 
@@ -141,10 +150,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -226,8 +235,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "/static/"
+STATIC_URL = FORCE_SCRIPT_NAME + "/static/"
 STATIC_ROOT = BASE_DIR / "collected_static"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -237,8 +255,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
-        "rest_framework.authentication.BasicAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
 }

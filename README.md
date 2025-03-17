@@ -2,10 +2,8 @@
 
 ## Dev setup
 
-### Database, Django & Liferay
-
 ```sh
-cd dev
+cd kp-dev
 
 # Create volumes:
 mkdir -p volumes/deploy volumes/media
@@ -16,40 +14,55 @@ cp sample.env .env
 # Generate init.sql script:
 ./database/bin/gen-init.sh
 
-# Start database, Django and Liferay:
-docker compose -p kp build
-docker compose -p kp up -d
-docker compose -p kp logs -f
-```
+docker compose build
+docker compose up -d # database django traefik liferay react
+docker compose logs -f
 
-### React
-
-```sh
-# Start React dev server:
-docker build -t kp-react-dev --target dev react/
-docker run --rm -it -p 3000:3000 -v ./react:/app kp-react-dev
-
-# Or build and deploy a WAR to Liferay:
-docker build -t kp-react-war --target war react/
-docker run --rm -it -v ./react:/app kp-react-war
-cp pkg/*.war ./dev/volumes/deploy
+# After Liferay has initialized the DB:
+./database/bin/grant-liferay-access.sh
 ```
 
 ### Load dummy Django data
 
 ```sh
-./database/bin/load-django-dummy.sh kp-database-1
+# Load dummy.
+./dummy/load.sh
+
+# Clean database.
+./dummy/clean.sh
+```
+
+### Develop Django locally in a venv
+
+```sh
+cd django
+
+python -m venv venv
+. venv/bin/activate  # On Linux.
+source venv/Scripts/activate  # On Windows.
+
+pip install -r requirements.txt
+python manage.py runserver
+```
+
+## Production build
+
+### Package React into a WAR
+
+```sh
+cd react
+
+# Edit .env:
+cp sample.env .env
+
+docker build -t kp-react-war --target war .
+docker run --rm kp-react-war > "$dist/korp-portal-portlet.war"
+
+# Example deployment to dev Liferay:
+cp "$dist"/*.war ../kp-dev/volumes/deploy
 ```
 
 ## Liferay
-
-### Useful links
-
-- [liferay/portal docker image](https://hub.docker.com/r/liferay/portal)
-- [portal.properties spec](https://github.com/liferay/liferay-portal/blob/master/portal-impl/src/portal.properties)
-- [React portlet guide](https://help.liferay.com/hc/en-us/articles/360017888032-Using-React-in-Your-Portlets)
-- [React portlet example (ru)](https://github.com/Allorion/liferay-react-portlet)
-- [gis.favr.ru API](https://gis.favr.ru/api/jsonws)
 
 ### Check that Liferay has fully started
 
@@ -74,21 +87,17 @@ docker run --rm -t -w /build -v ./:/build node:10.15.3-alpine \
 
 See also `liferay-gui-develop/README.development.md`.
 
-## Разворачивание бэка
+## Docs
 
-```sh
-cd django
+### Django
 
-python -m venv venv
+- `http://localhost:8000/swagger/`
+- `http://localhost:8000/redoc/`
 
-source venv/Scripts/activate
+### Liferay
 
-pip install -r requirements.txt
-
-python manage.py runserver
-```
-
-## Документация по ссылкам
-
-1. <http://localhost:8000/swagger/>
-2. <http://localhost:8000/redoc/>
+- [liferay/portal docker image](https://hub.docker.com/r/liferay/portal)
+- [portal.properties spec](https://github.com/liferay/liferay-portal/blob/master/portal-impl/src/portal.properties)
+- [React portlet guide](https://help.liferay.com/hc/en-us/articles/360017888032-Using-React-in-Your-Portlets)
+- [React portlet example (ru)](https://github.com/Allorion/liferay-react-portlet)
+- [gis.favr.ru API](https://gis.favr.ru/api/jsonws)

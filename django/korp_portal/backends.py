@@ -10,16 +10,16 @@ from django_auth_ldap.backend import LDAPBackend, _LDAPUser, _report_error, logg
 from employees.models import Employee
 
 url = os.getenv("CHALLENGE_URL", "0")
-liferay_db_name = os.getenv("POSTGRES_DB_LIFERAY", "0")
-liferay_db_user = os.getenv("POSTGRES_USER_LIFERAY", "0")
-liferay_db_password = os.getenv("POSTGRES_PASSWORD_LIFERAY", "0")
+db_name = os.getenv("POSTGRES_DB_LIFERAY", "0")
+db_user = os.getenv("POSTGRES_USER", "0")
+db_password = os.getenv("POSTGRES_PASSWORD", "0")
 db_host = os.getenv("DB_HOST", "127.0.0.1")
 db_port = os.getenv("DB_PORT", "5432")
 
 connection = psycopg2.connect(
-    database=liferay_db_name,
-    user=liferay_db_user,
-    password=liferay_db_password,
+    database=db_name,
+    user=db_user,
+    password=db_password,
     host=db_host,
     port=db_port,
 )
@@ -88,7 +88,7 @@ class LiferayDatabaseBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None):
         cookies = request.COOKIES
         data = {"p_auth": password}
-        response = requests.post(url, cookies=cookies, data=data)
+        response = requests.post(url, cookies=cookies, data=data, verify=False)
         if response.status_code != 200:
             return None
 
@@ -96,14 +96,20 @@ class LiferayDatabaseBackend(ModelBackend):
             user = Employee.objects.get(email=username)
         except Employee.DoesNotExist:
             cursor.execute(
-                "SELECT firstname, middlename, lastname, jobtitle, companyid FROM user_ WHERE emailaddress = %s;",
+                """
+                SELECT
+                    u.firstname, u.middlename, u.lastname,
+                    u.jobtitle, u.companyid, c.birthday
+                FROM user_ u
+                INNER JOIN contact_ c
+                USING (emailaddress)
+                WHERE emailaddress = %s;
+                """,
                 (username,),
             )
-            name, patronym, surname, job_title, companyid = cursor.fetchone()
-            cursor.execute(
-                "SELECT birthday FROM contact_ WHERE emailaddress = %s;", (username,)
+            name, patronym, surname, job_title, companyid, birth_date = (
+                cursor.fetchone()
             )
-            birth_date = cursor.fetchone()[0]
             user = Employee(
                 email=username,
                 username=username,
