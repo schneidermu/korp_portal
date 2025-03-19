@@ -52,6 +52,7 @@ services:
 
   django:
     build: ../django/
+    stop_signal: SIGINT
     environment:
       POSTGRES_USER: "${POSTGRES_USER_DJANGO}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD_DJANGO}"
