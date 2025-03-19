@@ -108,7 +108,9 @@ SECRET_KEY = os.getenv("SECRET_KEY", "")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "").lower() in ["1", "true", "yes"]
 
-ALLOWED_HOSTS = [".localhost", socket.gethostname()]
+vm_hostname = socket.gethostname() + ".favr"
+
+ALLOWED_HOSTS = [".localhost", vm_hostname]
 if os.getenv("ALLOWED_HOSTS", "") != "":
     ALLOWED_HOSTS.extend(os.environ["ALLOWED_HOSTS"].split(","))
 
@@ -118,7 +120,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [r"^http://([a-z0-9]+\.)*localhost(:[0-9]+)?$"]
 
 DJANGO_PORT = os.getenv("DJANGO_PORT", 8000)
 
-CORS_ALLOWED_ORIGINS = [f"http://{socket.gethostname()}:{DJANGO_PORT}"]
+CORS_ALLOWED_ORIGINS = [f"http://{vm_hostname}:{DJANGO_PORT}"]
 if os.getenv("ALLOWED_ORIGINS", "") != "":
     CORS_ALLOWED_ORIGINS.extend(os.environ["ALLOWED_ORIGINS"].split(","))
 
