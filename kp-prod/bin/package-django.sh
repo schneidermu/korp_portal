@@ -2,9 +2,11 @@
 set -eu
 
 version=$1
-outdir=$2
 
 timestamp=$(date +%Y-%m-%d)
+
+cd "$(git rev-parse --show-toplevel)"
+outdir="artefacts/dist/django"
 
 name="kp-django-${timestamp}_v$version"
 
