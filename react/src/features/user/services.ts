@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import { Option as O } from "effect";
 import { produce } from "immer";
@@ -261,8 +261,13 @@ export const useFetchUsers = (orgId: number | null) => {
     revalidateFirstPage: false,
   });
 
-  const data = new Map(
-    pages?.flatMap((page) => page.results.map((user) => [user.id, user])) ?? [],
+  const data = useMemo(
+    () =>
+      new Map(
+        pages?.flatMap((page) => page.results.map((user) => [user.id, user])) ??
+          [],
+      ),
+    [pages],
   );
 
   const allAreLoaded = pages ? pages[pages.length - 1]?.next === null : false;
@@ -380,10 +385,13 @@ export const useFetchColleagues = (
     unitId: O.map(user.unit, (unit) => unit.id).pipe(O.getOrUndefined),
   });
   const s2 = useFetchUsersSubset({ bossId: user.id });
-  const s = [...(s1?.data || []), ...(s2?.data || [])];
-  if (s.length === 0) return;
-  s.sort(cmpUsers);
-  return new Map(s.map((user) => [user.id, user]));
+
+  return useMemo(() => {
+    const s = [...(s1?.data || []), ...(s2?.data || [])];
+    if (s.length === 0) return;
+    s.sort(cmpUsers);
+    return new Map(s.map((user) => [user.id, user]));
+  }, [s1?.data, s2?.data]);
 };
 
 export const useFetchUser = (userId: O.Option<string>) => {
