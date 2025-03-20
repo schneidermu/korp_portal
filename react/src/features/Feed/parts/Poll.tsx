@@ -1,5 +1,7 @@
 import { Fragment, useState } from "react";
 
+import { Option as O } from "effect";
+
 import clsx from "clsx/lite";
 import { produce } from "immer";
 import { Link } from "react-router-dom";
@@ -216,7 +218,7 @@ export const PollContent = ({
 };
 
 const PollChoiceResultsUserCard = ({ userId }: { userId: string }) => {
-  const { user } = useFetchUser(userId);
+  const { user } = useFetchUser(O.some(userId));
 
   if (!user) return;
 

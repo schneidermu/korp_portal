@@ -1,3 +1,5 @@
+import { Option as O } from "effect";
+
 import { BACKEND_PREFIX, LOCALE } from "@/app/const";
 
 import { User } from "@/features/user/types";
@@ -27,8 +29,8 @@ export const trimExtention = (path: string) => {
 
 const nameParts = (user: User): string[] => {
   const parts = [user.lastName, user.firstName];
-  if (user.patronym !== null) {
-    parts.push(user.patronym);
+  if (O.isSome(user.patronym)) {
+    parts.push(user.patronym.value);
   }
   return parts;
 };
@@ -92,7 +94,10 @@ export const resolveMediaPath = (path: string) => {
 };
 
 export const userPhotoPath = (user: User) =>
-  user.photo ? resolveMediaPath(user.photo) : personIcon;
+  O.match(user.photo, {
+    onSome: resolveMediaPath,
+    onNone: () => personIcon,
+  });
 
 export const noop = () => ({});
 

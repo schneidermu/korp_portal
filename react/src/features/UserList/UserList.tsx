@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 
 import clsx from "clsx/lite";
+import { Option as O } from "effect";
 
 import { useUserState } from "@/features/user/hooks";
 import {
@@ -30,7 +31,7 @@ const FILTER_FIELDS = new Set<keyof User>([
 ]);
 
 const UserCard = React.memo(function UserCard({ userId }: { userId: string }) {
-  const { user } = useFetchUser(userId);
+  const { user } = useFetchUser(O.some(userId));
   const [userState, updateUserState] = useUserState(user);
 
   if (!user || !userState) {

@@ -1,6 +1,7 @@
 import { Fragment, useMemo } from "react";
 
 import clsx from "clsx/lite";
+import { Option as O } from "effect";
 import { Link } from "react-router-dom";
 
 import { sortUsers, useFetchUsers } from "@/features/user/services";
@@ -34,10 +35,11 @@ const groupUsersByUnits = (users: User[]) => {
   >();
 
   for (const user of users) {
-    const { unit } = user;
-    if (!unit) {
+    const { unit: unitOpt } = user;
+    if (O.isNone(unitOpt)) {
       continue;
     }
+    const unit = unitOpt.value;
     const children = parent2children.get(unit.parentId) || new Map();
     parent2children.set(unit.parentId, children);
     const child = children.get(unit.id);
@@ -178,7 +180,11 @@ export const UnitList = () => {
                     }
                     className="hover:underline"
                   >
-                    {unit.name} {orgId === null && org && `(${org.name})`}
+                    {unit.name}{" "}
+                    {orgId === null &&
+                      O.map(org, ({ name }) => `(${name})`).pipe(
+                        O.getOrUndefined,
+                      )}
                   </Link>
                 </div>
                 {users.map((user, j) => {

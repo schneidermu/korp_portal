@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import { Option as O } from "effect";
 import { produce } from "immer";
 import useSWRInfinite from "swr/infinite";
 
@@ -215,13 +216,13 @@ const useBirthdays = (orgId: number | null): Birthday[] => {
   const birthdays = new Map<string, User[]>();
 
   for (const user of users.values()) {
-    if (user.dateOfBirth === null) {
+    if (O.isNone(user.dateOfBirth)) {
       continue;
     }
 
     const now = new Date();
 
-    const birthday = new Date(user.dateOfBirth);
+    const birthday = new Date(user.dateOfBirth.value);
     let prevBirthday = new Date(
       now.getFullYear(),
       birthday.getMonth(),
@@ -242,7 +243,7 @@ const useBirthdays = (orgId: number | null): Birthday[] => {
     }
 
     const date =
-      prevBirthday.getFullYear().toString() + user.dateOfBirth.slice(4);
+      prevBirthday.getFullYear().toString() + user.dateOfBirth.value.slice(4);
 
     const users = birthdays.get(date) ?? [];
     birthdays.set(date, users);
