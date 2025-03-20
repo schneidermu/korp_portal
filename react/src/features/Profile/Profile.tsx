@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import clsx from "clsx/lite";
+import { Option as O } from "effect";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { ACCEPT_DOCUMENTS, ACCEPT_IMAGES } from "@/app/const";
@@ -288,7 +289,7 @@ const EducationSection = ({
       courses.unshift({
         year: courses[0]?.year ?? new Date().getFullYear(),
         name: "",
-        attachment: null,
+        attachment: O.none(),
       }),
     );
 
@@ -299,13 +300,13 @@ const EducationSection = ({
       courses.push({
         year: courses[courses.length - 1]?.year ?? new Date().getFullYear(),
         name: "",
-        attachment: null,
+        attachment: O.none(),
       }),
     );
 
   const popCourse = () => updateUser(({ courses }) => courses.pop());
 
-  const changeFile = (i: number, url: string | null) =>
+  const changeFile = (i: number, url: O.Option<string>) =>
     updateUser((user) => (user.courses[i].attachment = url));
 
   const courses = (
@@ -351,10 +352,10 @@ const EducationSection = ({
               />
               {attachment ? (
                 <div className="flex">
-                  <Attachment url={attachment ?? ""} />
+                  <Attachment url={attachment} />
                   <button
                     className="hover:underline text-dark-gray ml-4 text-[20px]"
-                    onClick={() => changeFile(i, null)}
+                    onClick={() => changeFile(i, O.none())}
                   >
                     (Удалить файл)
                   </button>
@@ -363,7 +364,7 @@ const EducationSection = ({
                 <label className="hover:underline cursor-pointer text-dark-gray ml-4 text-[20px]">
                   <FileInput
                     accept={ACCEPT_DOCUMENTS}
-                    onUpload={(url) => changeFile(i, url)}
+                    onUpload={(url) => changeFile(i, O.some(url))}
                   />
                   + Загрузить файл
                 </label>
@@ -372,7 +373,7 @@ const EducationSection = ({
           ) : (
             <div>
               <div>{name}</div>
-              <Attachment url={attachment ?? ""} />
+              <Attachment url={attachment} />
             </div>
           )}
         </>
@@ -409,15 +410,17 @@ const TrainingInfo = ({
     updateUser((user) => (user.training[i].name = value));
 
   const changeFile = (i: number, url: string) =>
-    updateUser((user) => (user.training[i].attachment = url));
+    updateUser((user) => (user.training[i].attachment = O.some(url)));
 
   const pushItem = () =>
-    updateUser((user) => user.training.push({ name: "", attachment: null }));
+    updateUser((user) =>
+      user.training.push({ name: "", attachment: O.none() }),
+    );
 
   const popItem = () => updateUser((user) => user.training.pop());
 
   const removeFile = (i: number) =>
-    updateUser((user) => (user.training[i].attachment = null));
+    updateUser((user) => (user.training[i].attachment = O.none()));
 
   const certificates = user.training.map(({ name, attachment }, i) => {
     return (
@@ -432,41 +435,42 @@ const TrainingInfo = ({
         ) : (
           <span>{name}</span>
         )}
-        {editing ? (
-          attachment ? (
-            <div className="">
-              <Attachment
-                url={attachment}
-                download={name + "." + fileExtention(attachment)!}
-              />
-              <button
-                type="button"
-                className="ml-4 hover:underline text-dark-gray text-[20px]"
-                onClick={() => removeFile(i)}
-              >
-                (Удалить файл)
-              </button>
-            </div>
-          ) : (
-            <label className="ml-4 block hover:underline text-dark-gray text-[20px] cursor-pointer">
-              <FileInput
-                accept={ACCEPT_DOCUMENTS}
-                onUpload={(url) => changeFile(i, url)}
-              />
-              + Загрузить файл
-            </label>
-          )
-        ) : (
-          attachment && (
-            <>
-              {", "}
-              <Attachment
-                url={attachment}
-                download={name + "." + fileExtention(attachment)!}
-              />
-            </>
-          )
-        )}
+        {editing
+          ? O.match(attachment, {
+              onSome: (attachment) => (
+                <div className="">
+                  <Attachment
+                    url={O.some(attachment)}
+                    download={name + "." + fileExtention(attachment)!}
+                  />
+                  <button
+                    type="button"
+                    className="ml-4 hover:underline text-dark-gray text-[20px]"
+                    onClick={() => removeFile(i)}
+                  >
+                    (Удалить файл)
+                  </button>
+                </div>
+              ),
+              onNone: () => (
+                <label className="ml-4 block hover:underline text-dark-gray text-[20px] cursor-pointer">
+                  <FileInput
+                    accept={ACCEPT_DOCUMENTS}
+                    onUpload={(url) => changeFile(i, url)}
+                  />
+                  + Загрузить файл
+                </label>
+              ),
+            })
+          : O.isSome(attachment) && (
+              <>
+                {", "}
+                <Attachment
+                  url={attachment}
+                  download={name + "." + fileExtention(attachment.value)!}
+                />
+              </>
+            )}
       </li>
     );
   });
@@ -561,24 +565,25 @@ const CareerPositionsTable = ({
         user.career[i].year_leave === null ? value.replace(/\D/g, "") : value,
       );
       if (Number.isNaN(year_leave)) {
-        user.career[i].year_leave = null;
+        user.career[i].year_leave = O.none();
       } else {
-        user.career[i].year_leave = year_leave;
+        user.career[i].year_leave = O.some(year_leave);
       }
     });
 
   const unshiftPosition = () =>
     updateUser((user) => {
       const y = new Date().getFullYear();
-      const c = user.career[0];
-      const year_start = c?.year_leave ?? y;
-      const year_leave = c && c.year_leave !== null ? c.year_leave + 1 : null;
-      c.year_leave = year_start;
+      const yearLeave0 = O.fromNullable(user.career[0]).pipe(
+        O.flatMap((c) => c.year_leave),
+      );
+      const year_start = O.getOrElse(yearLeave0, () => y);
+      const year_leave = O.map(yearLeave0, (x) => x + 1);
       user.career.unshift({
         year_start,
         year_leave,
-        month_start: null,
-        month_leave: null,
+        month_start: O.none(),
+        month_leave: O.none(),
         position: "",
       });
     });
@@ -590,9 +595,9 @@ const CareerPositionsTable = ({
       if (user.career.length === 0) {
         user.career.push({
           year_start: new Date().getFullYear(),
-          year_leave: null,
-          month_start: null,
-          month_leave: null,
+          year_leave: O.none(),
+          month_start: O.none(),
+          month_leave: O.none(),
           position: "",
         });
         return;
@@ -601,9 +606,9 @@ const CareerPositionsTable = ({
       const year_start = year_leave - 1;
       user.career.push({
         year_start,
-        year_leave,
-        month_start: null,
-        month_leave: null,
+        year_leave: O.some(year_leave),
+        month_start: O.none(),
+        month_leave: O.none(),
         position: "",
       });
     });
@@ -647,7 +652,7 @@ const CareerPositionsTable = ({
             required
             disabled={!editing}
             className={clsx(inputCellClass, "text-center")}
-            value={year_leave?.toString() ?? "н. вр."}
+            value={O.getOrElse(year_leave, () => "н. вр.")}
             onChange={({ target: { value } }) => changeLeaveYear(i, value)}
           />
           <input
@@ -689,10 +694,10 @@ const CareerSection = ({
           <div className="w-[136px]">
             <PropertyInput
               editing={editing}
-              value={user.workExperience ?? ""}
+              value={O.getOrElse(user.workExperience, () => "")}
               theme="px-6 py-[6px] text-center"
               handleChange={(value) =>
-                updateUser((user) => (user.workExperience = value))
+                updateUser((user) => (user.workExperience = O.some(value)))
               }
             />
           </div>
@@ -709,13 +714,13 @@ const CareerSection = ({
           {editing ? (
             <textarea
               className={clsx("w-full mt-2 px-5 py-2", "rounded border")}
-              value={user.skills ?? ""}
+              value={O.getOrElse(user.skills, () => "")}
               onChange={({ target: { value } }) =>
-                updateUser({ ...user, skills: value })
+                updateUser({ ...user, skills: O.some(value) })
               }
             />
           ) : (
-            <span>{user.skills}</span>
+            <span>{O.getOrUndefined(user.skills)}</span>
           )}
         </EditableProperty>
 
@@ -755,7 +760,7 @@ const TeamSection = ({ user }: { user: User }) => {
     users = [boss];
   } else if (!showBosses) {
     users = [...(colleagues?.values() || [])].flatMap((colleague) =>
-      colleague.id !== user.id && colleague.id !== user.bossId
+      colleague.id !== user.id && !O.contains(user.bossId, colleague.id)
         ? [colleague]
         : [],
     );
@@ -861,7 +866,7 @@ const GallerySection = ({
   gap: string | number;
 }) => {
   const pushItem = () =>
-    updateUser((user) => user[attr].push({ name: "", attachment: null }));
+    updateUser((user) => user[attr].push({ name: "", attachment: O.none() }));
 
   const deleteItem = (i: number) =>
     updateUser((user) => user[attr].splice(i, 1));
@@ -870,7 +875,7 @@ const GallerySection = ({
     updateUser((user) => (user[attr][i].name = value));
 
   const changeImg = (i: number, url: string) =>
-    updateUser((user) => (user[attr][i].attachment = url));
+    updateUser((user) => (user[attr][i].attachment = O.some(url)));
 
   const items = user[attr].map(({ name: title, attachment }, i) => (
     <div key={i} className="relative">
@@ -884,16 +889,16 @@ const GallerySection = ({
           <Icon src={crossIcon} />
         </button>
       )}
-      {attachment && (
+      {O.isSome(attachment) && (
         <Icon
-          src={resolveMediaPath(attachment)}
+          src={resolveMediaPath(attachment.value)}
           height={height}
           className="w-full object-cover object-center"
         />
       )}
       {editing ? (
         <>
-          {!attachment && (
+          {O.isNone(attachment) && (
             <label
               style={{ height }}
               className={clsx(
@@ -1031,7 +1036,7 @@ export const UserProfile = () => {
   const params = useParams();
   const auth = useAuth();
   const userId = params.userId ?? auth.userId;
-  const { user, error } = useFetchUser(userId);
+  const { user, error } = useFetchUser(O.some(userId));
   const [userState, updateUserState] = useUserState(user);
 
   useEffect(() => {

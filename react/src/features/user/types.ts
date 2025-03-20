@@ -1,6 +1,6 @@
 import { WritableDraft } from "immer";
 
-import { Option } from "effect/Option";
+import { Option as O } from "effect";
 
 import {
   formatDateLong,
@@ -32,35 +32,35 @@ export type User = {
   isAdmin: boolean;
   lastName: string;
   firstName: string;
-  patronym: string | null;
+  patronym: O.Option<string>;
   status: UserStatus;
-  dateOfBirth: string | null;
+  dateOfBirth: O.Option<string>;
   phoneNumber: string;
   innerPhoneNumber: string;
   office: string;
-  workExperience: string | null;
+  workExperience: O.Option<string>;
   about: string;
-  skills: string | null;
-  photo: string | null;
+  skills: O.Option<string>;
+  photo: O.Option<string>;
   position: string;
   serviceRank: string;
-  bossId: string | null;
-  unit: null | Unit;
-  organization: null | { id: number; name: string };
-  avgRating: Option<number>;
-  myRating: Option<number>;
+  bossId: O.Option<string>;
+  unit: O.Option<Unit>;
+  organization: O.Option<{ id: number; name: string }>;
+  avgRating: O.Option<number>;
+  myRating: O.Option<number>;
   numRates: number;
   agreeDataProcessing: boolean;
   career: {
     position: string;
     year_start: number;
-    month_start: number | null;
-    year_leave: number | null;
-    month_leave: number | null;
+    month_start: O.Option<number>;
+    year_leave: O.Option<number>;
+    month_leave: O.Option<number>;
   }[];
   training: {
     name: string;
-    attachment: string | null;
+    attachment: O.Option<string>;
   }[];
   education: {
     year: number;
@@ -70,15 +70,15 @@ export type User = {
   courses: {
     year: number;
     name: string;
-    attachment: string | null;
+    attachment: O.Option<string>;
   }[];
   communityWork: {
     name: string;
-    attachment: string | null;
+    attachment: O.Option<string>;
   }[];
   awards: {
     name: string;
-    attachment: string | null;
+    attachment: O.Option<string>;
   }[];
 };
 
@@ -89,9 +89,9 @@ export type UpdateUserFn = (
 export const userBlobURLs = (user: User): Set<string> => {
   const set = new Set<string>();
 
-  const f = ({ attachment }: { attachment: string | null }) => {
-    if (attachment?.startsWith("blob:")) {
-      set.add(attachment);
+  const f = ({ attachment }: { attachment: O.Option<string> }) => {
+    if (O.exists(attachment, (s) => s.startsWith("blob:"))) {
+      set.add(O.getOrThrow(attachment));
     }
   };
 
@@ -105,8 +105,9 @@ export const userBlobURLs = (user: User): Set<string> => {
   return set;
 };
 
-const matchString = (q: string, s: string): boolean => {
-  return s.toLowerCase().includes(q);
+const matchString = (q: string, s: string | O.Option<string>): boolean => {
+  const match = (s: string) => s.toLowerCase().includes(q);
+  return typeof s === "string" ? match(s) : O.exists(s, match);
 };
 
 const matchDate = (term: string, date: Date): boolean => {
@@ -146,15 +147,17 @@ export const filterUsers = (
     } = user;
 
     return (
-      (fields.has("unit") && unit && matchString(term, unit.name)) ||
+      (fields.has("unit") &&
+        O.isSome(unit) &&
+        matchString(term, unit.value.name)) ||
       (fields.has("organization") &&
-        organization &&
-        matchString(term, organization.name)) ||
+        O.isSome(organization) &&
+        matchString(term, organization.value.name)) ||
       matchString(term, fullNameLong(user)) ||
       matchString(term, fullNameShort(user)) ||
       (fields.has("dateOfBirth") &&
-        dateOfBirth &&
-        matchDate(term, new Date(dateOfBirth))) ||
+        O.isSome(dateOfBirth) &&
+        matchDate(term, new Date(dateOfBirth.value))) ||
       (fields.has("position") && matchString(term, position)) ||
       (fields.has("status") && matchString(term, status)) ||
       (fields.has("email") && matchString(term, email)) ||

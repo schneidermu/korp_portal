@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import { Option as O } from "effect";
 import { produce } from "immer";
 import useSWR, { mutate } from "swr";
 import useSWRInfinite from "swr/infinite";
@@ -91,27 +92,27 @@ const toUser = (data: UserData): User => {
     isAdmin: data.is_superuser,
     lastName: data.surname ?? "?",
     firstName: data.name ?? "?",
-    patronym: data.patronym,
+    patronym: O.fromNullable(data.patronym),
     status: data.status ?? "На рабочем месте",
-    dateOfBirth: data.birth_date,
+    dateOfBirth: O.fromNullable(data.birth_date),
     phoneNumber: data.telephone_number ?? "",
     innerPhoneNumber: data.inner_telephone_number ?? "",
     office: data.office ?? "",
-    workExperience: char?.experience ?? null,
+    workExperience: O.fromNullable(char?.experience),
     about: char?.about ?? "",
-    skills: char?.competences[0]?.name ?? null,
-    photo: data.avatar ?? null,
+    skills: O.fromNullable(char?.competences[0]?.name),
+    photo: O.fromNullable(data.avatar),
     position: data.job_title ?? "",
     serviceRank: data.class_rank ?? "",
-    bossId: data.chief,
-    unit: unit
-      ? {
-          id: unit.id,
-          name: unit.name,
-          parentId: unit.parent_structural_subdivision,
-        }
-      : null,
-    organization: data.organization || null,
+    bossId: O.fromNullable(data.chief),
+    unit: O.fromNullable(unit).pipe(
+      O.map((unit) => ({
+        id: unit.id,
+        name: unit.name,
+        parentId: unit.parent_structural_subdivision,
+      })),
+    ),
+    organization: Option.fromNullable(data.organization),
     avgRating: Option.fromNullable(data.average_rating),
     myRating: Option.fromNullable(data.rated_by_me),
     numRates: data.num_rates,
@@ -120,14 +121,14 @@ const toUser = (data: UserData): User => {
       char?.careers.map((c) => ({
         position: c.name,
         year_start: c.year_start,
-        month_start: c.month_start,
-        year_leave: c.year_finish,
-        month_leave: c.month_finish,
+        month_start: O.fromNullable(c.month_start),
+        year_leave: O.fromNullable(c.year_finish),
+        month_leave: O.fromNullable(c.month_finish),
       })) || [],
     training:
       char?.trainings.map((t) => ({
         name: t.name,
-        attachment: t.file ?? null,
+        attachment: O.fromNullable(t.file),
       })) || [],
     education:
       char?.universitys.map((u) => ({
@@ -136,20 +137,20 @@ const toUser = (data: UserData): User => {
         major: u.faculty ?? "",
       })) || [],
     courses:
-      char?.courses.map((c) => ({
-        year: c.year ?? 0,
-        name: c.name,
-        attachment: c.file ?? null,
+      char?.courses.map(({ name, file, year }) => ({
+        year: year ?? 0,
+        name: name,
+        attachment: O.fromNullable(file),
       })) || [],
     communityWork:
       char?.volunteers.map(({ name, file }) => ({
         name,
-        attachment: file ?? null,
+        attachment: O.fromNullable(file),
       })) || [],
     awards:
       char?.rewards.map(({ name, file }) => ({
         name,
-        attachment: file ?? null,
+        attachment: O.fromNullable(file),
       })) || [],
   };
 };
@@ -161,36 +162,38 @@ const fromUser = (user: User): UserData => ({
   is_superuser: user.isAdmin,
   surname: user.lastName,
   name: user.firstName,
-  patronym: user.patronym,
+  patronym: O.getOrNull(user.patronym),
   status: user.status,
-  birth_date: user.dateOfBirth,
+  birth_date: O.getOrNull(user.dateOfBirth),
   telephone_number: user.phoneNumber,
   inner_telephone_number: user.innerPhoneNumber,
   office: user.office,
   job_title: user.position,
   class_rank: user.serviceRank,
-  chief: user.bossId,
-  structural_division: user.unit && {
-    id: user.unit.id,
-    name: user.unit.name,
-    parent_structural_subdivision: user.unit.parentId,
-  },
-  organization: user.organization,
+  chief: O.getOrNull(user.bossId),
+  structural_division: O.map(user.unit, (unit) => ({
+    id: unit.id,
+    name: unit.name,
+    parent_structural_subdivision: unit.parentId,
+  })).pipe(O.getOrNull),
+  organization: O.getOrNull(user.organization),
   average_rating: Option.getOrNull(user.avgRating),
   rated_by_me: Option.getOrNull(user.myRating),
   num_rates: user.numRates,
-  avatar: user.photo,
+  avatar: O.getOrNull(user.photo),
   agreed_with_data_processing: user.agreeDataProcessing,
   characteristic: {
-    experience: user.workExperience ?? "",
+    experience: O.getOrElse(user.workExperience, () => ""),
     about: user.about,
-    competences: user.skills === null ? [] : [{ name: user.skills }],
+    competences: O.map(user.skills, (name) => [{ name }]).pipe(
+      O.getOrElse(() => []),
+    ),
     careers: user.career.map((c) => ({
       name: c.position,
       year_start: c.year_start,
-      month_start: c.month_start,
-      year_finish: c.year_leave,
-      month_finish: c.month_leave,
+      month_start: O.getOrNull(c.month_start),
+      year_finish: O.getOrNull(c.year_leave),
+      month_finish: O.getOrNull(c.month_leave),
     })),
     universitys: user.education.map((e) => ({
       name: e.university,
@@ -203,19 +206,19 @@ const fromUser = (user: User): UserData => ({
       name: c.name,
       year: c.year,
       month: null,
-      file: c.attachment ?? undefined,
+      file: O.getOrUndefined(c.attachment),
     })),
     rewards: user.awards.map((a) => ({
       name: a.name,
-      file: a.attachment ?? undefined,
+      file: O.getOrUndefined(a.attachment),
     })),
     trainings: user.training.map((t) => ({
       name: t.name,
-      file: t.attachment ?? undefined,
+      file: O.getOrUndefined(t.attachment),
     })),
-    volunteers: user.communityWork.map(({ name, attachment: image }) => ({
+    volunteers: user.communityWork.map(({ name, attachment }) => ({
       name,
-      file: image ?? undefined,
+      file: O.getOrUndefined(attachment),
     })),
   },
 });
@@ -297,7 +300,9 @@ export const sortUsers = (users: User[]): User[] => {
 
   for (const user of users) {
     const tree = trees.get(user.id)!;
-    const bossTree = user.bossId === null ? undefined : trees.get(user.bossId);
+    const bossTree = O.map(user.bossId, (bossId) => trees.get(bossId)).pipe(
+      O.getOrUndefined,
+    );
     if (bossTree) {
       bossTree.branches.push(tree);
     } else {
@@ -371,7 +376,9 @@ export const useFetchUsersSubset = ({
 export const useFetchColleagues = (
   user: User,
 ): Map<string, User> | undefined => {
-  const s1 = useFetchUsersSubset({ unitId: user.unit?.id });
+  const s1 = useFetchUsersSubset({
+    unitId: O.map(user.unit, (unit) => unit.id).pipe(O.getOrUndefined),
+  });
   const s2 = useFetchUsersSubset({ bossId: user.id });
   const s = [...(s1?.data || []), ...(s2?.data || [])];
   if (s.length === 0) return;
@@ -379,11 +386,11 @@ export const useFetchColleagues = (
   return new Map(s.map((user) => [user.id, user]));
 };
 
-export const useFetchUser = (userId?: string | null) => {
+export const useFetchUser = (userId: O.Option<string>) => {
   const tokenFetcher = useTokenFetcher();
 
   const { data, ...rest } = useSWR<User>(
-    userId ? `/colleagues/${userId}/` : null,
+    O.map(userId, (id) => `/colleagues/${id}/`).pipe(O.getOrNull),
     async (path: string) =>
       tokenFetcher(path)
         .then((res) => {
@@ -435,12 +442,12 @@ export const saveUser = async (token: string, user: User) => {
   ] as const;
 
   await Promise.all([
-    uploadFile(token, user.photo).then((file) => {
+    uploadFile(token, O.getOrNull(user.photo)).then((file) => {
       data.avatar = file ?? null;
     }),
     ...attrs.flatMap(([attr, apiAttr]) =>
       (user[attr] || []).map(({ attachment }, i) =>
-        uploadFile(token, attachment)
+        uploadFile(token, O.getOrNull(attachment))
           .then((file) => {
             if (data.characteristic) {
               data.characteristic[apiAttr][i].file = file;

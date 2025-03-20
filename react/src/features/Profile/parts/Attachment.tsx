@@ -1,4 +1,5 @@
 import clsx from "clsx/lite";
+import { Option as O } from "effect";
 
 import { fileExtention, resolveMediaPath } from "@/shared/utils";
 
@@ -18,21 +19,20 @@ export const Attachment = ({
   url,
   download,
 }: {
-  url: string;
+  url: O.Option<string>;
   download?: string;
 }) => {
-  const ext = fileExtention(url);
+  if (O.isNone(url)) return;
+  const ext = fileExtention(url.value);
   const ft = ext && filetype(ext);
   let text = "";
-  if (url) {
-    text += "Документ";
-  }
+  text += "Документ";
   if (ext) {
     text += "." + ext;
   }
   return (
     <a
-      href={resolveMediaPath(url)}
+      href={resolveMediaPath(url.value)}
       className={clsx("underline", ft && `text-${ft}`)}
       target="_blank"
       download={download}

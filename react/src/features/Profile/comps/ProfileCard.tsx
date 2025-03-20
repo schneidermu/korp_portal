@@ -1,5 +1,6 @@
 import clsx from "clsx/lite";
 import { Link } from "react-router-dom";
+import { Option as O } from "effect";
 
 import { ACCEPT_IMAGES } from "@/app/const";
 
@@ -62,7 +63,7 @@ const Avatar = ({
           >
             <FileInput
               accept={ACCEPT_IMAGES}
-              onUpload={(url) => updateUser({ ...user, photo: url })}
+              onUpload={(url) => updateUser({ ...user, photo: O.some(url) })}
             />
             Загрузить фото
           </label>
@@ -70,7 +71,7 @@ const Avatar = ({
           <button
             onClick={(event) => {
               event.stopPropagation();
-              updateUser({ ...user, photo: null });
+              updateUser({ ...user, photo: O.none() });
             }}
             className="w-full py-3 hover:underline select-none"
             type="button"
@@ -93,10 +94,11 @@ export const InfoGrid = ({
   updateUser?: UpdateUserFn;
 }) => {
   const changeField =
-    (key: MonomorphFields<User, string | null>) => (value: string) => {
-      let v: string | null = value;
+    (key: MonomorphFields<User, string | O.Option<string>>) =>
+    (value: string) => {
+      let v: O.Option<string> = O.some(value);
       if (key === "dateOfBirth" && !value) {
-        v = null;
+        v = O.none();
       }
       updateUser({ ...user, [key]: v });
     };
@@ -110,7 +112,7 @@ export const InfoGrid = ({
   }: {
     name: string;
     icon: string;
-    field: MonomorphFields<User, string | null>;
+    field: MonomorphFields<User, string | O.Option<string>>;
     type?: string;
     pattern?: string;
     wrap?: boolean;
@@ -120,11 +122,17 @@ export const InfoGrid = ({
         type={type}
         pattern={pattern}
         editing={editing}
-        value={user[field] ?? ""}
+        value={
+          typeof user[field] === "string"
+            ? user[field]
+            : O.getOrElse(user[field], () => "")
+        }
         theme="py-[6px] px-[10px]"
         text={
-          field === "dateOfBirth" && user[field]
-            ? formatDateOfBirth(new Date(user[field]))
+          field === "dateOfBirth"
+            ? O.map(user[field], (date) =>
+                formatDateOfBirth(new Date(date)),
+              ).pipe(O.getOrUndefined)
             : undefined
         }
         handleChange={changeField(field)}
@@ -195,15 +203,15 @@ export const InfoGrid = ({
         icon={pinIcon}
         wrap={!editing}
       >
-        {!editing && user.organization !== null ? (
+        {!editing && O.isSome(user.organization) ? (
           <Link
-            to={`/list?org=${user.organization.id}`}
+            to={`/list?org=${user.organization.value.id}`}
             className="hover:underline"
           >
-            {user.organization.name}
+            {user.organization.value.name}
           </Link>
         ) : (
-          user.organization?.name
+          O.map(user.organization, (org) => org.name).pipe(O.getOrUndefined)
         )}
       </EditableProperty>
       <div className="row-span-3">
@@ -213,15 +221,15 @@ export const InfoGrid = ({
           icon={peopleIcon}
           wrap
         >
-          {!editing && user.organization !== null && user.unit !== null ? (
+          {!editing && O.isSome(user.organization) && O.isSome(user.unit) ? (
             <Link
-              to={`/list?org=${user.organization.id}&q=${user.unit.name}`}
+              to={`/list?org=${user.organization.value.id}&q=${user.unit.value.name}`}
               className="hover:underline"
             >
-              {user.unit.name}
+              {user.unit.value.name}
             </Link>
           ) : (
-            user.unit?.name
+            O.map(user.unit, (unit) => unit.name).pipe(O.getOrUndefined)
           )}
         </EditableProperty>
       </div>

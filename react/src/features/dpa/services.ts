@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 
+import { Option as O } from "effect";
 import { mutate } from "swr";
 
 import { DPA_CLOSE_DELAY } from "@/app/const";
@@ -9,7 +10,7 @@ import { useFetchUser } from "@/features/user/services";
 
 export const useAgreeDPA = () => {
   const tokenFetch = useTokenFetcher();
-  const { user } = useFetchUser("me");
+  const { user } = useFetchUser(O.some("me"));
 
   const [checked, setChecked] = useState(false);
 
