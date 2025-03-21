@@ -1,0 +1,83 @@
+import React from "react";
+
+import { Option as O } from "effect";
+
+import {
+  Box,
+  BoxProps,
+  Avatar as ChakraAvatar,
+  Field,
+  FieldRootProps,
+  Image,
+} from "@chakra-ui/react";
+import { Link } from "react-router-dom";
+
+import { ACCEPT_IMAGES } from "@/app/const";
+
+import { User } from "@/features/user/types";
+import { resolveMediaPath } from "@/shared/utils";
+
+import { FileInput } from "@/shared/comps/FileInput";
+
+export interface AvatarProps extends BoxProps {
+  user: User;
+  fallbackSrc: string;
+}
+
+export interface AvatarEditableProps extends FieldRootProps {
+  user: User;
+  fallbackSrc: string;
+  onUpload: (src: string) => void;
+}
+
+export const Avatar = React.memo(
+  React.forwardRef<HTMLDivElement, AvatarProps>(function Avatar(props, ref) {
+    const { user, fallbackSrc, ...rest } = props;
+
+    const src = O.map(user.photo, resolveMediaPath);
+
+    return (
+      <Box w="32" h="32" ref={ref} {...rest}>
+        <Link to={`/new/profile/${user.id}`}>
+          <ChakraAvatar.Root w="full" h="full">
+            <ChakraAvatar.Image
+              src={O.getOrElse(src, () => fallbackSrc)}
+              w="full"
+              h="full"
+              data-state="open"
+              _open={{ animation: "fade-in 300ms ease-out" }}
+            />
+          </ChakraAvatar.Root>
+        </Link>
+      </Box>
+    );
+  }),
+);
+
+export const AvatarEditable = React.memo(
+  React.forwardRef<HTMLDivElement, AvatarEditableProps>(
+    function AvatarEditable(props, ref) {
+      const { user, fallbackSrc, onUpload, ...rest } = props;
+
+      const src = O.map(user.photo, resolveMediaPath);
+
+      return (
+        <Field.Root ref={ref} w="32" h="32" {...rest}>
+          <Field.Label w="full" h="full">
+            <FileInput accept={ACCEPT_IMAGES} onUpload={onUpload} />
+            <ChakraAvatar.Root w="full" h="full">
+              <ChakraAvatar.Image
+                src={O.getOrUndefined(src)}
+                w="full"
+                h="full"
+              />
+              <ChakraAvatar.Fallback w="full" h="full">
+                <Image src={fallbackSrc} w="full" h="full" />
+              </ChakraAvatar.Fallback>
+            </ChakraAvatar.Root>
+          </Field.Label>
+        </Field.Root>
+      );
+    },
+  ),
+);

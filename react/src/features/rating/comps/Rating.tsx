@@ -16,10 +16,12 @@ const Stars = ({
   stars,
   onRate,
   disabled = false,
+  small,
 }: {
   stars: Option.Option<number>;
   onRate: (rate: Option.Option<number>) => void;
   disabled?: boolean;
+  small: boolean;
 }) => {
   const [hoverStars, setHoverStars] = useState(Option.none<number>());
 
@@ -29,7 +31,11 @@ const Stars = ({
 
   return (
     <div
-      className={clsx("w-fit flex gap-[10px]", disabled || "cursor-pointer")}
+      className={clsx(
+        "w-fit flex",
+        disabled || "cursor-pointer",
+        small ? "gap-[14px]" : "gap-[10px]",
+      )}
       onMouseLeave={() => setHoverStars(Option.none())}
     >
       {[...Array(5)].map((_, i) => {
@@ -45,7 +51,11 @@ const Stars = ({
             }
             onMouseEnter={() => setHoverStars(Option.some(n))}
           >
-            <Icon src={icon} width="29px" height="29px" />
+            {small ? (
+              <Icon src={icon} width="17px" height="17px" />
+            ) : (
+              <Icon src={icon} width="29px" height="29px" />
+            )}
           </button>
         );
       })}
@@ -53,7 +63,13 @@ const Stars = ({
   );
 };
 
-export const Rating = ({ user }: { user: User }) => {
+export const Rating = ({
+  user,
+  small = false,
+}: {
+  user: User;
+  small?: boolean;
+}) => {
   const { userId } = useAuth();
   const updateRating = useUpdateRating();
 
@@ -70,8 +86,11 @@ export const Rating = ({ user }: { user: User }) => {
         stars={stars}
         disabled={user.id === userId}
         onRate={(rating) => updateRating(user, rating)}
+        small={small}
       />
-      <div className="text-[20px]">{Option.getOrUndefined(rating)}</div>
+      <div className={clsx(small || "text-[20px]")}>
+        {Option.getOrUndefined(rating)}
+      </div>
     </div>
   );
 };
