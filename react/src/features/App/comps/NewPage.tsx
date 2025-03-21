@@ -4,6 +4,8 @@ import { Box, Grid, Separator, Show } from "@chakra-ui/react";
 
 import { DPA } from "@/features/dpa/comps/DPA";
 
+import { NewNavBar } from "../parts/NewNavBar";
+
 export const NewPage = ({
   children,
   sidebar,
@@ -18,6 +20,7 @@ export const NewPage = ({
           {children}
         </Box>
         <Box height="fit" mt="20" position="sticky" top="10">
+          <NewNavBar />
           <Show when={sidebar}>
             <Separator borderWidth={1} my={8} />
             {sidebar}
