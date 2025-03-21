@@ -116,7 +116,7 @@ class LiferayDatabaseBackend(ModelBackend):
                 name=name,
                 surname=surname,
                 patronym=patronym,
-                birth_date=birth_date,
+                birth_date=None,
                 job_title=job_title,
             )
             user.save()
