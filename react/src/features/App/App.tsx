@@ -7,6 +7,7 @@ import { system } from "./theme";
 import { Feed } from "@/features/Feed/Feed";
 import { NewProfilePage } from "@/features/NewProfile/NewProfile";
 import { NotFound } from "@/features/NotFound/NotFound";
+import { OrgPage } from "@/features/Org/Org";
 import { UserProfile } from "@/features/Profile/Profile";
 import { UnitList } from "@/features/UnitList/UnitList";
 import { UserList } from "@/features/UserList/UserList";
@@ -21,6 +22,7 @@ export const App = () => {
         <Routes>
           <Route element={<AuthLoader />}>
             <Route path="/new/profile/:userId?" element={<NewProfilePage />} />
+            <Route path="/new/org/:orgId?" element={<OrgPage />} />
             <Route element={<Page />}>
               <Route path="/" element={<UserProfile />} />
               <Route path="/feed" element={<Feed />} />

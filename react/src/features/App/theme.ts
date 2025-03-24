@@ -9,11 +9,13 @@ const customConfig = defineConfig({
           1: { value: "#C4C4C4" },
           2: { value: "#656565" },
           3: { value: "#8C8C8C" },
+          4: { value: "#C1C2C8" },
         },
         blue: {
           1: { value: "#2F80ED" },
           2: { value: "#2164BE" },
           3: { value: "#DBEAFF" },
+          4: { value: "#0E3C7A" },
         },
       },
       spacing: {
