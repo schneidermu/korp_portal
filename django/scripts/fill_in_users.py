@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 # - other members of the unit are subordinates
 # - boss's boss is its parent unit's boss (if there's a parent unit)
 #
+# - unit boss overwrites are applied before user boss overwrites
+#
 # Sample input data:
 """
 {
@@ -29,8 +31,8 @@ logger = logging.getLogger(__name__)
       "name": "ФИО 1",
       "position": "Руководитель",
       "phone": "88005553555",
-      "inner_phone": "12-34",
-      "office": "123"
+      "inner_phone": "1234",
+      "office": "123а к2"
     },
     {
       "unit": "Управление",
@@ -39,6 +41,14 @@ logger = logging.getLogger(__name__)
       "phone": null,
       "inner_phone": null,
       "office": null
+    },
+    {
+      "unit": "Отдел",
+      "name": "ФИО 3",
+      "position": "Начальник отдела",
+      "phone": ["88005553556", "88005553557"],
+      "inner_phone": ["1235", "1236", "1237"],
+      "office": ["456", "789"]
     }
   ],
   "units": [
@@ -50,7 +60,13 @@ logger = logging.getLogger(__name__)
       "parent": "Руководство",
       "name": "Управление"
     }
-  ]
+  ],
+  "unit_boss_overwrite": {
+    "<unit>": "<new_boss>"
+  },
+  "user_boss_overwrite": {
+    "<user>": "<new_boss>"
+  }
 }
 """
 
@@ -110,11 +126,14 @@ def run():
         else:
             boss = unit2boss[unit]
 
+        phone = user["phone"][0] if type(user["phone"]) is list else user["phone"]
+        office = user["office"][0] if type(user["office"]) is list else user["office"]
+
         matches.update(
             structural_division=unit2ss[unit],
-            telephone_number=user["phone"],
+            telephone_number=phone,
             inner_telephone_number=user["inner_phone"],
-            office=user["office"],
+            office=office,
             job_title=user["position"],
             chief_id=None if boss is None else boss.id,
         )
