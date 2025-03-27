@@ -770,11 +770,13 @@ const TeamSection = ({ user }: { user: User }) => {
           text="Мои коллеги"
           onClick={() => setShowBosses(false)}
         />
-        <ViewButton
-          active={showBosses}
-          text="Мой руководитель"
-          onClick={() => setShowBosses(true)}
-        />
+        {O.isSome(user.bossId) && (
+          <ViewButton
+            active={showBosses}
+            text="Мой руководитель"
+            onClick={() => setShowBosses(true)}
+          />
+        )}
       </div>
       <div className="mt-[48px] pb-[36px]">
         <Slides window={5} gap={10} items={items} />
