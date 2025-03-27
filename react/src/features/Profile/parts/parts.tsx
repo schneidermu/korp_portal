@@ -18,7 +18,7 @@ export const EditableProperty = ({
   children: ReactNode;
 }) => {
   return (
-    <div className={clsx("h-full", wrap ? "mt-[7.5px]" : "flex items-center")}>
+    <div className={clsx(wrap ? "mt-[7.5px]" : "flex items-center")}>
       <Icon
         src={icon}
         width="30px"

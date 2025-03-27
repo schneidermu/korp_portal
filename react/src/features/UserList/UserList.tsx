@@ -28,6 +28,7 @@ const FILTER_FIELDS = new Set<keyof User>([
   "email",
   "phoneNumber",
   "serviceRank",
+  "office",
 ]);
 
 const UserCard = React.memo(function UserCard({ userId }: { userId: string }) {

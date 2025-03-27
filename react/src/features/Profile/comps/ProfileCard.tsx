@@ -35,6 +35,7 @@ import atIcon from "@/assets/at.svg";
 import awardIcon from "@/assets/award.svg";
 import brightnessIcon from "@/assets/brightness.svg";
 import giftIcon from "@/assets/gift.svg";
+import homeIcon from "@/assets/home.svg";
 import peopleIcon from "@/assets/people.svg";
 import personIcon from "@/assets/person.svg";
 import phoneIcon from "@/assets/phone.svg";
@@ -157,7 +158,7 @@ export const InfoGrid = ({
   return (
     <div
       className={clsx(
-        "grid grid-flow-col grid-rows-[repeat(5,45px)] grid-cols-2",
+        "grid grid-flow-col grid-rows-[repeat(6,45px)] grid-cols-2",
         "gap-y-[15px] gap-x-[1em]",
       )}
     >
@@ -190,15 +191,22 @@ export const InfoGrid = ({
         <EditableProperty key="email" name="Почта" icon={atIcon}>
           {user.email}
         </EditableProperty>,
-        field({
-          field: "position",
-          name: "Должность",
-          icon: peopleIcon,
-        }),
+        <div key="position" className="row-span-2">
+          {field({
+            field: "position",
+            name: "Должность",
+            icon: peopleIcon,
+          })}
+        </div>,
         field({
           field: "serviceRank",
           name: "Классный чин",
           icon: awardIcon,
+        }),
+        field({
+          field: "office",
+          name: "Кабинет",
+          icon: homeIcon,
         }),
       ]}
       <EditableProperty
@@ -252,10 +260,10 @@ export const ProfileCard = ({
 }) => {
   return (
     <section className="-ml-[20px] flex flex-col gap-[20px]">
-      <div className="flex gap-[64px] h-[340px]">
+      <div className="flex gap-[64px] h-[360px]">
         <Avatar editing={editing} user={user} updateUser={updateUser} />
 
-        <div className="w-full flex flex-col justify-between">
+        <div className="w-full flex flex-col justify-between gap-[20px]">
           <div className="flex">
             <Icon src={personIcon} width="33px" />
             <Link
