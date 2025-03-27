@@ -21,14 +21,13 @@ export const OrgPicker = ({
         "w-full px-[10px] py-[6px]",
         "border rounded bg-white border-black",
       )}
-      value={orgId ?? ""}
       onChange={({ target: { value } }) => setOrgId(value || null)}
     >
-      <option key="" value="">
+      <option key="" value="" selected={orgId === null}>
         Выберите организацию
       </option>
       {data.map(({ id, name }) => (
-        <option key={id} value={id}>
+        <option key={id} value={id} selected={orgId === id}>
           {name}
         </option>
       ))}
