@@ -20,6 +20,7 @@ import {
   userPhotoPath,
 } from "@/shared/utils";
 
+import { SkillsSubsection } from "@/features/NewProfile/subsection/SkillsSubsection";
 import { Rating } from "@/features/rating/comps/Rating";
 import { Icon } from "@/shared/comps/Icon";
 import { Picture } from "@/shared/comps/Picture";
@@ -259,26 +260,35 @@ export const ProfileCard = ({
   updateUser?: UpdateUserFn;
 }) => {
   return (
-    <section className="-ml-[20px] flex flex-col gap-[20px]">
-      <div className="flex gap-[64px] h-[360px]">
-        <Avatar editing={editing} user={user} updateUser={updateUser} />
+    <section className="-ml-[20px]">
+      <div className="flex flex-col gap-[20px]">
+        <div className="flex gap-[64px] h-[360px]">
+          <Avatar editing={editing} user={user} updateUser={updateUser} />
 
-        <div className="w-full flex flex-col justify-between gap-[20px]">
-          <div className="flex">
-            <Icon src={personIcon} width="33px" />
-            <Link
-              to={"/profile/" + user.id}
-              className="ml-[28px] text-[30px] hover:underline"
-            >
-              <h2>{fullNameLong(user)}</h2>
-            </Link>
+          <div className="w-full flex flex-col justify-between gap-[20px]">
+            <div className="flex">
+              <Icon src={personIcon} width="33px" />
+              <Link
+                to={"/profile/" + user.id}
+                className="ml-[28px] text-[30px] hover:underline"
+              >
+                <h2>{fullNameLong(user)}</h2>
+              </Link>
+            </div>
+
+            <InfoGrid user={user} editing={editing} updateUser={updateUser} />
           </div>
-
-          <InfoGrid user={user} editing={editing} updateUser={updateUser} />
         </div>
-      </div>
 
-      <Rating user={user} />
+        <Rating user={user} />
+      </div>
+      <div style={{ zoom: 1.3 }} className="mt-[30px]">
+        <SkillsSubsection
+          skills={user.skills}
+          editing={editing}
+          updateUser={updateUser}
+        />
+      </div>
     </section>
   );
 };

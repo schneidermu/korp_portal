@@ -32,7 +32,6 @@ import { ProfileCard } from "./comps/ProfileCard";
 import { Attachment } from "./parts/Attachment";
 import { EditableProperty, FileInput, PropertyInput } from "./parts/parts";
 
-import bookIcon from "@/assets/book.svg";
 import creditCardIcon from "@/assets/credit-card.svg";
 import crossIcon from "@/assets/cross.svg";
 import editIcon from "@/assets/edit.svg";
@@ -709,20 +708,6 @@ const CareerSection = ({
           updateUser={updateUser}
           editing={editing}
         />
-
-        <EditableProperty wrap icon={bookIcon} name="Навыки и компетенции">
-          {editing ? (
-            <textarea
-              className={clsx("w-full mt-2 px-5 py-2", "rounded border")}
-              value={O.getOrElse(user.skills, () => "")}
-              onChange={({ target: { value } }) =>
-                updateUser({ ...user, skills: O.some(value) })
-              }
-            />
-          ) : (
-            <span>{O.getOrUndefined(user.skills)}</span>
-          )}
-        </EditableProperty>
 
         <TrainingInfo user={user} updateUser={updateUser} editing={editing} />
       </div>

@@ -144,6 +144,7 @@ export const filterUsers = (
       serviceRank,
       innerPhoneNumber,
       office,
+      skills,
     } = user;
 
     return (
@@ -170,7 +171,8 @@ export const filterUsers = (
           innerPhoneNumber.replace("-", ""),
         )) ||
       (fields.has("office") &&
-        matchString(term.replace(/к(аб?)?.?\s*/g, ""), office))
+        matchString(term.replace(/к(аб?)?.?\s*/g, ""), office)) ||
+      (fields.has("skills") && O.isSome(skills) && matchString(term, skills))
     );
   });
 };
