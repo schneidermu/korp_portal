@@ -212,6 +212,7 @@ const useBirthdays = (orgId: number | null): Birthday[] => {
   const { data: users } = useFetchUsers(orgId);
 
   if (!users) return [];
+  if (orgId === null) return [];
 
   const birthdays = new Map<string, User[]>();
 
