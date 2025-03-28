@@ -53,6 +53,11 @@ def run(*args):
             print(f"User with email {email} not found.")
             continue
 
+        # Don't overwrite existing avatars.
+        if user.avatar is not None:
+            print(f"Not overwriting avatar for user with email {email}")
+            continue
+
         avatar = liferay_fetch_avatar(url, user_id, p_auth, jsessionid)
         if avatar is None:
             continue
