@@ -20,7 +20,7 @@ import {
   userPhotoPath,
 } from "@/shared/utils";
 
-import { SkillsSubsection } from "@/features/NewProfile/subsection/SkillsSubsection";
+import { UserSkills } from "@/features/NewProfile/comps/Skills";
 import { Rating } from "@/features/rating/comps/Rating";
 import { Icon } from "@/shared/comps/Icon";
 import { Picture } from "@/shared/comps/Picture";
@@ -283,7 +283,7 @@ export const ProfileCard = ({
         <Rating user={user} />
       </div>
       <div style={{ zoom: 1.3 }} className="mt-[30px]">
-        <SkillsSubsection
+        <UserSkills
           skills={user.skills}
           editing={editing}
           updateUser={updateUser}

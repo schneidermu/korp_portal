@@ -23,7 +23,6 @@ import { UpdateUserFn, User } from "@/features/user/types";
 
 import { NewPage } from "@/features/App/comps/NewPage";
 
-import { SkillsSubsection } from "./subsection/SkillsSubsection";
 import { TeamSubsection } from "./subsection/TeamSubsection";
 
 import { ProfileCard } from "./comps/ProfileCard";
@@ -508,14 +507,6 @@ export const NewProfilePage = () => {
             <Subsection title="Повышение квалификации">
               <TrainingSubsection
                 training={userState.training}
-                editing={editing}
-                updateUser={updateUserState}
-              />
-            </Subsection>
-
-            <Subsection title="Навыки и компетенции">
-              <SkillsSubsection
-                skills={userState.skills}
                 editing={editing}
                 updateUser={updateUserState}
               />

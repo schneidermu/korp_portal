@@ -186,6 +186,7 @@ interface ProfileCardProps extends StackProps {
   editing?: boolean;
   updateUser?: UpdateUserFn;
   title?: string;
+  hightlightSkills?: string[];
 }
 
 export const ProfileCard = React.memo(
@@ -196,6 +197,7 @@ export const ProfileCard = React.memo(
         editing = false,
         updateUser = noop,
         title,
+        hightlightSkills,
         ...rest
       } = props;
 
@@ -233,6 +235,12 @@ export const ProfileCard = React.memo(
 
               <InfoGrid info={user} editing={editing} updateUser={updateUser} />
             </Flex>
+            <UserSkills
+              editing={editing}
+              skills={user.skills}
+              updateUser={updateUser}
+              highlightSkills={hightlightSkills}
+            />
           </Subsection>
         </Section>
       );

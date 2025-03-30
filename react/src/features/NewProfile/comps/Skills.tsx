@@ -12,16 +12,18 @@ const Skill = React.memo(function Skill({
   editing,
   index,
   removeSkill,
+  highlight = false,
 }: {
   skill: string;
   editing?: boolean;
   index: number;
   removeSkill: (i: number) => void;
+  highlight?: boolean;
 }) {
   return (
     <Tag.Root
       color="blue.1"
-      bg="blue.3"
+      bg={highlight ? "pink.200" : "blue.3"}
       borderRadius="small"
       px="3"
       py="1"
@@ -42,8 +44,10 @@ const Skill = React.memo(function Skill({
 
 const NewSkill = React.memo(function NewSkill({
   addSkill,
+  placeholder = "Новый навык",
 }: {
   addSkill: (skill: string) => void;
+  placeholder?: string;
 }) {
   const [skill, setSkill] = useState("");
 
@@ -62,11 +66,12 @@ const NewSkill = React.memo(function NewSkill({
       </Tag.StartElement>
       <Tag.Label fontSize="inherit">
         <Input
+          spellCheck
           width="28"
           height="auto"
           outline="none"
           value={skill}
-          placeholder="Новый навык"
+          placeholder={placeholder}
           onChange={({ target }) => setSkill(target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
@@ -80,59 +85,80 @@ const NewSkill = React.memo(function NewSkill({
   );
 });
 
-export const SkillsSubsection = React.memo(function SkillsSubsection({
-  skills,
+export const Skills = React.memo(function Skills({
   editing,
-  updateUser,
+  placeholder,
+  skills,
+  setSkills,
+  highlightSkills,
 }: {
-  skills: User["skills"];
-  editing: boolean;
-  updateUser: UpdateUserFn;
+  editing?: boolean;
+  placeholder?: string;
+  skills: string[];
+  setSkills: (skills: string[]) => void;
+  highlightSkills?: string[];
 }) {
-  const skillArr = useMemo(
-    () => O.getOrNull(skills)?.split(", ") || [],
-    [skills],
-  );
-
   const addSkill = useCallback(
-    (skill: string) => {
-      updateUser(
-        (user) =>
-          (user.skills = O.some(
-            O.match(user.skills, {
-              onNone: () => skill,
-              onSome: (skills) => [skills, skill].join(", "),
-            }),
-          )),
-      );
-    },
-    [updateUser],
+    (skill: string) => setSkills([...skills, skill]),
+    [skills, setSkills],
   );
 
   const removeSkill = useCallback(
-    (i: number) =>
-      updateUser((user) => {
-        const s = [...skillArr];
-        s.splice(i, 1);
-        user.skills = O.fromNullable(s.join(", ") || null);
-      }),
-    [skillArr, updateUser],
+    (i: number) => setSkills([...skills.slice(0, i), ...skills.slice(i + 1)]),
+    [skills, setSkills],
   );
 
   return (
     <Wrap fontSize="md" gapX="4" gapY="2">
-      {skillArr.map((skill, i) => (
+      {skills.map((skill, i) => (
         <Skill
           key={i}
           index={i}
           skill={skill}
           editing={editing}
           removeSkill={removeSkill}
+          highlight={highlightSkills?.some((term) =>
+            skill.toLowerCase().includes(term.toLowerCase()),
+          )}
         />
       ))}
       <Show when={editing}>
-        <NewSkill addSkill={addSkill} />
+        <NewSkill addSkill={addSkill} placeholder={placeholder} />
       </Show>
     </Wrap>
+  );
+});
+
+export const UserSkills = React.memo(function UserSkills({
+  skills,
+  editing,
+  updateUser,
+  highlightSkills,
+}: {
+  skills: User["skills"];
+  editing: boolean;
+  updateUser: UpdateUserFn;
+  highlightSkills?: string[];
+}) {
+  const skillsArr = useMemo(
+    () => O.getOrNull(skills)?.split(", ") || [],
+    [skills],
+  );
+
+  const setSkills = useCallback(
+    (skills: string[]) =>
+      updateUser(
+        (user) => (user.skills = O.fromNullable(skills.join(", ") || null)),
+      ),
+    [updateUser],
+  );
+
+  return (
+    <Skills
+      editing={editing}
+      skills={skillsArr}
+      setSkills={setSkills}
+      highlightSkills={highlightSkills}
+    />
   );
 });
