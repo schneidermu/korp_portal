@@ -223,7 +223,7 @@ const fromUser = (user: User): UserData => ({
   },
 });
 
-export const useFetchUsers = (orgId: number | null) => {
+export const useFetchUsers = (orgId: number | null, unitId?: number | null) => {
   const tokenFetcher = useTokenFetcher();
 
   const limit = USERS_PAGE_LIMIT;
@@ -232,6 +232,9 @@ export const useFetchUsers = (orgId: number | null) => {
     let key = `/colleagues/?limit=${limit}`;
     if (orgId !== null) {
       key += `&structural_division__organization__id=${orgId}`;
+    }
+    if (typeof unitId === "number") {
+      key += `&structural_division__id=${unitId}`;
     }
     if (index === 0) return key;
     if (prevPage && prevPage.next === null) return null;
