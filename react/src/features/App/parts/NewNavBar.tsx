@@ -9,7 +9,10 @@ export const NewNavBar = () => {
   const links = [
     ["Рабочий стол", orgId !== null ? `/feed?org=${orgId}` : "/feed"],
     ["Мой профиль", userId ? `/new/profile/${userId}` : "/"],
-    ["Список сотрудников", orgId !== null ? `/list?org=${orgId}` : "/list"],
+    [
+      "Список сотрудников",
+      orgId !== null ? `/new/list?orgId=${orgId}` : "/list",
+    ],
     ["Список отделов", orgId !== null ? `/units?org=${orgId}` : "/units"],
   ] as const;
 

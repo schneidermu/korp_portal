@@ -32,6 +32,11 @@ export const ACCEPT_DOCUMENTS = [
 export const DPA_CLOSE_DELAY: number = 1000;
 
 /**
+ * The delay, in milliseconds, used for debouncing filtering queries.
+ */
+export const QUERY_DEBOUNCE_DELAY: number = 400;
+
+/**
  * The URL pointing to the full terms of the Data Processing Agreement (DPA).
  *
  * * DPA = согласие на обработку персональных данных
