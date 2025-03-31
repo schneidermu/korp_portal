@@ -135,7 +135,7 @@ class ColleagueProfileViewset(UserViewSet):
         IsAuthenticated,
         IsUserOrReadOnly,
     )
-    queryset = Employee.objects.all()
+    queryset = Employee.objects.order_by("name")
 
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = (
