@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import clsx from "clsx/lite";
 import { AnimatePresence } from "motion/react";
 
+import { useFeed } from "@/features/feed/services";
+import { useReachBottom } from "@/shared/hooks/useReachBottom";
 import { useIntSearchParam } from "@/shared/hooks/useSearchParam";
 import { resolveMediaPath } from "@/shared/utils";
-
-import { useFeed } from "./services";
 
 import { AnimatePage, PageSkel } from "@/features/App/comps/PageSkel";
 import { OrgPicker } from "@/features/org/comps/OrgPicker";
@@ -15,27 +15,6 @@ import { Birthday } from "./parts/Birthday";
 import { Gallery, Modal } from "./parts/Gallery";
 import { News } from "./parts/News";
 import { Poll } from "./parts/Poll";
-
-const useReachBottom = (handleBottom: () => boolean) => {
-  useEffect(() => {
-    function handleScroll() {
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const scrollTop = window.scrollY;
-
-      if (windowHeight + scrollTop >= documentHeight - 200) {
-        if (handleBottom()) {
-          window.removeEventListener("scroll", handleScroll);
-        }
-      }
-    }
-
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [handleBottom]);
-};
 
 const Separator = () => {
   return (
