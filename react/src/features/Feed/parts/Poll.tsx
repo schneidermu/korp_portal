@@ -7,10 +7,9 @@ import { produce } from "immer";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "@/features/auth/slice";
+import * as types from "@/features/feed/types";
 import { useFetchUser } from "@/features/user/services";
 import { formatDate, fullNameLong, userPhotoPath } from "@/shared/utils";
-
-import * as types from "../types";
 
 import { Icon } from "@/shared/comps/Icon";
 import { Picture } from "@/shared/comps/Picture";

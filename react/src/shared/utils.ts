@@ -61,6 +61,14 @@ export const formatDate = (date: Date) =>
     day: "numeric",
   }).format(date);
 
+export const formatDateFuller = (date: Date) =>
+  new Intl.DateTimeFormat(LOCALE, {
+    weekday: "short",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+
 export const formatDateOfBirth = new Intl.DateTimeFormat(LOCALE, {
   year: "numeric",
   month: "short",
