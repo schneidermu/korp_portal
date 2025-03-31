@@ -2,7 +2,7 @@ import clsx from "clsx/lite";
 
 import { formatDate, resolveMediaPath } from "@/shared/utils";
 
-import * as types from "../types";
+import * as types from "@/features/feed/types";
 
 export const News = ({
   news,

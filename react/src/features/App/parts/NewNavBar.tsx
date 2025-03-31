@@ -7,7 +7,7 @@ export const NewNavBar = () => {
   const { orgId, userId } = useAuth();
 
   const links = [
-    ["Рабочий стол", orgId !== null ? `/feed?org=${orgId}` : "/feed"],
+    ["Рабочий стол", orgId !== null ? `/new/feed?orgId=${orgId}` : "/feed"],
     ["Мой профиль", userId ? `/new/profile/${userId}` : "/"],
     [
       "Список сотрудников",
