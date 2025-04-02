@@ -114,12 +114,11 @@ def run():
             continue
         elif matches.count() > 1:
             logger.warning(
-                "Too many (%d) matches found for: %s (%s)",
+                "Too many (%d) matches found for: %s (%s), using the first match",
                 matches.count(),
                 fullname,
                 user["unit"],
             )
-            continue
 
         if unit not in unit2ss:
             logger.warning(
@@ -141,7 +140,7 @@ def run():
         phone = user["phone"][0] if type(user["phone"]) is list else user["phone"]
         office = user["office"][0] if type(user["office"]) is list else user["office"]
 
-        matches.update(
+        matches.filter(id=matches[0].id).update(
             structural_division=unit2ss[unit],
             telephone_number=phone,
             inner_telephone_number=user["inner_phone"],
