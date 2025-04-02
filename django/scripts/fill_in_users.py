@@ -132,7 +132,12 @@ def run():
         if unit not in unit2boss:
             unit2boss[unit] = matches[0]
             parent_unit = unit2ss[unit].parent_structural_subdivision
-            if parent_unit is not None:
+            if parent_unit is None:
+                pass
+            elif parent_unit.name in unit2boss:
+                boss = unit2boss[parent_unit.name]
+            else:
+                parent_unit = unit2ss[parent_unit.name].parent_structural_subdivision
                 boss = unit2boss[parent_unit.name]
         else:
             boss = unit2boss[unit]
