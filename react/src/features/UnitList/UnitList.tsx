@@ -86,11 +86,11 @@ export const UnitList = () => {
   const { data: allUsers } = useFetchUsers(orgId);
 
   const allUnits = useMemo(() => {
-    if (!allUsers) {
+    if (!allUsers || orgId === null) {
       return [];
     }
     return groupUsersByUnits([...allUsers.values()]);
-  }, [allUsers]);
+  }, [allUsers, orgId]);
 
   const units = useMemo(() => {
     const units: typeof allUnits = [];
