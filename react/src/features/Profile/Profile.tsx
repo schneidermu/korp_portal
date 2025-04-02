@@ -956,7 +956,7 @@ const AwardsSection = ({
 }) => (
   <GallerySection
     attr="awards"
-    title="Награды"
+    title="Достижения"
     window={4}
     height={240}
     gap={40}
