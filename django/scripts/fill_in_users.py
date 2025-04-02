@@ -28,7 +28,9 @@ logger = logging.getLogger(__name__)
   "users": [
     {
       "unit": "Руководство",
-      "name": "ФИО 1",
+      "surname": "Фамилия 1",
+      "name": "Имя 1",
+      "patronym": "Отчество 1",
       "position": "Руководитель",
       "phone": "88005553555",
       "inner_phone": "1234",
@@ -36,7 +38,9 @@ logger = logging.getLogger(__name__)
     },
     {
       "unit": "Управление",
-      "name": "ФИО 2",
+      "surname": "Фамилия 2",
+      "name": "Имя 2",
+      "patronym": "Отчество 2",
       "position": "Начальник управления",
       "phone": null,
       "inner_phone": null,
@@ -44,7 +48,9 @@ logger = logging.getLogger(__name__)
     },
     {
       "unit": "Отдел",
-      "name": "ФИО 3",
+      "surname": "Фамилия 3",
+      "name": "Имя 3",
+      "patronym": null,
       "position": "Начальник отдела",
       "phone": ["88005553556", "88005553557"],
       "inner_phone": ["1235", "1236", "1237"],
@@ -98,23 +104,29 @@ def run():
     unit2boss = {}
     for user in data["users"]:
         unit = user["unit"]
-        surname, name, *rest = user["name"].split()
-        if len(rest) > 1:
-            raise ValueError("Bad full name for:", user)
-        patronym = rest[0] if len(rest) > 0 else None
 
-        matches = Employee.objects.filter(surname=surname, name=name, patronym=patronym)
+        fullname = user["surname"] + " " + user["name"]
+        matches = Employee.objects.filter(
+            surname=user["surname"], name=user["name"], patronym=user["patronym"]
+        )
         if matches.count() == 0:
-            logger.warning("No match found for: %s", user["name"])
+            logger.warning("No match found for: %s (%s)", fullname, user["unit"])
             continue
         elif matches.count() > 1:
             logger.warning(
-                "Too many (%d) matches found for: %s", matches.count(), user["name"]
+                "Too many (%d) matches found for: %s (%s)",
+                matches.count(),
+                fullname,
+                user["unit"],
             )
             continue
 
         if unit not in unit2ss:
-            logger.warning("Unknown unit '%s' for: %s", unit, user["name"])
+            logger.warning(
+                "Unknown unit '%s' for: %s",
+                unit,
+                fullname,
+            )
             continue
 
         boss = None
@@ -140,7 +152,7 @@ def run():
 
         print(
             "Updated user {}, unit {}, boss {}".format(
-                user["name"],
+                fullname,
                 user["unit"],
                 None if boss is None else f"{boss.surname} {boss.name}",
             )
