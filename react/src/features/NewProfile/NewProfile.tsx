@@ -530,7 +530,7 @@ export const NewProfilePage = () => {
           </Section>
 
           <Section>
-            <Subsection title="Награды">
+            <Subsection title="Достижения">
               <AwardsSubsection
                 awards={userState.awards}
                 editing={editing}
