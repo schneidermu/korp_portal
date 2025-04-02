@@ -202,7 +202,7 @@ export const PollContent = ({
           className={clsx(
             "w-full mb-[72px] mt-[40px]",
             "font-extralight text-dark-gray",
-            full && "hover:underline",
+            poll.isAnonymous || (!poll.voted && canVote) || "hover:underline",
           )}
           onClick={(event) => {
             event.stopPropagation();
