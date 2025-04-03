@@ -25,7 +25,13 @@ const Separator = () => {
 export const Feed = () => {
   const [orgId, setOrgId] = useIntSearchParam("org");
 
-  const { data: posts, vote, setPoll, loadMore, allAreLoaded } = useFeed(orgId);
+  const {
+    data: posts,
+    vote,
+    setPoll,
+    loadMore,
+    allAreLoaded,
+  } = useFeed({ orgId });
   const [overlayPost, setOverlayPost] = useState<number | null>(null);
   const [overlayImg, setOverlayImg] = useState<number | null>(null);
   const [showPollResults, setShowPollResults] = useState(false);

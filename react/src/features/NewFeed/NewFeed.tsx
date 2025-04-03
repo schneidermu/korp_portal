@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 
 import {
+  Button,
+  Flex,
   Grid,
   Heading,
+  HStack,
   IconButton,
   Image,
   Separator,
@@ -20,6 +23,7 @@ import { formatDateFuller, resolveMediaPath } from "@/shared/utils";
 
 import { NewPage } from "@/features/App/comps/NewPage";
 
+import { SearchBar } from "@/shared/comps/SearchBarNew";
 import { Overlay } from "./parts/Overlay";
 import { SlideButtonLeft, SlideButtonRight } from "./parts/SlideButtons";
 
@@ -143,14 +147,41 @@ export const News = ({ news }: { news: types.News }) => {
 
 export const NewFeedPage = () => {
   const [orgId] = useIntSearchParam("orgId");
+  const [showNews, setShowNews] = useState(true);
+  const [showPolls, setShowPolls] = useState(true);
+  const [query, setQuery] = useState("");
 
-  const { data: posts, loadMore, allAreLoaded } = useFeed(orgId);
+  const {
+    data: posts,
+    loadMore,
+    allAreLoaded,
+  } = useFeed({ orgId, showPolls, showNews, query });
   useReachBottom(loadMore);
 
   if (!posts) return;
 
   return (
     <NewPage>
+      <Flex fontSize="2xl" color="blue.2" mb="4" justify="space-between">
+        <HStack>
+          <Button
+            onClick={() => setShowNews(!showNews)}
+            textDecoration={showNews ? "underline" : undefined}
+          >
+            Новости
+          </Button>
+          &ndash;
+          <Button
+            onClick={() => setShowPolls(!showPolls)}
+            textDecoration={showPolls ? "underline" : undefined}
+          >
+            Опросы
+          </Button>
+        </HStack>
+
+        <SearchBar width="30%" debounceDelay={300} onDebounce={setQuery} />
+      </Flex>
+
       <Stack gap="20">
         {posts.map(
           (post) => post.kind === "news" && <News key={post.id} news={post} />,
