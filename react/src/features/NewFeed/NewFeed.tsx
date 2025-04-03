@@ -40,6 +40,26 @@ const OverlayImg = ({
 
   useEffect(() => setJ(index), [index]);
 
+  useEffect(() => {
+    if (j === null) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      event.preventDefault();
+      const { key } = event;
+      if (key === "ArrowLeft" && j > 0) {
+        setJ(j - 1);
+      }
+      if (key === "ArrowRight" && j + 1 < imgs.length) {
+        setJ(j + 1);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [j, imgs.length]);
+
   return (
     <Overlay position="relative" present={j !== null} onClose={onClose}>
       {j !== null && (
