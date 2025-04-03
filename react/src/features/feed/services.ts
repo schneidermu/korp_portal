@@ -14,6 +14,7 @@ import { User } from "@/features/user/types";
 import { Paged } from "@/shared/types";
 
 import { Birthday, News, Poll, Post } from "./types";
+import { formatDateLong } from "@/shared/utils";
 
 interface NewsData {
   id: number;
@@ -275,7 +276,39 @@ const usePolls = (limit: number, orgId: number | null) =>
 
 type Count = { [key in Post["kind"]]: number };
 
-export const useFeed = (orgId: number | null) => {
+const newsMatchQuery = (q: string | undefined) => (news: News) => {
+  if (q === undefined) return true;
+  q = q.toLowerCase();
+  return (
+    news.title.toLowerCase().includes(q) ||
+    news.text.toLowerCase().includes(q) ||
+    formatDateLong(news.publishedAt).includes(q)
+  );
+};
+
+const pollMatchQuery = (q: string | undefined) => (poll: Poll) => {
+  if (q === undefined) return true;
+  q = q.toLowerCase();
+  return (
+    poll.question.toLowerCase().includes(q) ||
+    [...poll.choices.values()].some(({ text }) =>
+      text.toLowerCase().includes(q),
+    ) ||
+    formatDateLong(poll.publishedAt).includes(q)
+  );
+};
+
+export const useFeed = ({
+  orgId,
+  showNews = true,
+  showPolls = true,
+  query,
+}: {
+  orgId: number | null;
+  showNews?: boolean;
+  showPolls?: boolean;
+  query?: string;
+}) => {
   const [size, setSize] = useState(1);
 
   const news = useNews(FEED_PAGE_LIMIT, orgId);
@@ -283,15 +316,17 @@ export const useFeed = (orgId: number | null) => {
   const birthdays = useBirthdays(orgId);
 
   const posts = useMemo(() => {
-    const posts: Post[] = [
-      ...birthdays,
-      ...(news.data ?? []),
-      ...(polls.data ?? []),
-    ];
+    const posts: Post[] = [...birthdays];
+    if (showNews && news.data) {
+      posts.push(...news.data.filter(newsMatchQuery(query)));
+    }
+    if (showPolls && polls.data) {
+      posts.push(...polls.data.filter(pollMatchQuery(query)));
+    }
     // Reverse chronological order.
     posts.sort((p1, p2) => p2.publishedAt.getTime() - p1.publishedAt.getTime());
     return posts;
-  }, [birthdays, news, polls]);
+  }, [birthdays, news, polls, showNews, showPolls, query]);
 
   const loadMore = useMemo(
     () => () => {
@@ -304,17 +339,25 @@ export const useFeed = (orgId: number | null) => {
         extraCounts[post.kind] += 1;
       }
 
-      if (!news.allAreLoaded && extraCounts.news < FEED_PAGE_LIMIT) {
+      if (
+        showNews &&
+        !news.allAreLoaded &&
+        extraCounts.news < FEED_PAGE_LIMIT
+      ) {
         news.setSize((s) => s + 1);
       }
-      if (!polls.allAreLoaded && extraCounts.polls < FEED_PAGE_LIMIT) {
+      if (
+        showPolls &&
+        !polls.allAreLoaded &&
+        extraCounts.polls < FEED_PAGE_LIMIT
+      ) {
         polls.setSize((s) => s + 1);
       }
 
       setSize((s) => s + 1);
       return true;
     },
-    [size, polls, news, posts],
+    [size, polls, news, posts, showNews, showPolls],
   );
 
   return {
@@ -322,7 +365,8 @@ export const useFeed = (orgId: number | null) => {
     isLoading: news.isLoading || polls.isLoading,
     isValidating: news.isValidating || polls.isValidating,
     error: news.error || polls.error,
-    allAreLoaded: news.allAreLoaded && polls.allAreLoaded,
+    allAreLoaded:
+      (!showNews || news.allAreLoaded) && (!showPolls || polls.allAreLoaded),
     vote: polls.vote,
     setPoll: polls.setPoll,
     loadMore,
