@@ -326,7 +326,7 @@ const EducationSection = ({
       }
     >
       {user.courses.map(({ year, name, attachment }, i) => (
-        <>
+        <Fragment key={i}>
           <PropertyInput
             type="number"
             editing={editing}
@@ -376,7 +376,7 @@ const EducationSection = ({
               <Attachment url={attachment} />
             </div>
           )}
-        </>
+        </Fragment>
       ))}
     </Timeline>
   );
