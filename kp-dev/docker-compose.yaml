@@ -43,6 +43,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    profiles: [liferay]
     labels:
       - "traefik.enable=true"
       - "traefik.instance=kp"
