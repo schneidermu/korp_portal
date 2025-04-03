@@ -13,6 +13,9 @@ const filetype = (ext: string): string | undefined => {
   if (ext === "pdf") {
     return "pdf";
   }
+  if (ext === "png" || ext === "jpg" || ext === "jpeg") {
+    return "image";
+  }
 };
 
 export const Attachment = ({
