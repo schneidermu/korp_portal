@@ -3,6 +3,7 @@ import {
   Fragment,
   ReactNode,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -1040,10 +1041,13 @@ export const UserProfile = () => {
 
   const [editing, setEditing] = useState(false);
 
+  const prevUserId = useRef<string | undefined>(undefined);
   useEffect(() => {
-    // FIXME:
-    // setEditing(false);
-  }, [updateUserState, user]);
+    if (user?.id !== prevUserId.current) {
+      setEditing(false);
+    }
+    prevUserId.current = user?.id;
+  }, [user?.id]);
 
   if (!user || !userState) {
     return;
