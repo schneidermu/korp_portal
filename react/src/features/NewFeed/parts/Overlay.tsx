@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import {
   Box,
@@ -17,6 +17,19 @@ export const Overlay = React.forwardRef<HTMLDivElement, OverlayProps>(
   function Overlay(props, ref) {
     const { present, lazyMount, unmountOnExit, onClose, ...rest } = props;
 
+    useEffect(() => {
+      const handleKeyDown = ({ key }: KeyboardEvent) => {
+        if (key === "Escape" && onClose) {
+          onClose();
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    }, [onClose]);
+
     return (
       <Presence
         present={present}
@@ -32,7 +45,16 @@ export const Overlay = React.forwardRef<HTMLDivElement, OverlayProps>(
         left="0"
         background="gray.1/65"
       >
-        <Center w="full" h="full" onClick={() => onClose && onClose()}>
+        <Center
+          w="full"
+          h="full"
+          onClick={() => onClose && onClose()}
+          onKeyDown={({ key }) => {
+            if (key === "Escape" && onClose) {
+              onClose();
+            }
+          }}
+        >
           <Box
             onClick={(event) => event.stopPropagation()}
             ref={ref}
