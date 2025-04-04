@@ -406,9 +406,6 @@ const TrainingInfo = ({
   updateUser: UpdateUserFn;
   editing: boolean;
 }) => {
-  const changeName = (i: number, value: string) =>
-    updateUser((user) => (user.training[i].name = value));
-
   const changeFile = (i: number, url: string) =>
     updateUser((user) => (user.training[i].attachment = O.some(url)));
 
@@ -423,17 +420,49 @@ const TrainingInfo = ({
     updateUser((user) => (user.training[i].attachment = O.none()));
 
   const certificates = user.training.map(({ name, attachment }, i) => {
+    let year = Number.NaN;
+    let title = name;
+    if (name.includes("\n")) {
+      const sp = name.split("\n", 2);
+      year = Number(sp[0]);
+      title = sp[1];
+    }
     return (
       <li key={i}>
         {editing ? (
-          <input
-            required
-            value={name}
-            onChange={({ target: { value } }) => changeName(i, value)}
-            className="w-full mb-1 px-[20px] py-[6px] border rounded"
-          />
+          <div className="flex w-full mb-1 gap-2">
+            <input
+              min={1900}
+              max={9999}
+              type="number"
+              placeholder="Год"
+              value={year}
+              onChange={({ target: { value } }) =>
+                updateUser(
+                  (user) =>
+                    (user.training[i].name =
+                      (Number(value) || Number.NaN).toString() + "\n" + title),
+                )
+              }
+              className="w-[100px] px-[20px] py-[6px] border rounded text-center"
+            />
+            <input
+              required
+              value={title}
+              placeholder="Квалификация"
+              onChange={({ target: { value } }) =>
+                updateUser(
+                  (user) =>
+                    (user.training[i].name = year.toString() + "\n" + value),
+                )
+              }
+              className="grow px-[20px] py-[6px] border rounded"
+            />
+          </div>
         ) : (
-          <span>{name}</span>
+          <span>
+            {Number.isNaN(year) ? "" : `${year}:`} {title}
+          </span>
         )}
         {editing
           ? O.match(attachment, {
@@ -478,7 +507,7 @@ const TrainingInfo = ({
   return (
     <div>
       <Property icon={upArrowIcon} name="Повышение квалификации" />
-      <div className="w-1/2 ml-8 mt-2">
+      <div className="w-3/5 ml-8 mt-2">
         <ul className="mb-4 list-disc flex flex-col gap-4">{certificates}</ul>
         {editing && (
           <RowControls
