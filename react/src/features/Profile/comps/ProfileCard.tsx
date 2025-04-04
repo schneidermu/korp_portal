@@ -54,7 +54,7 @@ const Avatar = ({
   return (
     <Link
       to={`/profile/${user.id}`}
-      className="shrink-0 rounded-photo overflow-hidden relative"
+      className="shrink-0 rounded-photo overflow-hidden relative border border-light-gray"
     >
       <Picture width="260px" height="100%" url={userPhotoPath(user)} />
       {editing && (
