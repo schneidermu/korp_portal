@@ -27,7 +27,7 @@ export const UserAvatarLink = ({
       to={`/profile/${user.id}`}
       className="shrink-0 w-fit hover:underline"
     >
-      <div className="rounded-photo overflow-hidden">
+      <div className="rounded-photo overflow-hidden border border-light-gray">
         <Picture width={width} height={height} url={userPhotoPath(user)} />
       </div>
       <div style={{ fontSize }} className="text-center mt-[16px]">
