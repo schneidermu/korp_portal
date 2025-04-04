@@ -235,12 +235,14 @@ export const ProfileCard = React.memo(
 
               <InfoGrid info={user} editing={editing} updateUser={updateUser} />
             </Flex>
-            <UserSkills
-              editing={editing}
-              skills={user.skills}
-              updateUser={updateUser}
-              highlightSkills={hightlightSkills}
-            />
+            {(editing || O.isSome(user.skills)) && (
+              <UserSkills
+                editing={editing}
+                skills={user.skills}
+                updateUser={updateUser}
+                highlightSkills={hightlightSkills}
+              />
+            )}
           </Subsection>
         </Section>
       );
