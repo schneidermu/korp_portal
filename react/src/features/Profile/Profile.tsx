@@ -385,14 +385,20 @@ const EducationSection = ({
     <section>
       <SectionTitle title="Образование" />
 
-      <HigherEducationInfo
-        user={user}
-        updateUser={updateUser}
-        editing={editing}
-      />
+      {(editing || user.education.length > 0) && (
+        <HigherEducationInfo
+          user={user}
+          updateUser={updateUser}
+          editing={editing}
+        />
+      )}
 
-      <Property icon={layersIcon} name="Курсы" />
-      <div className={clsx(editing ? "my-6" : "my-12")}>{courses}</div>
+      {(editing || user.courses.length > 0) && (
+        <>
+          <Property icon={layersIcon} name="Курсы" />
+          <div className={clsx(editing ? "my-6" : "my-12")}>{courses}</div>
+        </>
+      )}
     </section>
   );
 };
@@ -719,27 +725,36 @@ const CareerSection = ({
     <section>
       <SectionTitle title="Карьера и развитие" />
       <div className="mr-[36px] flex flex-col gap-[30px]">
-        <EditableProperty icon={creditCardIcon} name="Стаж">
-          <div className="w-[136px]">
-            <PropertyInput
+        {(editing ||
+          O.exists(user.workExperience, (exp) => exp.length > 0)) && (
+          <EditableProperty icon={creditCardIcon} name="Стаж">
+            <div className="w-[136px]">
+              <PropertyInput
+                editing={editing}
+                value={O.getOrElse(user.workExperience, () => "")}
+                theme="px-6 py-[6px] text-center"
+                handleChange={(value) =>
+                  updateUser((user) => (user.workExperience = O.some(value)))
+                }
+              />
+            </div>
+          </EditableProperty>
+        )}
+
+        {(editing || user.career.length > 0) && (
+          <>
+            <Property icon={externalIcon} name="Карьерный рост" />
+            <CareerPositionsTable
+              user={user}
+              updateUser={updateUser}
               editing={editing}
-              value={O.getOrElse(user.workExperience, () => "")}
-              theme="px-6 py-[6px] text-center"
-              handleChange={(value) =>
-                updateUser((user) => (user.workExperience = O.some(value)))
-              }
             />
-          </div>
-        </EditableProperty>
+          </>
+        )}
 
-        <Property icon={externalIcon} name="Карьерный рост" />
-        <CareerPositionsTable
-          user={user}
-          updateUser={updateUser}
-          editing={editing}
-        />
-
-        <TrainingInfo user={user} updateUser={updateUser} editing={editing} />
+        {(editing || user.training.length > 0) && (
+          <TrainingInfo user={user} updateUser={updateUser} editing={editing} />
+        )}
       </div>
     </section>
   );
@@ -1096,14 +1111,19 @@ export const UserProfile = () => {
   const editable = userId === "me" || userId === auth.userId;
 
   const sections = [
-    ProfileCard,
-    AboutMeSection,
-    EducationSection,
-    CareerSection,
-    TeamSection,
-    AwardsSection,
-    CommunityWorkSection,
-  ];
+    [ProfileCard, true],
+    [AboutMeSection, user.about.length > 0],
+    [EducationSection, user.education.length > 0 || user.courses.length > 0],
+    [
+      CareerSection,
+      O.exists(user.workExperience, (exp) => exp.length > 0) ||
+        user.career.length > 0 ||
+        user.training.length > 0,
+    ],
+    [TeamSection, true],
+    [AwardsSection, user.awards.length > 0],
+    [CommunityWorkSection, user.communityWork.length > 0],
+  ] as const;
 
   return (
     <AnimatePage id={user.id}>
@@ -1125,16 +1145,19 @@ export const UserProfile = () => {
               />
             </div>
           </div>
-          {sections.map((Section, i) => (
-            <Fragment key={i}>
-              {i > 0 && <SectionSep />}
-              <Section
-                user={userState}
-                updateUser={updateUserState}
-                editing={editing}
-              />
-            </Fragment>
-          ))}
+          {sections.map(
+            ([Section, show], i) =>
+              (editing || show) && (
+                <Fragment key={i}>
+                  {i > 0 && <SectionSep />}
+                  <Section
+                    user={userState}
+                    updateUser={updateUserState}
+                    editing={editing}
+                  />
+                </Fragment>
+              ),
+          )}
         </form>
       </PageSkel>
     </AnimatePage>
