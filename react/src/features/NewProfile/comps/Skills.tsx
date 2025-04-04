@@ -69,7 +69,7 @@ const NewSkill = React.memo(function NewSkill({
           spellCheck
           width="28"
           height="auto"
-          outline="none"
+          outline="none !important"
           value={skill}
           placeholder={placeholder}
           onChange={({ target }) => setSkill(target.value)}
