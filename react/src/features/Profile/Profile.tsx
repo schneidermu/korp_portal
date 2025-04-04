@@ -260,7 +260,7 @@ const HigherEducationInfo = ({
             ["- Удалить", shiftItem],
           ]}
           controlsBelow={
-            user.education.length === 0
+            user.education.length < 2
               ? undefined
               : [
                   ["+ Добавить", pushItem],
@@ -317,7 +317,7 @@ const EducationSection = ({
         ["- Удалить", shiftCourse],
       ]}
       controlsBelow={
-        user.courses.length === 0
+        user.courses.length < 2
           ? undefined
           : [
               ["+ Добавить", pushCourse],
@@ -630,7 +630,7 @@ const CareerPositionsTable = ({
       </div>
       <div className={clsx(headerClass, "rounded-tr")}>Должность</div>
 
-      {user.career.length > 0 && (
+      {user.career.length >= 2 && (
         <CareerPositionsTableControls
           editing={editing}
           add={unshiftPosition}
