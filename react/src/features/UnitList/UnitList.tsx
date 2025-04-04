@@ -62,13 +62,7 @@ const groupUsersByUnits = (users: User[]) => {
     if (!children) {
       return;
     }
-    const flatChildren = [...children.values()];
-    flatChildren.sort(({ unit: u1 }, { unit: u2 }) => {
-      if (u1.name < u2.name) return -1;
-      if (u1.name > u2.name) return +1;
-      return 0;
-    });
-    for (const { unit, users } of flatChildren) {
+    for (const { unit, users } of children.values()) {
       units.push({ unit, org: users[0].organization, users });
       pushChildrenOf(unit.id);
     }
