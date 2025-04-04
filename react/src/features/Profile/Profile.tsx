@@ -925,7 +925,7 @@ const GallerySection = ({
         <Icon
           src={resolveMediaPath(attachment.value)}
           height={height}
-          className="w-full object-cover object-center"
+          className="w-full object-cover object-center border border-light-gray"
         />
       )}
       {editing ? (
