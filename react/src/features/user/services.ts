@@ -443,6 +443,15 @@ export const uploadFile = async (token: string, uri: string | null) => {
 };
 
 export const saveUser = async (token: string, user: User) => {
+  user = {
+    ...user,
+    // Drop entries with empty images.
+    awards: user.awards.filter(({ attachment }) => O.isSome(attachment)),
+    communityWork: user.communityWork.filter(({ attachment }) =>
+      O.isSome(attachment),
+    ),
+  };
+
   const data = fromUser(user);
 
   const attrs = [
