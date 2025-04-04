@@ -862,9 +862,7 @@ const Slides = ({
         }}
       >
         {items.slice(i, i + window).map((item, j) => (
-          <div key={i + j} className="shrink-0 w-fit">
-            {item}
-          </div>
+          <div key={i + j}>{item}</div>
         ))}
       </div>
       <div className="w-[60px] absolute left-full top-0 h-full flex items-center">

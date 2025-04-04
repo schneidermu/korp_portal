@@ -25,12 +25,12 @@ export const UserAvatarLink = ({
     <Link
       target={target}
       to={`/profile/${user.id}`}
-      className="shrink-0 w-fit hover:underline"
+      className="shrink-0 w-fit hover:underline flex flex-col gap-[16px]"
     >
       <div className="rounded-photo overflow-hidden border border-light-gray">
         <Picture width={width} height={height} url={userPhotoPath(user)} />
       </div>
-      <div style={{ fontSize }} className="text-center mt-[16px]">
+      <div style={{ fontSize }} className="text-center">
         {fullNameShort(user)}
       </div>
     </Link>
