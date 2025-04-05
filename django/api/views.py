@@ -1,6 +1,8 @@
 from datetime import datetime
 
 from django.db import transaction
+from django.db.models import Value
+from django.db.models.functions import Concat
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -135,7 +137,7 @@ class ColleagueProfileViewset(UserViewSet):
         IsAuthenticated,
         IsUserOrReadOnly,
     )
-    queryset = Employee.objects.order_by("name")
+    queryset = Employee.objects.all()
 
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = (
@@ -144,6 +146,20 @@ class ColleagueProfileViewset(UserViewSet):
         "chief__id",
         "structural_division__organization__id",
     )
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        sort_by = self.request.query_params.get("sort_by")
+
+        if sort_by == "name":
+            queryset = queryset.annotate(
+                full_name=Concat("surname", Value(" "), "name", Value(" "), "patronym")
+            ).order_by("full_name")
+        elif sort_by:
+            valid_fields = [field.name for field in Employee._meta.fields]
+            if sort_by in valid_fields:
+                queryset = queryset.order_by(sort_by)
+        return queryset
 
     def get_serializer_class(self):
         if (
