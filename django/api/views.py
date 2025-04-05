@@ -153,7 +153,7 @@ class ColleagueProfileViewset(UserViewSet):
 
         if sort_by == "name":
             queryset = queryset.annotate(
-                full_name=Concat("surname", Value(" "), "name", Value(" "), "patronym")
+                full_name=Concat("surname", Value(" "), "name", Value(" "), "patronym", Value(" "), "email")
             ).order_by("full_name")
         elif sort_by:
             valid_fields = [field.name for field in Employee._meta.fields]
