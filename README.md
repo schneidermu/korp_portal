@@ -50,16 +50,11 @@ python manage.py runserver
 ### Package React into a WAR
 
 ```sh
-cd react
-
-# Edit .env:
-cp sample.env .env
-
-docker build -t kp-react-war --target war .
-docker run --rm kp-react-war > "$dist/korp-portal-portlet.war"
+# Build and package React portlet:
+./kp-prod/bin/package-react.sh 1
 
 # Example deployment to dev Liferay:
-cp "$dist"/*.war ../kp-dev/volumes/deploy
+cp artefacts/dist/react/korp-portal-portlet.war kp-dev/volumes/deploy/
 ```
 
 ## Liferay
