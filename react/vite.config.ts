@@ -20,13 +20,5 @@ export default defineConfig(({ mode }) => {
   return {
     ...conf,
     base: "/o/korp-portal-portlet/dist/",
-    build: {
-      rollupOptions: {
-        output: {
-          entryFileNames: "index.js",
-          assetFileNames: "[name].[ext]",
-        },
-      },
-    },
   };
 });
