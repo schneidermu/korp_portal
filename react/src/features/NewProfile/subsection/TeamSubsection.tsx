@@ -10,6 +10,7 @@ import { User } from "@/features/user/types";
 import { Avatar } from "@/features/user/comps/Avatar";
 
 import { Button } from "../parts/Button";
+import { Subsection, SubsectionProps } from "../parts/Subsection";
 
 import fallbackAvatarAlt from "@/assets/avatar-fallback-alt.png";
 
@@ -33,44 +34,57 @@ const UserGrid = React.memo(function UserGrid({ users }: { users: User[] }) {
   );
 });
 
-export const TeamSubsection = ({ user }: { user: User }) => {
-  const [showBoss, setShowBosses] = useState(false);
+export interface TeamSubsectionProps extends SubsectionProps {
+  user: User;
+}
 
-  const colleagues = useFetchColleagues(user);
-  const { user: boss } = useFetchUser(user.bossId);
+export const TeamSubsection = React.memo(
+  React.forwardRef<HTMLDivElement, TeamSubsectionProps>(
+    function TeamSubsection(props, ref) {
+      const { user, ...rest } = props;
 
-  const users = useMemo(() => {
-    let users: User[] = [];
-    if (showBoss && boss) {
-      users = [boss];
-    } else if (!showBoss) {
-      users = [...(colleagues?.values() || [])].filter(
-        (colleague) =>
-          colleague.id !== user.id && !O.contains(user.bossId, colleague.id),
+      const [showBoss, setShowBosses] = useState(false);
+
+      const colleagues = useFetchColleagues(user);
+      const { user: boss } = useFetchUser(user.bossId);
+
+      const users = useMemo(() => {
+        let users: User[] = [];
+        if (showBoss && boss) {
+          users = [boss];
+        } else if (!showBoss) {
+          users = [...(colleagues?.values() || [])].filter(
+            (colleague) =>
+              colleague.id !== user.id &&
+              !O.contains(user.bossId, colleague.id),
+          );
+        }
+        return users;
+      }, [boss, colleagues, showBoss, user.id, user.bossId]);
+
+      return (
+        <Subsection ref={ref} {...rest}>
+          <Stack gap="20">
+            <Grid gap="10" templateColumns="1fr 1fr" w="fit">
+              <Button
+                variant={showBoss ? "outline" : "solid"}
+                onClick={() => setShowBosses(false)}
+              >
+                Мои коллеги
+              </Button>
+              <Show when={O.isSome(user.bossId)}>
+                <Button
+                  variant={showBoss ? "solid" : "outline"}
+                  onClick={() => setShowBosses(true)}
+                >
+                  Мой руководитель
+                </Button>
+              </Show>
+            </Grid>
+            <UserGrid users={users} />
+          </Stack>
+        </Subsection>
       );
-    }
-    return users;
-  }, [boss, colleagues, showBoss, user.id, user.bossId]);
-
-  return (
-    <Stack gap="20">
-      <Grid gap="10" templateColumns="1fr 1fr" w="fit">
-        <Button
-          variant={showBoss ? "outline" : "solid"}
-          onClick={() => setShowBosses(false)}
-        >
-          Мои коллеги
-        </Button>
-        <Show when={O.isSome(user.bossId)}>
-          <Button
-            variant={showBoss ? "solid" : "outline"}
-            onClick={() => setShowBosses(true)}
-          >
-            Мой руководитель
-          </Button>
-        </Show>
-      </Grid>
-      <UserGrid users={users} />
-    </Stack>
-  );
-};
+    },
+  ),
+);
