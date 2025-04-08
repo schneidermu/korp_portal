@@ -133,3 +133,10 @@ export const formatMobilePhone = (rawPhone: string): string => {
 export const stripPhoneNumber = (phone: string): string => {
   return phone.replace(/[ ()-]/g, "");
 };
+
+export const toNumberOption = (s: string): O.Option<number> => {
+  s = s.replace(/[^0-9]/g, "");
+  return O.fromNullable(s ? Number(s) : null);
+};
+
+export const toNumber = (s: string): number => O.getOrThrow(toNumberOption(s));
