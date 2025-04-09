@@ -22,6 +22,7 @@ export const CareerSubsection = React.memo(
       return (
         <Subsection show={editing || career.length > 0} ref={ref} {...rest}>
           <Timeline
+            templateColumns="1fr 1fr 4fr"
             editing={editing}
             cols={["Дата начала", "Дата окончания", "Должность"]}
             data={career.map(({ year_start, year_leave, position }) => [
@@ -32,7 +33,7 @@ export const CareerSubsection = React.memo(
               }),
               position,
             ])}
-            onChange={(col, i, value) => {
+            onItemChange={(col, i, value) => {
               if (col === "Дата начала") {
                 updateUser(
                   (user) => (user.career[i].year_start = toNumber(value)),
@@ -45,9 +46,9 @@ export const CareerSubsection = React.memo(
                 updateUser((user) => (user.career[i].position = value));
               }
             }}
-            pushRow={() =>
+            insertRow={(i) =>
               updateUser((user) =>
-                user.career.push({
+                user.career.splice(i, 0, {
                   month_start: O.none(),
                   month_leave: O.none(),
                   year_start: 0,
@@ -59,7 +60,7 @@ export const CareerSubsection = React.memo(
                 }),
               )
             }
-            popRow={() => updateUser((user) => user.career.pop())}
+            removeRow={(i) => updateUser((user) => user.career.splice(i, 1))}
           />
         </Subsection>
       );

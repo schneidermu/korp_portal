@@ -1,41 +1,92 @@
 import React, { Fragment } from "react";
 
-import { Box, Grid, HStack, Input, Show, Stack, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Grid,
+  GridProps,
+  IconButton,
+  IconButtonProps,
+  Input,
+} from "@chakra-ui/react";
+import { LuMinus, LuPlus } from "react-icons/lu";
 
-import { Button } from "./Button";
-
-export const Timeline = React.memo(function Timeline<T extends string>({
-  cols,
-  data,
-  editing,
-  onChange,
-  pushRow,
-  popRow,
-}: {
+export interface TimelineProps<T extends string> extends GridProps {
   cols: T[];
   data: string[][];
   editing: boolean;
-  onChange: (col: T, i: number, value: string) => void;
-  pushRow: () => void;
-  popRow: () => void;
-}) {
-  return (
-    <Stack gap="7">
-      <Grid templateColumns="1fr 1fr 4fr">
+  onItemChange: (col: T, i: number, value: string) => void;
+  insertRow: (i: number) => void;
+  removeRow: (i: number) => void;
+}
+
+interface RowButtonProps extends IconButtonProps {
+  kind: "plus" | "minus";
+}
+
+const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
+  function RowButton(props, ref) {
+    const { kind, ...rest } = props;
+
+    return (
+      <IconButton
+        backgroundColor="white"
+        borderRadius="full"
+        borderWidth={3}
+        minW="0"
+        height="fit"
+        position="absolute"
+        right="0"
+        bottom="0"
+        transform={
+          kind === "plus" ? "translate(50%, 50%)" : "translate(-110%, 50%)"
+        }
+        zIndex={1}
+        color={kind === "plus" ? "blue.2" : "red.1"}
+        borderColor={kind === "plus" ? "blue.2" : "red.1"}
+        ref={ref}
+        {...rest}
+      >
+        {kind === "plus" ? <LuPlus /> : <LuMinus />}
+      </IconButton>
+    );
+  },
+);
+
+export const Timeline = React.memo(
+  React.forwardRef(function Timeline<T extends string>(
+    props: TimelineProps<T>,
+    ref: React.RefAttributes<HTMLDivElement>["ref"],
+  ) {
+    const {
+      cols,
+      data,
+      editing,
+      onItemChange: onChange,
+      insertRow,
+      removeRow,
+      ...rest
+    } = props;
+
+    return (
+      <Grid ref={ref} {...rest}>
         {cols.map((header, i) => (
-          <Text
+          <Box
+            position="relative"
+            px="6"
+            pb="4"
             key={header}
             fontWeight="light"
             color="gray.2"
             fontSize="smaller"
-            px="6"
-            pb="4"
             borderColor="gray.3"
             borderRightWidth={i < cols.length - 1 ? 1 : 0}
             borderBottomWidth={1}
           >
             {header}
-          </Text>
+            {editing && i === cols.length - 1 && (
+              <RowButton kind="plus" onClick={() => insertRow(0)} />
+            )}
+          </Box>
         ))}
 
         {data.map((row, i) => (
@@ -49,6 +100,7 @@ export const Timeline = React.memo(function Timeline<T extends string>({
                 borderRightWidth={j < row.length - 1 ? 1 : 0}
                 borderBottomWidth={1}
                 fontSize="xl"
+                position="relative"
               >
                 <Input
                   required
@@ -60,21 +112,17 @@ export const Timeline = React.memo(function Timeline<T extends string>({
                   opacity="1"
                   outline="none"
                 />
+                {editing && j === row.length - 1 && (
+                  <RowButton kind="plus" onClick={() => insertRow(i + 1)} />
+                )}
+                {editing && j === row.length - 1 && (
+                  <RowButton kind="minus" onClick={() => removeRow(i)} />
+                )}
               </Box>
             ))}
           </Fragment>
         ))}
       </Grid>
-      <Show when={editing}>
-        <HStack w="fit">
-          <Button variant="solid" onClick={pushRow}>
-            Добавить
-          </Button>
-          <Button variant="ghost" onClick={popRow}>
-            Удалить
-          </Button>
-        </HStack>
-      </Show>
-    </Stack>
-  );
-});
+    );
+  }),
+);

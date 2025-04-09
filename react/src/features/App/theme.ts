@@ -17,6 +17,9 @@ const customConfig = defineConfig({
           3: { value: "#DBEAFF" },
           4: { value: "#0E3C7A" },
         },
+        red: {
+          1: { value: "#CF2020" },
+        },
       },
       spacing: {
         DEFAULT: { value: "0" },
