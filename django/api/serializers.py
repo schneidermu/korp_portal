@@ -564,6 +564,7 @@ class ProfileSerializer(UserSerializer):
             "office",
             "organization",
             "job_title",
+            "sex",
             "class_rank",
             "status",
             "average_rating",

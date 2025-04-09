@@ -25,6 +25,12 @@ POSITIONS = (
     ("Тестировщик", "Тестировщик"),
 )
 
+SEX = (
+    ("Не указан", "Не указан")
+    ("Мужской", "Мужской")
+    ("Женский", "Женский")
+)
+
 
 class UploadedFile(models.Model):
     file = models.FileField()
@@ -118,6 +124,15 @@ class Employee(AbstractUser):
         max_length=16,
         choices=CHOICES,
         default=CHOICES[0][0],
+        blank=True,
+        null=True,
+    )
+
+    sex = models.CharField(
+        verbose_name="Пол",
+        max_length=16,
+        choices=SEX,
+        default=SEX[0][0],
         blank=True,
         null=True,
     )
