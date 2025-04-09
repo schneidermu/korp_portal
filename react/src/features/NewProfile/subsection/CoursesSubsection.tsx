@@ -22,6 +22,7 @@ export const CoursesSubsection = React.memo(
       return (
         <Subsection show={editing || courses.length > 0} ref={ref} {...rest}>
           <Timeline
+            templateColumns="1fr 1fr 4fr"
             editing={editing}
             cols={["Дата начала", "Дата окончания", "Курсы"]}
             data={courses.map(({ year, name }) => [
@@ -29,16 +30,16 @@ export const CoursesSubsection = React.memo(
               year ? year.toString() : "",
               name,
             ])}
-            onChange={(col, i, value) => {
+            onItemChange={(col, i, value) => {
               if (col === "Курсы") {
                 updateUser((user) => (user.courses[i].name = value));
               } else {
                 updateUser((user) => (user.courses[i].year = toNumber(value)));
               }
             }}
-            pushRow={() =>
+            insertRow={(i) =>
               updateUser((user) =>
-                user.courses.push({
+                user.courses.splice(i, 0, {
                   year:
                     user.courses[user.courses.length - 1]?.year ??
                     new Date().getFullYear(),
@@ -47,7 +48,7 @@ export const CoursesSubsection = React.memo(
                 }),
               )
             }
-            popRow={() => updateUser((user) => user.courses.pop())}
+            removeRow={(i) => updateUser((user) => user.courses.splice(i, 1))}
           />
         </Subsection>
       );
