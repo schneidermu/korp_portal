@@ -43,14 +43,14 @@ export const TeamSubsection = React.memo(
     function TeamSubsection(props, ref) {
       const { user, ...rest } = props;
 
-      const [showBoss, setShowBosses] = useState(false);
+      const [showBoss, setShowBoss] = useState(false);
 
       const colleagues = useFetchColleagues(user);
       const { user: boss } = useFetchUser(user.bossId);
 
       useEffect(() => {
         if (O.isNone(user.bossId)) {
-          setShowBosses(false);
+          setShowBoss(false);
         }
       }, [user.bossId]);
 
@@ -74,14 +74,14 @@ export const TeamSubsection = React.memo(
             <Grid gap="10" templateColumns="1fr 1fr" w="fit">
               <Button
                 variant={showBoss ? "outline" : "solid"}
-                onClick={() => setShowBosses(false)}
+                onClick={() => setShowBoss(false)}
               >
                 Мои коллеги
               </Button>
               <Show when={O.isSome(user.bossId)}>
                 <Button
                   variant={showBoss ? "solid" : "outline"}
-                  onClick={() => setShowBosses(true)}
+                  onClick={() => setShowBoss(true)}
                 >
                   Мой руководитель
                 </Button>
