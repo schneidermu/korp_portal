@@ -21,23 +21,24 @@ export const TrainingSubsection = React.memo(
       return (
         <Subsection show={editing || training.length > 0} ref={ref} {...rest}>
           <Timeline
+            templateColumns="1fr 1fr 4fr"
             editing={editing}
             cols={["Дата начала", "Дата окончания", "Квалификация"]}
             data={training.map(({ name }) => ["2025", "2025", name])}
-            onChange={(col, i, value) => {
+            onItemChange={(col, i, value) => {
               if (col === "Квалификация") {
                 updateUser((user) => (user.training[i].name = value));
               }
             }}
-            pushRow={() =>
+            insertRow={(i) =>
               updateUser((user) =>
-                user.training.push({
+                user.training.splice(i, 0, {
                   name: "",
                   attachment: O.none(),
                 }),
               )
             }
-            popRow={() => updateUser((user) => user.training.pop())}
+            removeRow={(i) => updateUser((user) => user.training.splice(i, 1))}
           />
         </Subsection>
       );
