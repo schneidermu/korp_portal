@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { Option as O } from "effect";
 
@@ -47,6 +47,12 @@ export const TeamSubsection = React.memo(
 
       const colleagues = useFetchColleagues(user);
       const { user: boss } = useFetchUser(user.bossId);
+
+      useEffect(() => {
+        if (O.isNone(user.bossId)) {
+          setShowBosses(false);
+        }
+      }, [user.bossId]);
 
       const users = useMemo(() => {
         let users: User[] = [];
