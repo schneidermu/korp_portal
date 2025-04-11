@@ -5,6 +5,7 @@ import { toNumber } from "@/shared/utils";
 
 import { Subsection, SubsectionProps } from "../parts/Subsection";
 import { Timeline, TimelineInput, TimelineItem } from "../parts/Timeline";
+import { Show } from "@chakra-ui/react";
 
 export interface EducationSubsectionProps extends SubsectionProps {
   education: User["education"];
@@ -36,7 +37,7 @@ export const EducationSubsection = React.memo(
             }
             removeRow={(i) => updateUser((user) => user.education.splice(i, 1))}
           >
-            {education.map(({ year, university }, row) => (
+            {education.map(({ year, university, major }, row) => (
               <Fragment key={row}>
                 <TimelineItem row={row}>
                   <TimelineInput
@@ -51,6 +52,7 @@ export const EducationSubsection = React.memo(
                 </TimelineItem>
                 <TimelineItem lastCol row={row}>
                   <TimelineInput
+                    placeholder="Университет"
                     value={university}
                     onChange={({ target }) =>
                       updateUser(
@@ -59,6 +61,20 @@ export const EducationSubsection = React.memo(
                       )
                     }
                   />
+                  <Show when={editing || major}>
+                    <TimelineInput
+                      fontSize="lg"
+                      placeholder={
+                        editing ? "Факультет или институт" : undefined
+                      }
+                      value={major}
+                      onChange={({ target }) =>
+                        updateUser(
+                          (user) => (user.education[row].major = target.value),
+                        )
+                      }
+                    />
+                  </Show>
                 </TimelineItem>
               </Fragment>
             ))}
