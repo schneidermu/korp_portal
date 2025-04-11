@@ -1,11 +1,11 @@
-import React from "react";
+import React, { Fragment } from "react";
 
 import { Option as O } from "effect";
 
 import { UpdateUserFn, User } from "@/features/user/types";
 
 import { Subsection, SubsectionProps } from "../parts/Subsection";
-import { Timeline } from "../parts/Timeline";
+import { Timeline, TimelineInput, TimelineItem } from "../parts/Timeline";
 
 export interface TrainingSubsectionProps extends SubsectionProps {
   training: User["training"];
@@ -21,15 +21,9 @@ export const TrainingSubsection = React.memo(
       return (
         <Subsection show={editing || training.length > 0} ref={ref} {...rest}>
           <Timeline
-            templateColumns="1fr 1fr 4fr"
+            templateColumns="1fr 7fr"
             editing={editing}
-            cols={["Дата начала", "Дата окончания", "Квалификация"]}
-            data={training.map(({ name }) => ["2025", "2025", name])}
-            onItemChange={(col, i, value) => {
-              if (col === "Квалификация") {
-                updateUser((user) => (user.training[i].name = value));
-              }
-            }}
+            cols={["Дата получения", "Квалификация"]}
             insertRow={(i) =>
               updateUser((user) =>
                 user.training.splice(i, 0, {
@@ -39,7 +33,23 @@ export const TrainingSubsection = React.memo(
               )
             }
             removeRow={(i) => updateUser((user) => user.training.splice(i, 1))}
-          />
+          >
+            {training.map(({ name }, row) => (
+              <Fragment key={row}>
+                <TimelineItem row={row}></TimelineItem>
+                <TimelineItem lastCol row={row}>
+                  <TimelineInput
+                    value={name}
+                    onChange={({ target }) =>
+                      updateUser(
+                        (user) => (user.training[row].name = target.value),
+                      )
+                    }
+                  />
+                </TimelineItem>
+              </Fragment>
+            ))}
+          </Timeline>
         </Subsection>
       );
     },
