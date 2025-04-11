@@ -17,4 +17,11 @@ $CONFIG = [
   'default_phone_region' => 'RU',
 
   'profile.enabled' => false,
+
+  'user_backends' => array(
+    array(
+        'class' => '\OCA\UserExternal\BasicAuth',
+        'arguments' => array('https://example.com/basic_auth'),
+    ),
+),
 ];
