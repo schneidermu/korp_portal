@@ -1,20 +1,20 @@
-import React, { Fragment } from "react";
+import React, { createContext, useContext } from "react";
 
 import {
   Box,
+  BoxProps,
   Grid,
   GridProps,
   IconButton,
   IconButtonProps,
   Input,
+  InputProps,
 } from "@chakra-ui/react";
 import { LuMinus, LuPlus } from "react-icons/lu";
 
-export interface TimelineProps<T extends string> extends GridProps {
-  cols: T[];
-  data: string[][];
+export interface TimelineProps extends GridProps {
+  cols: string[];
   editing: boolean;
-  onItemChange: (col: T, i: number, value: string) => void;
   insertRow: (i: number) => void;
   removeRow: (i: number) => void;
 }
@@ -52,77 +52,107 @@ const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
   },
 );
 
+const TimelineContext = createContext<{
+  cols: string[];
+  editing: boolean;
+  insertRow: (i: number) => void;
+  removeRow: (i: number) => void;
+} | null>(null);
+
+export const TimelineInput = React.memo(
+  React.forwardRef<HTMLInputElement, InputProps>(
+    function TimelineInput(props, ref) {
+      const ctx = useContext(TimelineContext);
+      if (!ctx) return;
+
+      const { editing } = ctx;
+
+      return (
+        <Input
+          required
+          disabled={!editing}
+          opacity="1"
+          outline="none"
+          ref={ref}
+          {...props}
+        />
+      );
+    },
+  ),
+);
+
+export interface TimelineItemProps extends BoxProps {
+  row: number;
+  lastCol?: boolean;
+}
+
+export const TimelineItem = React.memo(
+  React.forwardRef<HTMLDivElement, TimelineItemProps>(
+    function TimelineItem(props, ref) {
+      const ctx = useContext(TimelineContext);
+      if (!ctx) return;
+
+      const { editing, insertRow, removeRow } = ctx;
+      const { row, lastCol, children, ...rest } = props;
+
+      return (
+        <Box
+          px="6"
+          py="4"
+          borderColor="gray.3"
+          borderRightWidth={lastCol ? 0 : 1}
+          borderBottomWidth={1}
+          fontSize="xl"
+          position="relative"
+          ref={ref}
+          {...rest}
+        >
+          {children}
+          {editing && lastCol && (
+            <RowButton kind="plus" onClick={() => insertRow(row + 1)} />
+          )}
+          {editing && lastCol && (
+            <RowButton kind="minus" onClick={() => removeRow(row)} />
+          )}
+        </Box>
+      );
+    },
+  ),
+);
+
 export const Timeline = React.memo(
-  React.forwardRef(function Timeline<T extends string>(
-    props: TimelineProps<T>,
+  React.forwardRef(function Timeline(
+    props: TimelineProps,
     ref: React.RefAttributes<HTMLDivElement>["ref"],
   ) {
-    const {
-      cols,
-      data,
-      editing,
-      onItemChange: onChange,
-      insertRow,
-      removeRow,
-      ...rest
-    } = props;
+    const { cols, editing, insertRow, removeRow, children, ...rest } = props;
 
     return (
-      <Grid ref={ref} {...rest}>
-        {cols.map((header, i) => (
-          <Box
-            position="relative"
-            px="6"
-            pb="4"
-            key={header}
-            fontWeight="light"
-            color="gray.2"
-            fontSize="smaller"
-            borderColor="gray.3"
-            borderRightWidth={i < cols.length - 1 ? 1 : 0}
-            borderBottomWidth={1}
-          >
-            {header}
-            {editing && i === cols.length - 1 && (
-              <RowButton kind="plus" onClick={() => insertRow(0)} />
-            )}
-          </Box>
-        ))}
+      <TimelineContext.Provider value={{ cols, editing, insertRow, removeRow }}>
+        <Grid ref={ref} {...rest}>
+          {cols.map((header, i) => (
+            <Box
+              position="relative"
+              px="6"
+              pb="4"
+              key={header}
+              fontWeight="light"
+              color="gray.2"
+              fontSize="smaller"
+              borderColor="gray.3"
+              borderRightWidth={i < cols.length - 1 ? 1 : 0}
+              borderBottomWidth={1}
+            >
+              {header}
+              {editing && i === cols.length - 1 && (
+                <RowButton kind="plus" onClick={() => insertRow(0)} />
+              )}
+            </Box>
+          ))}
 
-        {data.map((row, i) => (
-          <Fragment key={i}>
-            {row.map((value, j) => (
-              <Box
-                key={`${i}-${j}`}
-                px="6"
-                py="4"
-                borderColor="gray.3"
-                borderRightWidth={j < row.length - 1 ? 1 : 0}
-                borderBottomWidth={1}
-                fontSize="xl"
-                position="relative"
-              >
-                <Input
-                  required
-                  disabled={!editing}
-                  value={value}
-                  onChange={({ target: { value } }) =>
-                    onChange(cols[j], i, value)
-                  }
-                  opacity="1"
-                  outline="none"
-                />
-                {editing && j === row.length - 1 && (
-                  <RowButton kind="plus" onClick={() => insertRow(i + 1)} />
-                )}
-                {editing && j === row.length - 1 && (
-                  <RowButton kind="minus" onClick={() => removeRow(i)} />
-                )}
-              </Box>
-            ))}
-          </Fragment>
-        ))}
-      </Grid>
+          {children}
+        </Grid>
+      </TimelineContext.Provider>
     );
   }),
 );

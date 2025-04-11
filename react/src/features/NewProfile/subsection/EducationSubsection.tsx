@@ -1,10 +1,10 @@
-import React from "react";
+import React, { Fragment } from "react";
 
 import { UpdateUserFn, User } from "@/features/user/types";
 import { toNumber } from "@/shared/utils";
 
 import { Subsection, SubsectionProps } from "../parts/Subsection";
-import { Timeline } from "../parts/Timeline";
+import { Timeline, TimelineInput, TimelineItem } from "../parts/Timeline";
 
 export interface EducationSubsectionProps extends SubsectionProps {
   education: User["education"];
@@ -20,23 +20,9 @@ export const EducationSubsection = React.memo(
       return (
         <Subsection show={editing || education.length > 0} ref={ref} {...rest}>
           <Timeline
-            templateColumns="1fr 1fr 4fr"
+            templateColumns="1fr 7fr"
             editing={editing}
-            cols={["Дата начала", "Дата окончания", "Университет"]}
-            data={education.map(({ year, university }) => [
-              year ? year.toString() : "",
-              year ? year.toString() : "",
-              university,
-            ])}
-            onItemChange={(col, i, value) => {
-              if (col === "Университет") {
-                updateUser((user) => (user.education[i].university = value));
-              } else {
-                updateUser(
-                  (user) => (user.education[i].year = toNumber(value)),
-                );
-              }
-            }}
+            cols={["Дата окончания", "Университет"]}
             insertRow={(i) =>
               updateUser((user) =>
                 user.education.splice(i, 0, {
@@ -49,7 +35,34 @@ export const EducationSubsection = React.memo(
               )
             }
             removeRow={(i) => updateUser((user) => user.education.splice(i, 1))}
-          />
+          >
+            {education.map(({ year, university }, row) => (
+              <Fragment key={row}>
+                <TimelineItem row={row}>
+                  <TimelineInput
+                    value={year}
+                    onChange={({ target }) =>
+                      updateUser(
+                        (user) =>
+                          (user.education[row].year = toNumber(target.value)),
+                      )
+                    }
+                  />
+                </TimelineItem>
+                <TimelineItem lastCol row={row}>
+                  <TimelineInput
+                    value={university}
+                    onChange={({ target }) =>
+                      updateUser(
+                        (user) =>
+                          (user.education[row].university = target.value),
+                      )
+                    }
+                  />
+                </TimelineItem>
+              </Fragment>
+            ))}
+          </Timeline>
         </Subsection>
       );
     },
