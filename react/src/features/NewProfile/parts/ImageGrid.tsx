@@ -69,6 +69,8 @@ export const ImageGridItem = React.memo(function ImageGridItem({
               <Image
                 src={resolveMediaPath(src)}
                 cursor={editing ? "pointer" : undefined}
+                borderWidth={1}
+                borderColor="gray.1"
               />
             ),
             onNone: () => (
