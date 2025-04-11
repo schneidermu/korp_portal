@@ -44,6 +44,8 @@ export const Avatar = React.memo(
               src={O.getOrElse(src, () => fallbackSrc)}
               w="full"
               h="full"
+              borderWidth={1}
+              borderColor="gray.1"
               data-state="open"
               _open={{ animation: "fade-in 300ms ease-out" }}
             />
@@ -70,6 +72,8 @@ export const AvatarEditable = React.memo(
                 src={O.getOrUndefined(src)}
                 w="full"
                 h="full"
+                borderWidth={1}
+                borderColor="gray.1"
               />
               <ChakraAvatar.Fallback w="full" h="full">
                 <Image src={fallbackSrc} w="full" h="full" />
