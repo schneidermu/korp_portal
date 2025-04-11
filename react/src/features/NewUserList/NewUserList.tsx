@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import {
   Checkbox,
@@ -14,7 +14,7 @@ import {
 
 import { Option as O } from "effect";
 
-import { QUERY_DEBOUNCE_DELAY } from "@/app/const";
+import { QUERY_DEBOUNCE_DELAY, USERS_PAGE_LIMIT } from "@/app/const";
 
 import { useFetchOrgs } from "@/features/org/services";
 import { cmpUsers, useFetchUsers } from "@/features/user/services";
@@ -25,6 +25,7 @@ import { NewPage } from "@/features/App/comps/NewPage";
 import { ProfileCard } from "@/features/NewProfile/comps/ProfileCard";
 import { Skills } from "@/features/NewProfile/comps/Skills";
 
+import { useReachBottom } from "@/shared/hooks/useReachBottom";
 import { SearchBar } from "../../shared/comps/SearchBarNew";
 
 const FILTER_FIELDS = new Set<keyof User>([
@@ -149,6 +150,17 @@ export const NewUserList = () => {
   const [skills, setSkills] = useState<string[]>([]);
   const [requireEverySkill, setRequireEverySkill] = useState(false);
   const { data: users } = useFetchUsers(orgId, unitId);
+  const [numPages, setNumPages] = useState(1);
+
+  useReachBottom(() => {
+    if (users.size > numPages * USERS_PAGE_LIMIT) {
+      setNumPages(numPages + 1);
+      return true;
+    }
+    return false;
+  });
+
+  useEffect(() => setNumPages(1), [orgId, unitId, query, setNumPages]);
 
   const filteredUsers = useMemo(() => {
     if (!users || orgId === null) {
@@ -217,7 +229,7 @@ export const NewUserList = () => {
           </Show>
         </Flex>
         <Text>{countText}</Text>
-        {filteredUsers.slice(0, 5).map((user) => (
+        {filteredUsers.slice(0, numPages * USERS_PAGE_LIMIT).map((user) => (
           <ProfileCard key={user.id} user={user} hightlightSkills={skills} />
         ))}
       </Stack>
