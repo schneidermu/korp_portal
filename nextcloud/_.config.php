@@ -21,7 +21,7 @@ $CONFIG = [
   'user_backends' => array(
     array(
         'class' => '\OCA\UserExternal\BasicAuth',
-        'arguments' => array('https://example.com/basic_auth'),
+        'arguments' => array('http://loggy:8080'),
     ),
-),
+  ),
 ];

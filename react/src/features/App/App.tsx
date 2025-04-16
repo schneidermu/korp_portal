@@ -13,6 +13,7 @@ import { OrgPage } from "@/features/Org/Org";
 import { UserProfile } from "@/features/Profile/Profile";
 import { UnitList } from "@/features/UnitList/UnitList";
 import { UserList } from "@/features/UserList/UserList";
+import { NextcloudPage } from "../Nextcloud/Nextcloud";
 
 import { AuthLoader } from "./parts/AuthLoader";
 import { Page } from "./parts/Page";
@@ -23,6 +24,7 @@ export const App = () => {
       <HashRouter>
         <Routes>
           <Route element={<AuthLoader />}>
+            <Route path="/nextcloud" element={<NextcloudPage />} />
             <Route path="/new/profile/:userId?" element={<NewProfilePage />} />
             <Route path="/new/org/:orgId?" element={<OrgPage />} />
             <Route path="/new/list" element={<NewUserList />} />

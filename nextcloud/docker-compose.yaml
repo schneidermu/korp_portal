@@ -14,8 +14,8 @@ services:
     volumes:
       - db:/var/lib/postgresql/data:Z
     environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: nextcloud
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
 
   app:
     image: nextcloud:31.0-fpm-alpine
@@ -26,12 +26,12 @@ services:
       - ./nextcloud:/var/www/html:z
     user: www-data
     environment:
-      POSTGRES_HOST: db
-      POSTGRES_DB: nextcloud
-      POSTGRES_USER: nextcloud
-      POSTGRES_PASSWORD: password
-      NEXTCLOUD_ADMIN_USER: admin
-      NEXTCLOUD_ADMIN_PASSWORD: admin
+      POSTGRES_HOST: "${POSTGRES_HOST}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      NEXTCLOUD_ADMIN_USER: "${NEXTCLOUD_ADMIN_USER}"
+      NEXTCLOUD_ADMIN_PASSWORD: "${NEXTCLOUD_ADMIN_PASSWORD}"
 
   web:
     image: nginx:1.27-alpine
@@ -42,3 +42,8 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nextcloud:/var/www/html:z,ro
+
+  loggy:
+    build: loggy
+    ports:
+      - 7001:8080
