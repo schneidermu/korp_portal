@@ -896,7 +896,7 @@ class ProfileInHierarchySerializer(serializers.ModelSerializer):
         ):
             division = division.parent_structural_subdivision
 
-        if division.chief:
+        if division.chief != object:
             return division.chief.id
 
 
