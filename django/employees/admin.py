@@ -70,7 +70,7 @@ class CareerInline(admin.TabularInline):
 
 
 class CompetenceInline(admin.TabularInline):
-    model = Competence
+    model = Competence.characteristic.through
     extra = 1
 
 
@@ -130,6 +130,7 @@ class CharacteristicAdmin(admin.ModelAdmin):
         DiplomaInline,
         UniversityInline,
     )
+    exclude = ('competences',)
 
 
 class CharacteristicLinkInline(admin.TabularInline):

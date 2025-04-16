@@ -366,6 +366,13 @@ class Career(AbstractNameModel):
 class Competence(AbstractNameModel):
     """Модель навыков и компетенций."""
 
+    characteristic = models.ManyToManyField(
+        "Characteristic",
+        verbose_name="Сотрудник",
+        related_name="%(class)ss",
+        blank=True,
+    )
+
     class Meta:
         verbose_name = "запись компетенции"
         verbose_name_plural = "записи компетенций"
