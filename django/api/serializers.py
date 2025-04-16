@@ -867,6 +867,39 @@ class ProfileInStrucureSerializer(serializers.ModelSerializer):
         )
 
 
+class ProfileInHierarchySerializer(serializers.ModelSerializer):
+    """Сериализатор для профиля в Орг. структуре"""
+
+    chief = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Employee
+        fields = (
+            "id",
+            "name",
+            "surname",
+            "patronym",
+            "job_title",
+            "structural_division",
+            "chief",
+        )
+
+    def get_chief(self, object):
+        if object.chief is not None and object.chief != object:
+            return object.chief.id
+
+        division = object.structural_division
+
+        while (
+            division.chief is None
+            and division.parent_structural_subdivision is not None
+        ):
+            division = division.parent_structural_subdivision
+
+        if division.chief:
+            return division.chief.id
+
+
 class StructuralSubdivisionSerializer(serializers.ModelSerializer):
     """Сериализатор структурного подразделения"""
 
@@ -878,6 +911,19 @@ class StructuralSubdivisionSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "positions",
+            "parent_structural_subdivision",
+        )
+
+
+class StructuralSubdivisionInHierarchySerializer(serializers.ModelSerializer):
+    """Сериализатор структурного подразделения"""
+
+    class Meta:
+        model = StructuralSubdivision
+        fields = (
+            "id",
+            "name",
+            "chief",
             "parent_structural_subdivision",
         )
 
@@ -925,10 +971,31 @@ class ProfileInOrganizationSerializer(UserSerializer):
         return instance
 
 
-class HierarchySerializer(UserSerializer):
-    class Meta(UserSerializer.Meta):
-        model = Employee
+class HierarchySerializer(serializers.ModelSerializer):
+    structural_subdivisions = StructuralSubdivisionInHierarchySerializer(many=True)
+
+    positions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Organization
         fields = (
             "id",
-            "subordinates",
+            "name",
+            "address",
+            "head",
+            "structural_subdivisions",
+            "positions",
         )
+
+    def get_positions(self, object):
+        full_employee_list = []
+
+        for subdiv in object.structural_subdivisions.all():
+            full_employee_list.extend(subdiv.positions.all())
+
+        serializer = ProfileInHierarchySerializer(
+            full_employee_list,
+            many=True,
+        )
+
+        return serializer.data

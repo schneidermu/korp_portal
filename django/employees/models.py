@@ -493,6 +493,15 @@ class Organization(models.Model):
         max_length=CHARFIELD_LENGTH,
     )
 
+    head = models.ForeignKey(
+        "Employee",
+        verbose_name="Руководитель организации",
+        on_delete=models.SET_NULL,
+        related_name="is_org_head",
+        blank=True,
+        null=True,
+    )
+
     def __str__(self):
         return self.name
 
@@ -514,6 +523,15 @@ class StructuralSubdivision(models.Model):
         verbose_name="Организация",
         on_delete=models.CASCADE,
         related_name="structural_subdivisions",
+    )
+
+    chief = models.ForeignKey(
+        "Employee",
+        verbose_name="Руководитель подразделения",
+        on_delete=models.SET_NULL,
+        related_name="is_chief",
+        blank=True,
+        null=True,
     )
 
     parent_structural_subdivision = models.ForeignKey(

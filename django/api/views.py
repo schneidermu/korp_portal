@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from django.db import transaction
-from django.db.models import Value
+from django.db.models import CharField, Value
 from django.db.models.functions import Concat
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -153,7 +153,16 @@ class ColleagueProfileViewset(UserViewSet):
 
         if sort_by == "name":
             queryset = queryset.annotate(
-                full_name=Concat("surname", Value(" "), "name", Value(" "), "patronym", Value(" "), "email")
+                full_name=Concat(
+                    "surname",
+                    Value(" "),
+                    "name",
+                    Value(" "),
+                    "patronym",
+                    Value(" "),
+                    "email",
+                    output_field=CharField(),
+                )
             ).order_by("full_name")
         elif sort_by:
             valid_fields = [field.name for field in Employee._meta.fields]
@@ -285,11 +294,11 @@ class HierarchyViewSet(ListModelMixin, RetrieveModelMixin, viewsets.GenericViewS
 
     filter_backends = (DjangoFilterBackend,)
 
-    filterset_fields = ("structural_division__organization__id",)
+    filterset_fields = ("id",)
 
     serializer_class = HierarchySerializer
     permission_classes = (IsAuthenticated,)
-    queryset = Employee.objects.all()
+    queryset = Organization.objects.all()
 
 
 class AgreeWithDataProcessingView(APIView):
