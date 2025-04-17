@@ -59,6 +59,7 @@ export type User = {
     month_leave: O.Option<number>;
   }[];
   training: {
+    year: number;
     name: string;
     attachment: O.Option<string>;
   }[];

@@ -73,6 +73,7 @@ type UserData = {
     }[];
     trainings: {
       name: string;
+      year: number | null;
       file?: string | null; // URI
     }[];
     volunteers: {
@@ -127,6 +128,7 @@ const toUser = (data: UserData): User => {
       })) || [],
     training:
       char?.trainings.map((t) => ({
+        year: t.year ?? 0,
         name: t.name,
         attachment: O.fromNullable(t.file),
       })) || [],
@@ -214,6 +216,7 @@ const fromUser = (user: User): UserData => ({
     })),
     trainings: user.training.map((t) => ({
       name: t.name,
+      year: t.year,
       file: O.getOrUndefined(t.attachment),
     })),
     volunteers: user.communityWork.map(({ name, attachment }) => ({
