@@ -226,13 +226,24 @@ const fromUser = (user: User): UserData => ({
   },
 });
 
-export const useFetchUsers = (orgId: number | null, unitId?: number | null) => {
+export const useFetchUsers = ({
+  orgId,
+  unitId,
+  sort,
+}: {
+  orgId: number | null;
+  unitId?: number | null;
+  sort?: boolean;
+}) => {
   const tokenFetcher = useTokenFetcher();
 
   const limit = USERS_PAGE_LIMIT;
 
   const getKey = (index: number, prevPage: Paged<UserData>) => {
     let key = `/colleagues/?limit=${limit}`;
+    if (sort) {
+      key += `&sort_by=name`;
+    }
     if (orgId !== null) {
       key += `&structural_division__organization__id=${orgId}`;
     }

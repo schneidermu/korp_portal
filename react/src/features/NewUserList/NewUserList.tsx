@@ -149,7 +149,7 @@ export const NewUserList = () => {
   const [query, setQuery] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [requireEverySkill, setRequireEverySkill] = useState(false);
-  const { data: users } = useFetchUsers(orgId, unitId);
+  const { data: users } = useFetchUsers({ orgId, unitId, sort: true });
   const [numPages, setNumPages] = useState(1);
 
   useReachBottom(() => {

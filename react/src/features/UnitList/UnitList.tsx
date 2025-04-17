@@ -77,7 +77,7 @@ export const UnitList = () => {
   const [orgId, setOrgId] = useIntSearchParam("org");
   const [query, setQuery] = useQuerySearchParam("q");
 
-  const { data: allUsers } = useFetchUsers(orgId);
+  const { data: allUsers } = useFetchUsers({ orgId });
 
   const allUnits = useMemo(() => {
     if (!allUsers || orgId === null) {
