@@ -417,7 +417,11 @@ const TrainingInfo = ({
 
   const pushItem = () =>
     updateUser((user) =>
-      user.training.push({ name: "", attachment: O.none() }),
+      user.training.push({
+        name: "",
+        year: user.training[0]?.year || new Date().getFullYear(),
+        attachment: O.none(),
+      }),
     );
 
   const popItem = () => updateUser((user) => user.training.pop());
@@ -425,14 +429,7 @@ const TrainingInfo = ({
   const removeFile = (i: number) =>
     updateUser((user) => (user.training[i].attachment = O.none()));
 
-  const certificates = user.training.map(({ name, attachment }, i) => {
-    let year = Number.NaN;
-    let title = name;
-    if (name.includes("\n")) {
-      const sp = name.split("\n", 2);
-      year = Number(sp[0]);
-      title = sp[1];
-    }
+  const certificates = user.training.map(({ name, year, attachment }, i) => {
     return (
       <li key={i}>
         {editing ? (
@@ -444,30 +441,23 @@ const TrainingInfo = ({
               placeholder="Год"
               value={year}
               onChange={({ target: { value } }) =>
-                updateUser(
-                  (user) =>
-                    (user.training[i].name =
-                      (Number(value) || Number.NaN).toString() + "\n" + title),
-                )
+                updateUser((user) => (user.training[i].year = Number(value)))
               }
               className="w-[100px] px-[20px] py-[6px] border rounded text-center"
             />
             <input
               required
-              value={title}
+              value={name}
               placeholder="Квалификация"
               onChange={({ target: { value } }) =>
-                updateUser(
-                  (user) =>
-                    (user.training[i].name = year.toString() + "\n" + value),
-                )
+                updateUser((user) => (user.training[i].name = value))
               }
               className="grow px-[20px] py-[6px] border rounded"
             />
           </div>
         ) : (
           <span>
-            {Number.isNaN(year) ? "" : `${year}:`} {title}
+            {Number.isNaN(year) ? "" : `${year}:`} {name}
           </span>
         )}
         {editing
