@@ -278,23 +278,23 @@ type Count = { [key in Post["kind"]]: number };
 
 const newsMatchQuery = (q: string | undefined) => (news: News) => {
   if (q === undefined) return true;
-  q = q.toLowerCase();
+  const s = q.toLowerCase();
   return (
-    news.title.toLowerCase().includes(q) ||
-    news.text.toLowerCase().includes(q) ||
-    formatDateLong(news.publishedAt).includes(q)
+    news.title.toLowerCase().includes(s) ||
+    news.text.toLowerCase().includes(s) ||
+    formatDateLong(news.publishedAt).includes(s)
   );
 };
 
 const pollMatchQuery = (q: string | undefined) => (poll: Poll) => {
   if (q === undefined) return true;
-  q = q.toLowerCase();
+  const s = q.toLowerCase();
   return (
-    poll.question.toLowerCase().includes(q) ||
+    poll.question.toLowerCase().includes(s) ||
     [...poll.choices.values()].some(({ text }) =>
-      text.toLowerCase().includes(q),
+      text.toLowerCase().includes(s),
     ) ||
-    formatDateLong(poll.publishedAt).includes(q)
+    formatDateLong(poll.publishedAt).includes(s)
   );
 };
 
