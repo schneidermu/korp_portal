@@ -45,7 +45,7 @@ export const CareerSubsection = React.memo(
               <Fragment key={row}>
                 <TimelineItem row={row}>
                   <TimelineInput
-                    value={year_start}
+                    value={year_start || ""}
                     onChange={({ target }) =>
                       updateUser(
                         (user) =>

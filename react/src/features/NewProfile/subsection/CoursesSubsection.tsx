@@ -42,7 +42,7 @@ export const CoursesSubsection = React.memo(
               <Fragment key={row}>
                 <TimelineItem row={row}>
                   <TimelineInput
-                    value={year}
+                    value={year || ""}
                     onChange={({ target }) =>
                       updateUser(
                         (user) =>
