@@ -1,6 +1,8 @@
 from datetime import datetime
 
 from django.db import transaction
+from django.db.models import CharField, Value
+from django.db.models.functions import Concat
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -145,6 +147,29 @@ class ColleagueProfileViewset(UserViewSet):
         "structural_division__organization__id",
     )
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        sort_by = self.request.query_params.get("sort_by")
+
+        if sort_by == "name":
+            queryset = queryset.annotate(
+                full_name=Concat(
+                    "surname",
+                    Value(" "),
+                    "name",
+                    Value(" "),
+                    "patronym",
+                    Value(" "),
+                    "email",
+                    output_field=CharField(),
+                )
+            ).order_by("full_name")
+        elif sort_by:
+            valid_fields = [field.name for field in Employee._meta.fields]
+            if sort_by in valid_fields:
+                queryset = queryset.order_by(sort_by)
+        return queryset
+
     def get_serializer_class(self):
         if (
             self.action not in ("list", "retrieve", "create")
@@ -269,11 +294,11 @@ class HierarchyViewSet(ListModelMixin, RetrieveModelMixin, viewsets.GenericViewS
 
     filter_backends = (DjangoFilterBackend,)
 
-    filterset_fields = ("structural_division__organization__id",)
+    filterset_fields = ("id",)
 
     serializer_class = HierarchySerializer
     permission_classes = (IsAuthenticated,)
-    queryset = Employee.objects.all()
+    queryset = Organization.objects.all()
 
 
 class AgreeWithDataProcessingView(APIView):
