@@ -88,12 +88,15 @@ class LiferayDatabaseBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None):
         cookies = request.COOKIES
         data = {"p_auth": password}
-        response = requests.post(url, cookies=cookies, data=data, verify=False)
-        if response.status_code != 200:
-            return None
 
         try:
             user = Employee.objects.get(email=username)
+
+            if not user.check_password(password):
+                response = requests.post(url, cookies=cookies, data=data, verify=False)
+                if response.status_code != 200:
+                    return None
+
         except Employee.DoesNotExist:
             cursor.execute(
                 """
@@ -119,5 +122,6 @@ class LiferayDatabaseBackend(ModelBackend):
                 birth_date=None,
                 job_title=job_title,
             )
+            user.set_password(password)
             user.save()
         return user

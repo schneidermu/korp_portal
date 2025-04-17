@@ -25,6 +25,12 @@ POSITIONS = (
     ("Тестировщик", "Тестировщик"),
 )
 
+SEX = (
+    ("Не указан", "Не указан"),
+    ("Мужской", "Мужской"),
+    ("Женский", "Женский"),
+)
+
 
 class UploadedFile(models.Model):
     file = models.FileField()
@@ -118,6 +124,15 @@ class Employee(AbstractUser):
         max_length=16,
         choices=CHOICES,
         default=CHOICES[0][0],
+        blank=True,
+        null=True,
+    )
+
+    sex = models.CharField(
+        verbose_name="Пол",
+        max_length=16,
+        choices=SEX,
+        default=SEX[0][0],
         blank=True,
         null=True,
     )
@@ -351,6 +366,13 @@ class Career(AbstractNameModel):
 class Competence(AbstractNameModel):
     """Модель навыков и компетенций."""
 
+    characteristic = models.ManyToManyField(
+        "Characteristic",
+        verbose_name="Сотрудник",
+        related_name="%(class)ss",
+        blank=True,
+    )
+
     class Meta:
         verbose_name = "запись компетенции"
         verbose_name_plural = "записи компетенций"
@@ -399,6 +421,10 @@ class University(AbstractWithPhotoNameModel):
 
 class Training(AbstractWithPhotoNameModel):
     """Модель повышения квалификации."""
+
+    year = models.IntegerField(
+        verbose_name="Год повышения квалификации", blank=True, null=True
+    )
 
     class Meta:
         verbose_name = "запись повышения квалификации"
@@ -474,6 +500,15 @@ class Organization(models.Model):
         max_length=CHARFIELD_LENGTH,
     )
 
+    head = models.ForeignKey(
+        "Employee",
+        verbose_name="Руководитель организации",
+        on_delete=models.SET_NULL,
+        related_name="is_org_head",
+        blank=True,
+        null=True,
+    )
+
     def __str__(self):
         return self.name
 
@@ -495,6 +530,15 @@ class StructuralSubdivision(models.Model):
         verbose_name="Организация",
         on_delete=models.CASCADE,
         related_name="structural_subdivisions",
+    )
+
+    chief = models.ForeignKey(
+        "Employee",
+        verbose_name="Руководитель подразделения",
+        on_delete=models.SET_NULL,
+        related_name="is_chief",
+        blank=True,
+        null=True,
     )
 
     parent_structural_subdivision = models.ForeignKey(
