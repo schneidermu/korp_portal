@@ -139,4 +139,5 @@ export const toNumberOption = (s: string): O.Option<number> => {
   return O.fromNullable(s ? Number(s) : null);
 };
 
-export const toNumber = (s: string): number => O.getOrThrow(toNumberOption(s));
+export const toNumber = (s: string): number =>
+  O.getOrElse(toNumberOption(s), () => 0);
