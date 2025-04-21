@@ -543,6 +543,7 @@ class ProfileSerializer(UserSerializer):
     subordinates_count = serializers.SerializerMethodField(read_only=True)
     num_rates = serializers.SerializerMethodField(read_only=True)
     rated_by_me = serializers.SerializerMethodField(read_only=True)
+    chief = serializers.SerializerMethodField(read_only=True)
 
     class Meta(UserSerializer.Meta):
         model = Employee
@@ -626,6 +627,21 @@ class ProfileSerializer(UserSerializer):
         else:
             rate = None
         return rate
+
+    def get_chief(self, object):
+        if object.chief is not None and object.chief != object:
+            return object.chief.id
+
+        division = object.structural_division
+
+        while (
+            division.chief is None
+            and division.parent_structural_subdivision is not None
+        ):
+            division = division.parent_structural_subdivision
+
+        if division.chief is not None and division.chief != object:
+            return division.chief.id
 
     @staticmethod
     def add_related_fields(characteristic_update, characteristic, name, model_class):
@@ -870,8 +886,6 @@ class ProfileInStrucureSerializer(serializers.ModelSerializer):
 class ProfileInHierarchySerializer(serializers.ModelSerializer):
     """Сериализатор для профиля в Орг. структуре"""
 
-    chief = serializers.SerializerMethodField()
-
     class Meta:
         model = Employee
         fields = (
@@ -883,21 +897,6 @@ class ProfileInHierarchySerializer(serializers.ModelSerializer):
             "structural_division",
             "chief",
         )
-
-    def get_chief(self, object):
-        if object.chief is not None and object.chief != object:
-            return object.chief.id
-
-        division = object.structural_division
-
-        while (
-            division.chief is None
-            and division.parent_structural_subdivision is not None
-        ):
-            division = division.parent_structural_subdivision
-
-        if division.chief is not None and division.chief != object:
-            return division.chief.id
 
 
 class StructuralSubdivisionSerializer(serializers.ModelSerializer):

@@ -1,20 +1,23 @@
+import base64
 from datetime import datetime
 
-from django.db import transaction
-from django.db.models import CharField, Value
-from django.db.models.functions import Concat
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from employees.models import Employee, Organization, Rating
 from homepage.models import News, Poll
 from rest_framework import filters, status, viewsets
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from django.db import transaction
+from django.db.models import CharField, Value
+from django.db.models.functions import Concat
+from django.shortcuts import get_object_or_404
 
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 from .serializers import (
@@ -311,4 +314,45 @@ class AgreeWithDataProcessingView(APIView):
         return Response(
             {"message": "Согласие на обрабокту персональных данных отправлено."},
             status=status.HTTP_200_OK,
+        )
+
+
+class ValidateNextCloudView(APIView):
+    """
+    На эндпоинт приходит запрос с заголовком Authorization: Basic base64("{email}:{token}")
+    Нужно вернуть 200 или 401, проверив токен Django (djoser).
+    И добавить заголовок WWW-Authenticate: Basic realm="Nextcloud"
+    """
+
+    permission_classes = ()  # Allow any by default
+
+    def post(self, request):
+        auth_header = request.META.get("HTTP_AUTHORIZATION", "")
+        unauthorized = Response(
+            status=status.HTTP_401_UNAUTHORIZED,
+            headers={"WWW-Authenticate": 'Basic realm="Nextcloud"'},
+        )
+
+        if not auth_header.startswith("Basic "):
+            return unauthorized
+
+        try:
+            encoded = auth_header.split(" ", 1)[1]
+            decoded = base64.b64decode(encoded).decode("utf-8")
+            email, token_key = decoded.split(":", 1)
+        except Exception:
+            return unauthorized
+
+        try:
+            token = Token.objects.select_related("user").get(key=token_key)
+        except Token.DoesNotExist:
+            return unauthorized
+
+        if token.user.email != email:
+            return unauthorized
+
+        return Response(
+            {"message": "Token is valid."},
+            status=status.HTTP_200_OK,
+            headers={"WWW-Authenticate": 'Basic realm="Nextcloud"'},
         )

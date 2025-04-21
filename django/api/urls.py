@@ -1,5 +1,6 @@
-from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
+from django.urls import include, path
 
 from .views import (
     AgreeWithDataProcessingView,
@@ -10,6 +11,7 @@ from .views import (
     OrganizationViewSet,
     OrgStructureViewset,
     PollViewset,
+    ValidateNextCloudView,
 )
 
 router_version1 = DefaultRouter()
@@ -30,5 +32,10 @@ urlpatterns = [
         "agree_with_data_processing/",
         AgreeWithDataProcessingView.as_view(),
         name="agree_with_data_processing",
+    ),
+    path(
+        "nextcloud/validate/",
+        ValidateNextCloudView.as_view(),
+        name="nextcloud-validate",
     ),
 ]
