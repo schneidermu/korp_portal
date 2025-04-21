@@ -17,9 +17,6 @@ COPY . .
 
 RUN python manage.py collectstatic --noinput
 
-RUN python manage.py makemigrations --noinput
-
 USER user
 
-CMD ["sh", "-c", "python manage.py migrate --noinput && \
-  gunicorn --bind 0.0.0.0:${DJANGO_PORT} korp_portal.wsgi"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:$DJANGO_PORT korp_portal.wsgi"]

@@ -18,6 +18,9 @@ docker compose build
 docker compose up -d # database django traefik liferay react
 docker compose logs -f
 
+# Migrate the database if necessary.
+docker compose exec django python manage.py migrate
+
 # After Liferay has initialized the DB:
 ./database/bin/grant-liferay-access.sh
 ```
