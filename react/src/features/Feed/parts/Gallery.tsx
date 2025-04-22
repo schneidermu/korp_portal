@@ -43,6 +43,7 @@ const Overlay = ({ children }: { children: ReactNode }) => {
       exit={{ opacity: 0 }}
       className={clsx(
         "fixed top-0 left-0 h-full w-full",
+        "pt-[50px]",
         "flex justify-center items-center",
         "bg-modal z-40",
       )}
