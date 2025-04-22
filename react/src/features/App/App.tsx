@@ -5,6 +5,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { system } from "./theme";
 
 import { Feed } from "@/features/Feed/Feed";
+import { HierarchyPage } from "@/features/Hierarchy/Hierarchy.tsx";
 import { NewFeedPage } from "@/features/NewFeed/NewFeed";
 import { NewProfilePage } from "@/features/NewProfile/NewProfile";
 import { NewUserList } from "@/features/NewUserList/NewUserList";
@@ -25,6 +26,7 @@ export const App = () => {
         <Routes>
           <Route element={<AuthLoader />}>
             <Route path="/nextcloud" element={<NextcloudPage />} />
+            <Route path="/new/hierarchy" element={<HierarchyPage />} />
             <Route path="/new/profile/:userId?" element={<NewProfilePage />} />
             <Route path="/new/org/:orgId?" element={<OrgPage />} />
             <Route path="/new/list" element={<NewUserList />} />
