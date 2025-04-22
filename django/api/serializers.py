@@ -822,10 +822,27 @@ class RatingDELETESerializer(serializers.ModelSerializer):
         exclude = ("rate",)
 
 
+class ProfileInStrucureSerializer(serializers.ModelSerializer):
+    """Сериализатор для профиля в Орг. структуре"""
+
+    class Meta:
+        model = Employee
+        fields = (
+            "id",
+            "name",
+            "surname",
+            "patronym",
+            "avatar",
+            "job_title",
+            "class_rank",
+            "status",
+        )
+
+
 class OrgStructureSerializer(serializers.ModelSerializer):
     """Сериализатор для орг. структуры"""
 
-    supervizor = serializers.SerializerMethodField(read_only=True)
+    supervisor = ProfileInStrucureSerializer(read_only=True)
 
     structural_division = serializers.SlugRelatedField(
         read_only=True, slug_field="name"
@@ -846,43 +863,8 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             "telephone_number",
             "inner_telephone_number",
             "office",
-            "supervizor",
+            "supervisor",
             "structural_division",
-        )
-
-    def get_supervizor(self, object):
-        if object:
-            try:
-                supervizor = object.structural_division.positions.filter(
-                    job_title="Руководитель"
-                ).first()
-            except Exception:
-                return None
-
-        if not supervizor:
-            return None
-        return {
-            "id": supervizor.id,
-            "name": supervizor.name,
-            "surname": supervizor.surname,
-            "patronym": supervizor.patronym,
-        }
-
-
-class ProfileInStrucureSerializer(serializers.ModelSerializer):
-    """Сериализатор для профиля в Орг. структуре"""
-
-    class Meta:
-        model = Employee
-        fields = (
-            "id",
-            "name",
-            "surname",
-            "patronym",
-            "avatar",
-            "job_title",
-            "class_rank",
-            "status",
         )
 
 
