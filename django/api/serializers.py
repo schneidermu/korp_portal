@@ -535,7 +535,7 @@ class ProfileSerializer(UserSerializer):
 
     characteristic = CharacteristicSerializer(required=False)
 
-    supervizor = serializers.SerializerMethodField(read_only=True)
+    supervisor = serializers.SerializerMethodField(read_only=True)
     team = serializers.SerializerMethodField(read_only=True)
     structural_division = StructuralSubdivisionInProfileSerializer(read_only=True)
     organization = OrganizationInProfileSerializer(read_only=True)
@@ -570,7 +570,7 @@ class ProfileSerializer(UserSerializer):
             "status",
             "average_rating",
             "characteristic",
-            "supervizor",
+            "supervisor",
             "team",
             "subordinates_count",
             "num_rates",
@@ -591,19 +591,14 @@ class ProfileSerializer(UserSerializer):
         else:
             raise serializers.ValidationError(f"Incorrect filename {value}")
 
-    def get_supervizor(self, object):
-        try:
-            supervizor = object.structural_division.positions.filter(
-                job_title="Руководитель"
-            ).first()
-        except Exception:
-            return None
+    def get_supervisor(self, obj):
 
-        if not supervizor:
-            return None
-        return {
-            "id": supervizor.id,
-        }
+        if hasattr(obj, "structural_division") and obj.structural_division:
+            structural_division = obj.structural_division
+            supervisor = structural_division.supervisor
+            if supervisor:
+                return supervisor.id
+        return None
 
     def get_team(self, object):
         try:
