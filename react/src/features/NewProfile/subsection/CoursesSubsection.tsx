@@ -43,6 +43,7 @@ export const CoursesSubsection = React.memo(
                 <TimelineItem row={row}>
                   <TimelineInput
                     value={year || ""}
+                    maxLength={4}
                     onChange={({ target }) =>
                       updateUser(
                         (user) =>
@@ -54,6 +55,7 @@ export const CoursesSubsection = React.memo(
                 <TimelineItem lastCol row={row}>
                   <TimelineInput
                     value={name}
+                    maxLength={80}
                     onChange={({ target }) =>
                       updateUser(
                         (user) => (user.courses[row].name = target.value),

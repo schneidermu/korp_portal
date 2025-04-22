@@ -44,6 +44,7 @@ export const PropertyInput = ({
   theme,
   placeholder,
   required,
+  maxLength,
   handleChange,
 }: {
   type?: HTMLInputTypeAttribute;
@@ -54,6 +55,7 @@ export const PropertyInput = ({
   theme?: string;
   placeholder?: string;
   required?: boolean;
+  maxLength?: number;
   handleChange: (value: string) => void;
 }) => {
   return editing ? (
@@ -62,6 +64,7 @@ export const PropertyInput = ({
       pattern={pattern}
       placeholder={placeholder}
       required={required}
+      maxLength={maxLength}
       className={clsx(
         "w-full",
         "border rounded border-black",
