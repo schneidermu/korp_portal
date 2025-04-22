@@ -15,10 +15,10 @@ import {
 } from "@chakra-ui/react";
 import { LuX } from "react-icons/lu";
 
+import { useAuth } from "@/features/auth/slice.ts";
 import { useFeed } from "@/features/feed/services";
 import * as types from "@/features/feed/types";
 import { useReachBottom } from "@/shared/hooks/useReachBottom";
-import { useIntSearchParam } from "@/shared/hooks/useSearchParam";
 import { formatDateFuller, resolveMediaPath } from "@/shared/utils";
 
 import { NewPage } from "@/features/App/comps/NewPage";
@@ -166,7 +166,7 @@ export const News = ({ news }: { news: types.News }) => {
 };
 
 export const NewFeedPage = () => {
-  const [orgId] = useIntSearchParam("orgId");
+  const { orgId } = useAuth();
   const [showNews, setShowNews] = useState(true);
   const [showPolls, setShowPolls] = useState(true);
   const [query, setQuery] = useState("");
