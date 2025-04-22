@@ -76,14 +76,14 @@ export const TeamSubsection = React.memo(
                 variant={showBoss ? "outline" : "solid"}
                 onClick={() => setShowBoss(false)}
               >
-                Мои коллеги
+                Коллеги
               </Button>
               <Show when={O.isSome(user.bossId)}>
                 <Button
                   variant={showBoss ? "solid" : "outline"}
                   onClick={() => setShowBoss(true)}
                 >
-                  Мой руководитель
+                  Руководитель
                 </Button>
               </Show>
             </Grid>
