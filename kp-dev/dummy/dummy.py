@@ -98,10 +98,13 @@ plans = {
 class Subdiv:
     name: str
 
-    def __init__(self, id: int, org_id: int, parent_id: int | None):
+    def __init__(
+        self, id: int, org_id: int, parent_id: int | None, chief_id: str | None
+    ):
         self.id = id
         self.org_id = org_id
         self.parent_id = parent_id
+        self.chief_id = chief_id
 
     def to_dict(self):
         return {
@@ -109,6 +112,7 @@ class Subdiv:
             "name": self.name,
             "organization_id": self.org_id,
             "parent_structural_subdivision_id": self.parent_id,
+            "chief_id": self.chief_id,
         }
 
 
@@ -307,7 +311,7 @@ def gen_subdivs(
         subdivs[org_id] = []
     chief_id = None if boss is None else boss.id
     id = sum(map(len, subdivs.values())) + 1
-    subdiv = Subdiv(id, org_id, parent_id)
+    subdiv = Subdiv(id, org_id, parent_id, chief_id)
     if isinstance(plan, str):
         subdiv.name = plan
         subdivs[org_id].append(subdiv)
