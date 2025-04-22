@@ -3,13 +3,12 @@ import { useRef, useState } from "react";
 import clsx from "clsx/lite";
 import { AnimatePresence } from "motion/react";
 
+import { useAuth } from "@/features/auth/slice.ts";
 import { useFeed } from "@/features/feed/services";
 import { useReachBottom } from "@/shared/hooks/useReachBottom";
-import { useIntSearchParam } from "@/shared/hooks/useSearchParam";
 import { resolveMediaPath } from "@/shared/utils";
 
 import { AnimatePage, PageSkel } from "@/features/App/comps/PageSkel";
-import { OrgPicker } from "@/features/org/comps/OrgPicker";
 
 import { Birthday } from "./parts/Birthday";
 import { Gallery, Modal } from "./parts/Gallery";
@@ -23,7 +22,7 @@ const Separator = () => {
 };
 
 export const Feed = () => {
-  const [orgId, setOrgId] = useIntSearchParam("org");
+  const { orgId } = useAuth();
 
   const {
     data: posts,
@@ -50,15 +49,7 @@ export const Feed = () => {
 
   return (
     <AnimatePage>
-      <PageSkel
-        title="Новости"
-        heading="Новости"
-        slot={
-          <div className="basis-1/4">
-            <OrgPicker orgId={orgId} setOrgId={setOrgId} />
-          </div>
-        }
-      >
+      <PageSkel title="Новости" heading="Новости">
         <div>
           {posts.map((post, i) => (
             <div

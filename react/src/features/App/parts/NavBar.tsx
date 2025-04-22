@@ -73,10 +73,7 @@ export const NavBar = () => {
 
   return (
     <nav className="flex justify-between items-center h-[76px] bg-blue2 rounded text-[32px] text-white">
-      <Link
-        to={auth.orgId !== null ? `/feed?org=${auth.orgId}` : "/feed"}
-        className="hover:underline mx-[120px]"
-      >
+      <Link to="/feed" className="hover:underline mx-[120px]">
         Рабочий стол
       </Link>
       <Link
