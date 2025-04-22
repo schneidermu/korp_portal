@@ -46,6 +46,7 @@ export const CareerSubsection = React.memo(
                 <TimelineItem row={row}>
                   <TimelineInput
                     value={year_start || ""}
+                    maxLength={4}
                     onChange={({ target }) =>
                       updateUser(
                         (user) =>
@@ -63,6 +64,7 @@ export const CareerSubsection = React.memo(
                       onNone: () => "н. вр.",
                       onSome: (y) => y.toString(),
                     })}
+                    maxLength={4}
                     onChange={({ target }) =>
                       updateUser(
                         (user) =>
@@ -77,6 +79,7 @@ export const CareerSubsection = React.memo(
                 <TimelineItem lastCol row={row}>
                   <TimelineInput
                     value={position}
+                    maxLength={80}
                     onChange={({ target }) =>
                       updateUser(
                         (user) => (user.career[row].position = target.value),

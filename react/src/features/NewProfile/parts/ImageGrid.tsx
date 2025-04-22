@@ -93,6 +93,7 @@ export const ImageGridItem = React.memo(function ImageGridItem({
       <Textarea
         required
         rows={3}
+        maxLength={40}
         resize="none"
         placeholder="Подпись"
         width="full"

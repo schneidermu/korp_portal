@@ -67,6 +67,7 @@ const NewSkill = React.memo(function NewSkill({
       <Tag.Label fontSize="inherit">
         <Input
           spellCheck
+          maxLength={35}
           width="28"
           height="auto"
           outline="none !important"

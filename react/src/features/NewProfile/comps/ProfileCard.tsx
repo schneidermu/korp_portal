@@ -126,6 +126,7 @@ export const InfoGrid = React.memo(
         <Field label="Телефон" editing={editing}>
           <Input
             editing={editing}
+            maxLength={20}
             value={formatMobilePhone(info.phoneNumber)}
             onChange={({ target: { value } }) => changePhoneNumber(value)}
           />
@@ -140,6 +141,7 @@ export const InfoGrid = React.memo(
         <Field label="Должность" editing={editing}>
           <Input
             editing={editing}
+            maxLength={100}
             value={info.position}
             onChange={({ target: { value } }) =>
               updateUser((user) => (user.position = value))
@@ -150,6 +152,7 @@ export const InfoGrid = React.memo(
         <Field label="Классный чин" editing={editing}>
           <Input
             editing={editing}
+            maxLength={20}
             value={info.serviceRank}
             onChange={({ target: { value } }) =>
               updateUser((user) => (user.serviceRank = value))

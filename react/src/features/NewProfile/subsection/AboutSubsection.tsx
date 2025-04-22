@@ -21,6 +21,7 @@ export const AboutSubsection = React.memo(
           <Subsection show={editing || about.length > 0} ref={ref} {...rest}>
             <Textarea
               disabled={!editing}
+              maxLength={1024}
               value={about}
               onChange={({ target }) =>
                 updateUser((user) => (user.about = target.value))

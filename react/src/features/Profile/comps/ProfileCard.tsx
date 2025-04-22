@@ -115,6 +115,7 @@ export const InfoGrid = ({
     field,
     type = "text",
     pattern,
+    maxLength,
   }: {
     name: string;
     icon: string;
@@ -122,12 +123,14 @@ export const InfoGrid = ({
     type?: string;
     pattern?: string;
     wrap?: boolean;
+    maxLength?: number;
   }) => (
     <EditableProperty key={field} icon={icon} name={name} wrap={!editing}>
       <PropertyInput
         type={type}
         pattern={pattern}
         editing={editing}
+        maxLength={maxLength}
         value={
           typeof user[field] === "string"
             ? user[field]
@@ -184,6 +187,7 @@ export const InfoGrid = ({
           <PropertyInput
             editing={editing}
             value={user.phoneNumber}
+            maxLength={20}
             theme="py-[6px] px-[10px]"
             text={formatMobilePhone(user.phoneNumber)}
             handleChange={changePhoneNumber}
@@ -197,17 +201,20 @@ export const InfoGrid = ({
             field: "position",
             name: "Должность",
             icon: peopleIcon,
+            maxLength: 100,
           })}
         </div>,
         field({
           field: "serviceRank",
           name: "Классный чин",
           icon: awardIcon,
+          maxLength: 20,
         }),
         field({
           field: "office",
           name: "Кабинет",
           icon: homeIcon,
+          maxLength: 20,
         }),
       ]}
       <EditableProperty

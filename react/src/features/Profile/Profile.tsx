@@ -204,7 +204,7 @@ const HigherEducationInfo = ({
   const changeYear = (i: number) => (value: string) => {
     const year = Number(value);
     if (Number.isNaN(year)) return;
-    updateUser((user) => (user.education[i].year = year));
+    updateUser((user) => (user.education[i].year = year % 10000));
   };
 
   const changeAttr =
@@ -227,6 +227,7 @@ const HigherEducationInfo = ({
             editing={editing}
             value={edu.university}
             placeholder="Название университета"
+            maxLength={80}
             theme="px-[20px] py-[6px]"
             handleChange={changeAttr(i, "university")}
           />
@@ -236,6 +237,7 @@ const HigherEducationInfo = ({
             value={edu.major}
             pattern=".+"
             placeholder="Название факультета"
+            maxLength={80}
             theme="px-[20px] py-[3px] font-light text-gray"
             handleChange={changeAttr(i, "major")}
           />
@@ -335,7 +337,7 @@ const EducationSection = ({
             handleChange={(value) => {
               const year = Number(value);
               if (Number.isNaN(year)) return;
-              updateUser((user) => (user.courses[i].year = year));
+              updateUser((user) => (user.courses[i].year = year % 10000));
             }}
           />
           {editing ? (
@@ -345,6 +347,7 @@ const EducationSection = ({
                 editing={editing}
                 value={name}
                 placeholder="Название курса"
+                maxLength={80}
                 theme="px-[20px] py-[6px]"
                 handleChange={(value) =>
                   updateUser((user) => (user.courses[i].name = value))
@@ -449,6 +452,7 @@ const TrainingInfo = ({
               required
               value={name}
               placeholder="Квалификация"
+              maxLength={70}
               onChange={({ target: { value } }) =>
                 updateUser((user) => (user.training[i].name = value))
               }
@@ -503,7 +507,7 @@ const TrainingInfo = ({
   return (
     <div>
       <Property icon={upArrowIcon} name="Повышение квалификации" />
-      <div className="w-3/5 ml-8 mt-2">
+      <div className={clsx("ml-8 mt-2", editing && "w-3/5")}>
         <ul className="mb-4 list-disc flex flex-col gap-4">{certificates}</ul>
         {editing && (
           <RowControls
@@ -669,6 +673,8 @@ const CareerPositionsTable = ({
           <input
             required
             disabled={!editing}
+            min={1000}
+            max={9999}
             className={clsx(inputCellClass, "text-center", "border-l")}
             value={year_start.toString()}
             onChange={({ target: { value } }) => changeStartYear(i, value)}
@@ -676,6 +682,8 @@ const CareerPositionsTable = ({
           <input
             required
             disabled={!editing}
+            min={1000}
+            max={9999}
             className={clsx(inputCellClass, "text-center")}
             value={O.getOrElse(year_leave, () => "н. вр.")}
             onChange={({ target: { value } }) => changeLeaveYear(i, value)}
@@ -683,6 +691,7 @@ const CareerPositionsTable = ({
           <input
             required
             disabled={!editing}
+            maxLength={75}
             className={clsx(inputCellClass)}
             value={position}
             onChange={({ target: { value } }) =>
@@ -723,6 +732,7 @@ const CareerSection = ({
                 editing={editing}
                 value={O.getOrElse(user.workExperience, () => "")}
                 theme="px-6 py-[6px] text-center"
+                maxLength={15}
                 handleChange={(value) =>
                   updateUser((user) => (user.workExperience = O.some(value)))
                 }
@@ -936,6 +946,7 @@ const GallerySection = ({
           )}
           <textarea
             required
+            maxLength={40}
             value={title}
             className="mt-8 w-full px-3 py-2 rounded border resize-none"
             onChange={({ target: { value } }) => changeTitle(i, value)}
@@ -1039,6 +1050,7 @@ const AboutMeSection = ({
           onChange={({ target: { value } }) =>
             updateUser({ ...user, about: value })
           }
+          maxLength={1024}
         />
       ) : (
         <div>
