@@ -60,10 +60,10 @@ STATUSES = [
     "Нет на месте",
 ]
 
-orgs = [
-    {"id": 1, "name": "ЦА ФАВР", "address": "Москва, Кедрова 8к1"},
-    {"id": 2, "name": "Ленское БВУ", "address": "Якутск, Курашова 28/3"},
-]
+orgs = {
+    1: {"name": "ЦА ФАВР", "address": "Москва, Кедрова 8к1"},
+    2: {"name": "Ленское БВУ", "address": "Якутск, Курашова 28/3"},
+}
 
 plans = {
     1: (
@@ -346,11 +346,11 @@ def users_at_org(users: dict[str, User], org_id: int):
     ]
 
 
-def gen_ratings(orgs: list[dict], users: dict[str, User]):
+def gen_ratings(users: dict[str, User]):
     ratings = []
-    for org in orgs:
+    for org_id in orgs.keys():
         for user1 in users.values():
-            us = users_at_org(users, org["id"])
+            us = users_at_org(users, org_id)
             for user2 in random.sample(us, k=len(us) // 2):
                 ratings.append(
                     {
@@ -398,16 +398,18 @@ def gen_polls():
     poll_votes = []
     for poll in polls:
         n = len(orgs)
-        os = random.sample(orgs, max(1, random.binomialvariate(n, p=1 / n)))
-        for org in os:
+        ids = random.sample(
+            list(orgs.keys()), max(1, random.binomialvariate(n, p=1 / n))
+        )
+        for org_id in ids:
             poll_orgs.append(
                 {
                     "id": len(poll_orgs) + 1,
                     "poll_id": poll["id"],
-                    "organization_id": org["id"],
+                    "organization_id": org_id,
                 }
             )
-            us = users_at_org(users, org["id"])
+            us = users_at_org(users, org_id)
             chs_ids = [ch["id"] for ch in choices[poll["id"]]]
             counts = [randint(1, 10) for _ in chs_ids]
             for user in random.sample(
@@ -470,7 +472,7 @@ for user in users.values():
         user.chief_id = users["mariya3"].id
 del users[email]
 
-ratings = gen_ratings(orgs, users)
+ratings = gen_ratings(users)
 
 polls, choices, poll_orgs, poll_votes = gen_polls()
 
@@ -491,7 +493,7 @@ SET row_security = off;
 """)
 
 print(
-    gen_table("employees_organization", orgs),
+    gen_table("employees_organization", [{"id": id, **d} for id, d in orgs.items()]),
     gen_table(
         "employees_structuralsubdivision",
         [subdiv.to_dict() for subdivs in subdivs.values() for subdiv in subdivs],
