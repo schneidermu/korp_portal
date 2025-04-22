@@ -19,20 +19,21 @@ import { resolveMediaPath } from "@/shared/utils";
 
 import { FileInput } from "@/shared/comps/FileInput";
 
+import femaleAvatar from "/avatar/female.png";
+import maleAvatar from "/avatar/male.png";
+
 export interface AvatarProps extends BoxProps {
   user: User;
-  fallbackSrc: string;
 }
 
 export interface AvatarEditableProps extends FieldRootProps {
   user: User;
-  fallbackSrc: string;
   onUpload: (src: string) => void;
 }
 
 export const Avatar = React.memo(
   React.forwardRef<HTMLDivElement, AvatarProps>(function Avatar(props, ref) {
-    const { user, fallbackSrc, ...rest } = props;
+    const { user, ...rest } = props;
 
     const src = O.map(user.photo, resolveMediaPath);
 
@@ -41,7 +42,7 @@ export const Avatar = React.memo(
         <Link to={`/new/profile/${user.id}`}>
           <ChakraAvatar.Root w="full" h="full">
             <ChakraAvatar.Image
-              src={O.getOrElse(src, () => fallbackSrc)}
+              src={O.getOrUndefined(src)}
               w="full"
               h="full"
               borderWidth={1}
@@ -49,6 +50,13 @@ export const Avatar = React.memo(
               data-state="open"
               _open={{ animation: "fade-in 300ms ease-out" }}
             />
+            <ChakraAvatar.Fallback w="full" h="full" overflow="hidden">
+              <Image
+                src={user.sex === "female" ? femaleAvatar : maleAvatar}
+                w="full"
+                h="full"
+              />
+            </ChakraAvatar.Fallback>
           </ChakraAvatar.Root>
         </Link>
       </Box>
@@ -59,7 +67,7 @@ export const Avatar = React.memo(
 export const AvatarEditable = React.memo(
   React.forwardRef<HTMLDivElement, AvatarEditableProps>(
     function AvatarEditable(props, ref) {
-      const { user, fallbackSrc, onUpload, ...rest } = props;
+      const { user, onUpload, ...rest } = props;
 
       const src = O.map(user.photo, resolveMediaPath);
 
@@ -75,8 +83,12 @@ export const AvatarEditable = React.memo(
                 borderWidth={1}
                 borderColor="gray.1"
               />
-              <ChakraAvatar.Fallback w="full" h="full">
-                <Image src={fallbackSrc} w="full" h="full" />
+              <ChakraAvatar.Fallback w="full" h="full" overflow="hidden">
+                <Image
+                  src={user.sex === "female" ? femaleAvatar : maleAvatar}
+                  w="full"
+                  h="full"
+                />
               </ChakraAvatar.Fallback>
             </ChakraAvatar.Root>
           </Field.Label>

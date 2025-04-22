@@ -33,6 +33,7 @@ export type User = {
   lastName: string;
   firstName: string;
   patronym: O.Option<string>;
+  sex: "male" | "female" | null;
   status: UserStatus;
   dateOfBirth: O.Option<string>;
   phoneNumber: string;

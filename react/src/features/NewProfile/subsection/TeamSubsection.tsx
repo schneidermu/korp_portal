@@ -12,8 +12,6 @@ import { Avatar } from "@/features/user/comps/Avatar";
 import { Button } from "../parts/Button";
 import { Subsection, SubsectionProps } from "../parts/Subsection";
 
-import fallbackAvatarAlt from "@/assets/avatar-fallback-alt.png";
-
 const UserGrid = React.memo(function UserGrid({ users }: { users: User[] }) {
   return (
     <Grid
@@ -24,7 +22,7 @@ const UserGrid = React.memo(function UserGrid({ users }: { users: User[] }) {
     >
       {users.map((user) => (
         <Stack key={user.id} gap="9" alignItems="center">
-          <Avatar fallbackSrc={fallbackAvatarAlt} user={user} />
+          <Avatar user={user} />
           <Text textWrap="nowrap">
             {user.firstName} {user.lastName}
           </Text>

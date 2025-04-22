@@ -24,6 +24,7 @@ type UserData = {
   surname: string | null;
   name: string | null;
   patronym: string | null;
+  sex: "Мужской" | "Женский" | "Не указан" | null;
   status: UserStatus | null;
   birth_date: string | null;
   telephone_number: string | null;
@@ -94,6 +95,12 @@ const toUser = (data: UserData): User => {
     lastName: data.surname ?? "?",
     firstName: data.name ?? "?",
     patronym: O.fromNullable(data.patronym),
+    sex:
+      data.sex === "Мужской"
+        ? "male"
+        : data.sex === "Женский"
+          ? "female"
+          : null,
     status: data.status ?? "На рабочем месте",
     dateOfBirth: O.fromNullable(data.birth_date),
     phoneNumber: data.telephone_number ?? "",
@@ -165,6 +172,8 @@ const fromUser = (user: User): UserData => ({
   surname: user.lastName,
   name: user.firstName,
   patronym: O.getOrNull(user.patronym),
+  sex:
+    user.sex === "male" ? "Мужской" : user.sex === "female" ? "Женский" : null,
   status: user.status,
   birth_date: O.getOrNull(user.dateOfBirth),
   telephone_number: user.phoneNumber,

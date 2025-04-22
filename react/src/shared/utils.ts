@@ -4,7 +4,8 @@ import { BACKEND_PREFIX, LOCALE } from "@/app/const";
 
 import { User } from "@/features/user/types";
 
-import personIcon from "@/assets/person.svg";
+import maleAvatar from "/avatar/male.png";
+import femaleAvatar from "/avatar/female.png";
 
 export const NBSP = "\xA0";
 
@@ -106,7 +107,7 @@ export const resolveMediaPath = (path: string) => {
 export const userPhotoPath = (user: User) =>
   O.match(user.photo, {
     onSome: resolveMediaPath,
-    onNone: () => personIcon,
+    onNone: () => (user.sex === "female" ? femaleAvatar : maleAvatar),
   });
 
 export const noop = () => ({});
