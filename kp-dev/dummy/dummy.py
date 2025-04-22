@@ -1,3 +1,4 @@
+from functools import reduce
 import random
 from datetime import date
 from random import randint
@@ -133,7 +134,7 @@ class User:
         self.subdiv = subdiv
 
         self.id = str(uuid4())
-        self.skills = ", ".join(random.sample(SKILLS, k=randint(3, 7)))
+        self.skills = random.sample(SKILLS, k=randint(3, 7))
         self.about = " ".join(random.sample(ABOUT_SENTENCES, k=randint(3, 5)))
         self.birth_date = random_date_between(BIRTH_DATE_MIN, BIRTH_DATE_MAX)
 
@@ -269,9 +270,6 @@ class User:
 
     def to_uni_dict(self, char_id):
         return [{"characteristic_id": char_id, **uni} for uni in self.universities]
-
-    def to_skills_dict(self, id: int):
-        return {"characteristic_id": id, "id": id, "name": self.skills}
 
 
 def gen_users(
@@ -442,6 +440,13 @@ subdivs: dict[int, list[Subdiv]] = {}
 for org_id, plan in plans.items():
     gen_subdivs(subdivs, users, org_id, plan)
 
+skill2id = {
+    skill: i
+    for i, skill in enumerate(
+        reduce(set.union, [set(user.skills) for user in users.values()], set())
+    )
+}
+
 email = random.choice(
     list(
         email
@@ -543,7 +548,23 @@ print(
     ),
     gen_table(
         "employees_competence",
-        [user.to_skills_dict(i) for i, user in enumerate(users.values(), start=1)],
+        [{"id": id, "name": skill} for skill, id in skill2id.items()],
+    ),
+    gen_table(
+        "employees_competence_characteristic",
+        [
+            {"id": id, **d}
+            for id, d in enumerate(
+                [
+                    {
+                        "competence_id": skill2id[skill],
+                        "characteristic_id": char_id,
+                    }
+                    for char_id, user in enumerate(users.values(), start=1)
+                    for skill in user.skills
+                ]
+            )
+        ],
     ),
     gen_table(
         "employees_rating",
