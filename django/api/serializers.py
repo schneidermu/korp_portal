@@ -623,20 +623,28 @@ class ProfileSerializer(UserSerializer):
             rate = None
         return rate
 
-    def get_chief(self, object):
-        if object.chief is not None and object.chief != object:
-            return object.chief.id
+    def get_chief(self, obj):
+        current_division = obj.structural_division
 
-        division = object.structural_division
+        while current_division is not None:
+            if current_division.chief is not None:
+                if current_division.chief != obj:
+                    return current_division.chief.id
+                elif (
+                    current_division.supervisor is not None
+                    and current_division.supervisor != obj
+                ):
+                    return current_division.supervisor.id
 
-        while (
-            division.chief is None
-            and division.parent_structural_subdivision is not None
-        ):
-            division = division.parent_structural_subdivision
+            elif (
+                current_division.supervisor is not None
+                and current_division.supervisor != obj
+            ):
+                return current_division.supervisor.id
 
-        if division.chief is not None and division.chief != object:
-            return division.chief.id
+            current_division = current_division.parent_structural_subdivision
+
+        return None
 
     @staticmethod
     def add_related_fields(characteristic_update, characteristic, name, model_class):
