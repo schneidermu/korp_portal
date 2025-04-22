@@ -802,13 +802,13 @@ const TeamSection = ({ user }: { user: User }) => {
       <div className="flex gap-[60px]">
         <ViewButton
           active={!showBosses}
-          text="Мои коллеги"
+          text="Коллеги"
           onClick={() => setShowBosses(false)}
         />
         {O.isSome(user.bossId) && (
           <ViewButton
             active={showBosses}
-            text="Мой руководитель"
+            text="Руководитель"
             onClick={() => setShowBosses(true)}
           />
         )}
