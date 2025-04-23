@@ -1,0 +1,62 @@
+name: kp-django
+
+volumes:
+  pg:
+
+networks:
+  kp:
+    external: true
+    name: $NETWORK_NAME
+
+services:
+  db:
+    image: postgres:15.6-alpine
+    volumes:
+      - pg:/var/lib/postgresql/data/
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "psql -U '$DB_USER' -d '$DB_NAME' -c 'SELECT 1' || exit 1",
+        ]
+      timeout: 3s
+      interval: 60s
+      start_interval: 3s
+      start_period: 60s
+    environment:
+      POSTGRES_DB: $DB_NAME
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
+
+  django:
+    build: ../../django/
+    stop_signal: SIGINT
+    volumes:
+      - ./media:/media
+    networks:
+      - default
+      - kp
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_ENGINE: django.db.backends.postgresql
+      DB_HOST: $DB_HOST
+      DB_PORT: $DB_PORT
+      DB_NAME: $DB_NAME
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_HOST_LIFERAY: $DB_HOST_LIFERAY
+      DB_PORT_LIFERAY: $DB_PORT_LIFERAY
+      DB_NAME_LIFERAY: $DB_NAME_LIFERAY
+      DB_USER_LIFERAY: $DB_USER_LIFERAY
+      DB_PASSWORD_LIFERAY: $DB_PASSWORD_LIFERAY
+      SECRET_KEY: $SECRET_KEY
+      ALLOWED_HOSTS: $HOSTNAME
+      DEBUG: $DEBUG
+      CHALLENGE_URL: $CHALLENGE_URL
+      SCRIPT_NAME: $PATH_PREFIX
+      DJANGO_PORT: 8000
+
+  whoami:
+    image: containous/whoami

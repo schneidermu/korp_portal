@@ -1,0 +1,22 @@
+name: kp-react
+
+networks:
+  kp:
+    external: true
+    name: $NETWORK_NAME
+
+services:
+  react:
+    build:
+      context: ../../react/
+      target: dev
+    command: yarn dev
+    networks:
+      - kp
+    environment:
+      VITE_LIFERAY_EMBED: false
+      VITE_BACKEND_PREFIX: $BACKEND_PREFIX
+      VITE_EMAIL: $VITE_EMAIL
+      VITE_PAUTH: $VITE_PAUTH
+    volumes:
+      - ../../react:/app

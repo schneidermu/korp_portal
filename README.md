@@ -3,6 +3,10 @@
 ## Dev setup
 
 ```sh
+docker compose exec -u root django python manage.py collectstatic
+```
+
+```sh
 cd kp-dev
 
 # Create volumes:

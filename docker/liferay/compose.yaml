@@ -1,0 +1,48 @@
+name: kp-liferay
+
+volumes:
+  pg:
+
+networks:
+  kp:
+    external: true
+    name: $NETWORK_NAME
+
+services:
+  db.liferay:
+    image: postgres:13.16-alpine
+    volumes:
+      - pg:/var/lib/postgresql/data/
+    networks:
+      - kp
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "psql -U ${DB_USER} -d ${DB_NAME} -c 'SELECT 1' || exit 1",
+        ]
+      timeout: 3s
+      interval: 60s
+      start_interval: 3s
+      start_period: 60s
+    environment:
+      POSTGRES_DB: $DB_NAME
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
+
+  liferay:
+    image: liferay/portal:7.0.6-ga7
+    volumes:
+      # Copy a .war here to deploy it.
+      - ./deploy/:/mnt/liferay/deploy/
+      - ./portal-ext.properties:/opt/liferay/portal-ext.properties:ro
+    networks:
+      - kp
+    depends_on:
+      db.liferay:
+        condition: service_healthy
+    environment:
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_DRIVER_UPPERCASEC_LASS_UPPERCASEN_AME: org.postgresql.Driver
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_URL: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_USERNAME: $DB_USER
+      LIFERAY_JDBC_PERIOD_DEFAULT_PERIOD_PASSWORD: $DB_PASSWORD

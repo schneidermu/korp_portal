@@ -1,0 +1,257 @@
+{
+	log {
+		level DEBUG
+	}
+}
+
+:80 {
+	request_body {
+		max_size 1G
+	}
+
+	# Enable gzip but do not remove ETag headers
+	encode {
+		zstd
+		gzip 4
+
+		minimum_length 256
+
+		match {
+			header Content-Type application/atom+xml
+			header Content-Type application/javascript
+			header Content-Type application/json
+			header Content-Type application/ld+json
+			header Content-Type application/manifest+json
+			header Content-Type application/rss+xml
+			header Content-Type application/vnd.geo+json
+			header Content-Type application/vnd.ms-fontobject
+			header Content-Type application/wasm
+			header Content-Type application/x-font-ttf
+			header Content-Type application/x-web-app-manifest+json
+			header Content-Type application/xhtml+xml
+			header Content-Type application/xml
+			header Content-Type font/opentype
+			header Content-Type image/bmp
+			header Content-Type image/svg+xml
+			header Content-Type image/x-icon
+			header Content-Type text/cache-manifest
+			header Content-Type text/css
+			header Content-Type text/plain
+			header Content-Type text/vcard
+			header Content-Type text/vnd.rim.location.xloc
+			header Content-Type text/vtt
+			header Content-Type text/x-component
+			header Content-Type text/x-cross-domain-policy
+		}
+	}
+
+	header {
+		# HTTP response headers borrowed from Nextcloud `.htaccess`
+		Referrer-Policy no-referrer
+		X-Content-Type-Options nosniff
+		X-Download-Options noopen
+		X-Frame-Options SAMEORIGIN
+		X-Permitted-Cross-Domain-Policies none
+		X-Robots-Tag "noindex,nofollow"
+		X-XSS-Protection "1; mode=block"
+
+		# Permissions-Policy "accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()"
+	}
+
+	# Django
+	handle_path {$BACKEND_PREFIX}/* {
+		@django path / /api/* /admin/* /swagger/* /redoc/*
+
+		handle @django {
+			rewrite * {$BACKEND_PREFIX}{uri}
+			reverse_proxy django:{$DJANGO_PORT} {
+				header_up X-Script-Name {$BACKEND_PREFIX}
+			}
+		}
+
+		@files path /media/* /static/*
+
+		handle @files {
+			root * /srv/django/
+			file_server
+		}
+
+		error * 404
+	}
+
+	# Vite
+	handle {$VITE_PREFIX}/* {
+		reverse_proxy vite:3000 {
+			header_up Host {host}
+		}
+
+		@ws {
+			header Connection *Upgrade*
+			header Upgrade websocket
+		}
+		reverse_proxy @ws vite:3000
+	}
+
+	# Liferay
+	handle /* {
+		reverse_proxy liferay:8080
+	}
+
+	handle_path {$NEXTCLOUD_PREFIX}/* {
+		reverse_proxy nginx
+	}
+
+	handle_path {$BACKEND_PREFIX}/cgi/* {
+		root * /srv/nextcloud/
+
+		php_fastcgi nextcloud:9000 {
+			rewrite /index.php{uri}
+			env modHeadersAvailable true # Avoid sending the security headers twice
+			env front_controller_active true # Enable pretty urls
+		}
+
+		file_server
+	}
+
+	handle_path {$BACKEND_PREFIX}/nextcloud2/* {
+		root * /srv/nextcloud/
+
+		@internal path \
+/build /build/* \
+/tests /tests/* \
+/config /config/* \
+/lib /lib/* \
+/3rdparty /3rdparty/* \
+/templates /templates/* \
+/data /data/* \
+\
+/.* \
+/autotest* \
+/occ* \
+/issue* \
+/indie* \
+/db_* \
+/console*
+
+		error @internal 403
+
+		@assets {
+			path *.css *.js *.svg *.gif *.png *.jpg *.jpeg *.ico *.wasm *.tflite *.map *.wasm2
+			file {path} # Only if requested file exists on disk, otherwise /index.php will take care of it
+		}
+		route @assets {
+			header /* Cache-Control "max-age=15552000" # Cache-Control policy borrowed from `.htaccess`
+			header /*.woff2 Cache-Control "max-age=604800" # Cache-Control policy borrowed from `.htaccess`
+			# log_skip # Optional: Don't log access to assets
+			file_server {
+				precompressed gzip
+			}
+		}
+
+		# 	# Serve found static files, continuing to the PHP default handler below if not found
+		try_files {path} {path}/
+		@notphpordir not path /*.php /*.php/* / /*/
+		file_server @notphpordir {
+			pass_thru
+		}
+
+		@notlegacy {
+			path *.php *.php/
+			not path /index*
+			not path /remote*
+			not path /public*
+			not path /cron*
+			not path /core/ajax/update*
+			not path /status*
+			not path /ocs/v1*
+			not path /ocs/v2*
+			not path /ocs-provider/*
+			not path /updater/*
+			not path */richdocumentscode/proxy*
+		}
+		# rewrite @notlegacy /index.php{uri}
+		rewrite /index.php{uri}
+
+		# Let everything else be handled by the PHP-FPM component
+		php_fastcgi nextcloud:9000 {
+			env modHeadersAvailable true # Avoid sending the security headers twice
+			env front_controller_active true # Enable pretty urls
+		}
+
+		error * 405
+	}
+
+	# Nextcloud
+	handle_path {$BACKEND_PREFIX}/nc/* {
+		root * /srv/nextcloud/
+
+		route {
+			# 			@internal path \
+			#  /build /build/* \
+			#  /tests /tests/* \
+			#  /config /config/* \
+			#  /lib /lib/* \
+			#  /3rdparty /3rdparty/* \
+			#  /templates /templates/* \
+			#  /data /data/* \
+			#  \
+			#  /.* \
+			#  /autotest* \
+			#  /occ* \
+			#  /issue* \
+			#  /indie* \
+			#  /db_* \
+			#  /console*
+			# 
+			# 			error @internal 404
+			# 
+			# 			@assets {
+			# 				path *.css *.js *.svg *.gif *.png *.jpg *.jpeg *.ico *.wasm *.tflite *.map *.wasm2
+			# 				file {path} # Only if requested file exists on disk, otherwise /index.php will take care of it
+			# 			}
+			# 			route @assets {
+			# 				header /* Cache-Control "max-age=15552000" # Cache-Control policy borrowed from `.htaccess`
+			# 				header /*.woff2 Cache-Control "max-age=604800" # Cache-Control policy borrowed from `.htaccess`
+			# 				log_skip # Optional: Don't log access to assets
+			# 				file_server {
+			# 					precompressed gzip
+			# 				}
+			# 			}
+			# 
+			# 			# Rule borrowed from `.htaccess`
+			# 			redir /remote/* /remote.php{path} permanent
+			# 
+			# 			# Serve found static files, continuing to the PHP default handler below if not found
+			# 			try_files {path} {path}/
+			# 			@notphpordir not path /*.php /*.php/* / /*/
+			# 			file_server @notphpordir {
+			# 				pass_thru
+			# 			}
+			# 
+			# Required for legacy support
+			#
+			# Rewrites all other requests to be prepended by “/index.php” unless they match a known-valid PHP file path.
+			@notlegacy {
+				path *.php *.php/
+				not path /index*
+				not path /remote*
+				not path /public*
+				not path /cron*
+				not path /core/ajax/update*
+				not path /status*
+				not path /ocs/v1*
+				not path /ocs/v2*
+				not path /ocs-provider/*
+				not path /updater/*
+				not path */richdocumentscode/proxy*
+			}
+			rewrite @notlegacy /index.php{uri}
+
+			# Let everything else be handled by the PHP-FPM component
+			php_fastcgi nextcloud:9000 {
+				env modHeadersAvailable true # Avoid sending the security headers twice
+				env front_controller_active true # Enable pretty urls
+			}
+		}
+	}
+}

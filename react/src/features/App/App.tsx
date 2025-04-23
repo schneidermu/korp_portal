@@ -8,6 +8,7 @@ import { Feed } from "@/features/Feed/Feed";
 import { NewFeedPage } from "@/features/NewFeed/NewFeed";
 import { NewProfilePage } from "@/features/NewProfile/NewProfile";
 import { NewUserList } from "@/features/NewUserList/NewUserList";
+import { NextcloudPage } from "@/features/Nextcloud/Nextcloud";
 import { NotFound } from "@/features/NotFound/NotFound";
 import { OrgPage } from "@/features/Org/Org";
 import { UserProfile } from "@/features/Profile/Profile";
@@ -23,6 +24,7 @@ export const App = () => {
       <HashRouter>
         <Routes>
           <Route element={<AuthLoader />}>
+            <Route path="/nextcloud" element={<NextcloudPage />} />
             <Route path="/new/profile/:userId?" element={<NewProfilePage />} />
             <Route path="/new/org/:orgId?" element={<OrgPage />} />
             <Route path="/new/list" element={<NewUserList />} />
