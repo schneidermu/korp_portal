@@ -326,7 +326,7 @@ class ValidateNextCloudView(APIView):
 
     permission_classes = ()  # Allow any by default
 
-    def post(self, request):
+    def get(self, request):
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
         unauthorized = Response(
             status=status.HTTP_401_UNAUTHORIZED,
