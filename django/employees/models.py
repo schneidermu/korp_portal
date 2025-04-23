@@ -541,6 +541,15 @@ class StructuralSubdivision(models.Model):
         null=True,
     )
 
+    supervisor = models.ForeignKey(
+        "Employee",
+        verbose_name="Супервайзор подразделения",
+        on_delete=models.SET_NULL,
+        related_name="is_supervisor",
+        blank=True,
+        null=True,
+    )
+
     parent_structural_subdivision = models.ForeignKey(
         "StructuralSubdivision",
         verbose_name="Родительское СП",
