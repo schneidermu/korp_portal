@@ -535,7 +535,7 @@ class ProfileSerializer(UserSerializer):
 
     characteristic = CharacteristicSerializer(required=False)
 
-    supervizor = serializers.SerializerMethodField(read_only=True)
+    supervisor = serializers.SerializerMethodField(read_only=True)
     team = serializers.SerializerMethodField(read_only=True)
     structural_division = StructuralSubdivisionInProfileSerializer(read_only=True)
     organization = OrganizationInProfileSerializer(read_only=True)
@@ -543,6 +543,7 @@ class ProfileSerializer(UserSerializer):
     subordinates_count = serializers.SerializerMethodField(read_only=True)
     num_rates = serializers.SerializerMethodField(read_only=True)
     rated_by_me = serializers.SerializerMethodField(read_only=True)
+    chief = serializers.SerializerMethodField(read_only=True)
 
     class Meta(UserSerializer.Meta):
         model = Employee
@@ -569,7 +570,7 @@ class ProfileSerializer(UserSerializer):
             "status",
             "average_rating",
             "characteristic",
-            "supervizor",
+            "supervisor",
             "team",
             "subordinates_count",
             "num_rates",
@@ -590,19 +591,14 @@ class ProfileSerializer(UserSerializer):
         else:
             raise serializers.ValidationError(f"Incorrect filename {value}")
 
-    def get_supervizor(self, object):
-        try:
-            supervizor = object.structural_division.positions.filter(
-                job_title="Руководитель"
-            ).first()
-        except Exception:
-            return None
+    def get_supervisor(self, obj):
 
-        if not supervizor:
-            return None
-        return {
-            "id": supervizor.id,
-        }
+        if hasattr(obj, "structural_division") and obj.structural_division:
+            structural_division = obj.structural_division
+            supervisor = structural_division.supervisor
+            if supervisor:
+                return supervisor.id
+        return None
 
     def get_team(self, object):
         try:
@@ -626,6 +622,29 @@ class ProfileSerializer(UserSerializer):
         else:
             rate = None
         return rate
+
+    def get_chief(self, obj):
+        current_division = obj.structural_division
+
+        while current_division is not None:
+            if current_division.chief is not None:
+                if current_division.chief != obj:
+                    return current_division.chief.id
+                elif (
+                    current_division.supervisor is not None
+                    and current_division.supervisor != obj
+                ):
+                    return current_division.supervisor.id
+
+            elif (
+                current_division.supervisor is not None
+                and current_division.supervisor != obj
+            ):
+                return current_division.supervisor.id
+
+            current_division = current_division.parent_structural_subdivision
+
+        return None
 
     @staticmethod
     def add_related_fields(characteristic_update, characteristic, name, model_class):
@@ -803,10 +822,27 @@ class RatingDELETESerializer(serializers.ModelSerializer):
         exclude = ("rate",)
 
 
+class ProfileInStrucureSerializer(serializers.ModelSerializer):
+    """Сериализатор для профиля в Орг. структуре"""
+
+    class Meta:
+        model = Employee
+        fields = (
+            "id",
+            "name",
+            "surname",
+            "patronym",
+            "avatar",
+            "job_title",
+            "class_rank",
+            "status",
+        )
+
+
 class OrgStructureSerializer(serializers.ModelSerializer):
     """Сериализатор для орг. структуры"""
 
-    supervizor = serializers.SerializerMethodField(read_only=True)
+    supervisor = ProfileInStrucureSerializer(read_only=True)
 
     structural_division = serializers.SlugRelatedField(
         read_only=True, slug_field="name"
@@ -827,50 +863,13 @@ class OrgStructureSerializer(serializers.ModelSerializer):
             "telephone_number",
             "inner_telephone_number",
             "office",
-            "supervizor",
+            "supervisor",
             "structural_division",
-        )
-
-    def get_supervizor(self, object):
-        if object:
-            try:
-                supervizor = object.structural_division.positions.filter(
-                    job_title="Руководитель"
-                ).first()
-            except Exception:
-                return None
-
-        if not supervizor:
-            return None
-        return {
-            "id": supervizor.id,
-            "name": supervizor.name,
-            "surname": supervizor.surname,
-            "patronym": supervizor.patronym,
-        }
-
-
-class ProfileInStrucureSerializer(serializers.ModelSerializer):
-    """Сериализатор для профиля в Орг. структуре"""
-
-    class Meta:
-        model = Employee
-        fields = (
-            "id",
-            "name",
-            "surname",
-            "patronym",
-            "avatar",
-            "job_title",
-            "class_rank",
-            "status",
         )
 
 
 class ProfileInHierarchySerializer(serializers.ModelSerializer):
     """Сериализатор для профиля в Орг. структуре"""
-
-    chief = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
@@ -883,21 +882,6 @@ class ProfileInHierarchySerializer(serializers.ModelSerializer):
             "structural_division",
             "chief",
         )
-
-    def get_chief(self, object):
-        if object.chief is not None and object.chief != object:
-            return object.chief.id
-
-        division = object.structural_division
-
-        while (
-            division.chief is None
-            and division.parent_structural_subdivision is not None
-        ):
-            division = division.parent_structural_subdivision
-
-        if division.chief is not None and division.chief != object:
-            return division.chief.id
 
 
 class StructuralSubdivisionSerializer(serializers.ModelSerializer):
