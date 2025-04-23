@@ -15,7 +15,7 @@ name=korp-portal-portlet
 
 path="$outdir/$name-${timestamp}_v$version.war"
 
-docker build --build-arg "NAME=$name" -t kp-portlet ./portlet/
+docker build --build-arg "NAME=$name" -t kp-portlet ./build/portlet/
 docker build --target portlet -t kp-portlet-react ./react/
 docker run --rm kp-portlet-react >"$path"
 

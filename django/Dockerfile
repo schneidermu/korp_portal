@@ -15,8 +15,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput
-
 USER user
 
 CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:$DJANGO_PORT korp_portal.wsgi"]

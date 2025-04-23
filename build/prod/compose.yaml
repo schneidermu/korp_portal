@@ -1,0 +1,73 @@
+name: $COMPOSE_NAME
+
+volumes:
+  caddy_data:
+  django_static:
+
+services:
+  django:
+    build: ../../django/
+    stop_signal: SIGINT
+    volumes:
+      - ./volumes/media/:/media/
+      - django_static:/srv/static/
+    environment:
+      PROD: 1
+      PYTHONUNBUFFERED: 1
+      DB_ENGINE: django.db.backends.postgresql
+      DB_HOST: $DB_HOST_DJANGO
+      DB_PORT: $DB_PORT_DJANGO
+      DB_NAME: $DB_NAME_DJANGO
+      DB_USER: $DB_USER_DJANGO
+      DB_PASSWORD: $DB_PASSWORD_DJANGO
+      DB_HOST_LIFERAY: $DB_HOST_LIFERAY
+      DB_PORT_LIFERAY: $DB_PORT_LIFERAY
+      DB_NAME_LIFERAY: $DB_NAME_LIFERAY
+      DB_USER_LIFERAY: $DB_USER_LIFERAY
+      DB_PASSWORD_LIFERAY: $DB_PASSWORD_LIFERAY
+      SECRET_KEY: $DJANGO_SECRET_KEY
+      ALLOWED_HOSTS: django,$DJANGO_ALLOWED_HOSTS
+      ALLOWED_ORIGINS: https://$HOSTNAME
+      DEBUG: $DJANGO_DEBUG
+      CHALLENGE_URL: $DJANGO_CHALLENGE_URL
+      SCRIPT_NAME: $BACKEND_PREFIX
+      DJANGO_PORT: $DJANGO_PORT
+
+  nextcloud:
+    image: nextcloud:31.0-fpm-alpine
+    user: www-data
+    volumes:
+      - ./volumes/nextcloud:/var/www/html:z
+      - ../nextcloud/init.sh:/docker-entrypoint-hooks.d/post-installation/init.sh:ro
+    environment:
+      POSTGRES_HOST: $DB_HOST_NEXTCLOUD
+      POSTGRES_DB: $DB_NAME_NEXTCLOUD
+      POSTGRES_USER: $DB_USER_NEXTCLOUD
+      POSTGRES_PASSWORD: $DB_PASSWORD_NEXTCLOUD
+      NEXTCLOUD_ADMIN_USER: $NEXTCLOUD_ADMIN_USER
+      NEXTCLOUD_ADMIN_PASSWORD: $NEXTCLOUD_ADMIN_PASSWORD
+      NEXTCLOUD_PREFIX: $NEXTCLOUD_PREFIX
+      NEXTCLOUD_CHALLENGE_URL: $NEXTCLOUD_CHALLENGE_URL
+      HOSTNAME: $HOSTNAME
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - nextcloud
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./volumes/nextcloud:/var/www/html:z,ro
+
+  caddy:
+    image: caddy:2.10-alpine
+    ports:
+      - 8000:80
+    volumes:
+      - ./caddy/:/etc/caddy/
+      - caddy_data:/data
+      - ./volumes/media/:/srv/django/media/:ro
+      - django_static:/srv/django/static/:ro
+    environment:
+      BACKEND_PREFIX: $BACKEND_PREFIX
+      DJANGO_PORT: $DJANGO_PORT
+      NEXTCLOUD_PREFIX: $NEXTCLOUD_PREFIX

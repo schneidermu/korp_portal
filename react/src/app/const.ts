@@ -1,4 +1,5 @@
 export const BACKEND_PREFIX = import.meta.env.VITE_BACKEND_PREFIX;
+export const NEXTCLOUD_PREFIX = import.meta.env.VITE_NEXTCLOUD_PREFIX;
 
 export const BACKEND_API_PREFIX = BACKEND_PREFIX + "/api";
 

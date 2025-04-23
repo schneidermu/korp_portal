@@ -1,0 +1,26 @@
+/* NOTE: 0.1px is used as 0 in some places to keep the scrollbar,
+ * which otherwise disappears for an unknown reason.
+ */
+
+#content {
+  margin-top: 0;
+}
+
+#header {
+  display: none !important;
+}
+
+:root {
+  --header-height: 0.1px;
+}
+
+:root {
+  --body-container-radius: 0.1px;
+  --body-container-margin: 0.1px;
+}
+
+:root {
+  --color-main-background: white;
+  --color-background-plain: white;
+  --color-primary: #2164be;
+}

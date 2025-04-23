@@ -25,6 +25,7 @@ COPY . .
 
 ENV VITE_LIFERAY_EMBED=true
 ENV VITE_BACKEND_PREFIX=/api/kp
+ENV VITE_NEXTCLOUD_PREFIX=/api/kp/nextcloud
 
 RUN yarn build && \
   rm -rf dist/index.html dist/dev/ && \
