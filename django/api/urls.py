@@ -5,6 +5,7 @@ from django.urls import include, path
 from .views import (
     AgreeWithDataProcessingView,
     ColleagueProfileViewset,
+    CompetenceListView,
     FileUploadAPIView,
     HierarchyViewSet,
     NewsViewSet,
@@ -20,12 +21,12 @@ router_version1.register("news", NewsViewSet, basename="news")
 router_version1.register("colleagues", ColleagueProfileViewset, basename="colleagues")
 router_version1.register("org-structure", OrgStructureViewset, basename="org-structure")
 router_version1.register("organization", OrganizationViewSet, basename="organization")
-
 router_version1.register("hierarchy", HierarchyViewSet, basename="hierarchy")
 
 
 urlpatterns = [
     path("", include(router_version1.urls)),
+    path("competences/", CompetenceListView.as_view(), name="competence-list"),
     path("auth/", include("djoser.urls.authtoken")),
     path("upload-file/", FileUploadAPIView.as_view(), name="upload-file"),
     path(
