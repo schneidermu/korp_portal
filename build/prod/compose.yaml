@@ -71,3 +71,16 @@ services:
       BACKEND_PREFIX: $BACKEND_PREFIX
       DJANGO_PORT: $DJANGO_PORT
       NEXTCLOUD_PREFIX: $NEXTCLOUD_PREFIX
+      VITE_PREFIX: $VITE_PREFIX
+
+  vite:
+    build:
+      context: ../../react/
+      target: dev
+    command: yarn preview
+    volumes:
+      - ../../react:/app
+    environment:
+      VITE_LIFERAY_EMBED: false
+      VITE_BACKEND_PREFIX: $BACKEND_PREFIX
+      VITE_NEXTCLOUD_PREFIX: $NEXTCLOUD_PREFIX

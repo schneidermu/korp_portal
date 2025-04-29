@@ -83,4 +83,11 @@
 	handle_path {$NEXTCLOUD_PREFIX}/* {
 		reverse_proxy nginx
 	}
+
+	# Vite.
+	handle {$VITE_PREFIX}/* {
+		reverse_proxy vite:4173 {
+			header_up Host {host}
+		}
+	}
 }
