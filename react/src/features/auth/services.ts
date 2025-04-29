@@ -56,7 +56,12 @@ export const useLogin = (credentials?: Credentials) => {
             "Content-Type": "application/json",
           },
         },
-      ).then((res) => res.json());
+      ).then((res) => {
+        if (res.status !== 200) {
+          throw new Error("bad login");
+        }
+        return res.json();
+      });
 
       return fetch(`${BACKEND_API_PREFIX}/colleagues/me/`, {
         headers: {
