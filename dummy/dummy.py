@@ -232,6 +232,7 @@ class User:
             "patronym": self.patronym,
             "email": self.email,
             "username": self.email,
+            "sex": "Мужской" if self.sex == "male" else "Женский",
             "job_title": self.job_title,
             "class_rank": self.service_rank,
             "status": self.status,
