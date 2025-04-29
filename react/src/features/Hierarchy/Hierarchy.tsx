@@ -1,5 +1,29 @@
+import React, { useRef } from "react";
+
+import useDraggableScroll from "use-draggable-scroll";
+import {
+  Heading,
+  Stack,
+  Box,
+  Grid,
+  Text,
+  Icon,
+  HStack,
+  StackProps,
+  GridProps,
+  Flex,
+} from "@chakra-ui/react";
+import { LuUser } from "react-icons/lu";
+
 import { NewPage } from "@/features/App/comps/NewPage.tsx";
-import { Heading, Stack, Box, Grid } from "@chakra-ui/react";
+import { Link } from "react-router-dom";
+
+const COLORS = [
+  { bg: "#DDEAFC", border: "#4D71BE" },
+  { bg: "#F7FEF7", border: "#5AC75C" },
+  { bg: "#FFFCFA", border: "#FF7B02" },
+  { bg: "#FFFEF2", border: "#F1DC1E" },
+];
 
 // interface Hierarchy {
 //   name: string;
@@ -268,53 +292,80 @@ const placeNodes = (
   return pos;
 };
 
+interface UserLinkProps extends StackProps {
+  userId: string;
+  fullname: string;
+}
+
+const UserLink = React.forwardRef<HTMLDivElement, UserLinkProps>(
+  function UserLink(props, ref) {
+    const { userId, fullname, ...rest } = props;
+
+    return (
+      <HStack cursor="pointer" ref={ref} {...rest} asChild>
+        <Link to={`/new/profile/${userId}`}>
+          <Icon>
+            <LuUser />
+          </Icon>
+          <Text color="blue.5">{fullname}</Text>
+        </Link>
+      </HStack>
+    );
+  },
+);
+
 const Node = ({ h, node }: { h: Hierarchy; node: Node }) => {
   if (node.kind === "boss") {
     return (
-      <Box>
-        {node.position}
-        <br />
-        {node.lastName} {node.firstName} {node.patronym}
-      </Box>
+      <Stack
+        cursor="default"
+        onMouseDown={(event) => event.stopPropagation()}
+        textAlign="center"
+      >
+        <Text fontSize="xl">{node.position}</Text>
+        <UserLink
+          justify="center"
+          userId={"TODO"}
+          fullname={`${node.lastName} ${node.firstName} ${node.patronym ?? ""}`}
+        />
+      </Stack>
     );
   }
 
   const head = node.head !== null && h.nodes.get(node.head);
   return (
-    <>
-      <Box textAlign="center">{node.name}</Box>
+    <Stack onMouseDown={(event) => event.stopPropagation()} textAlign="center">
+      <Text fontSize="xl">{node.name}</Text>
       {head && head.kind === "boss" && (
-        <>
-          <Box>
-            {head.position}
-            <br />
-            {head.lastName} {head.firstName} {head.patronym}
-          </Box>
-        </>
+        <UserLink
+          justify="center"
+          userId={"TODO"}
+          fullname={`${head.lastName} ${head.firstName} ${head.patronym ?? ""}`}
+        />
       )}
-    </>
+    </Stack>
   );
 };
 
-export const HierarchyPage = () => {
-  const h = sampleHierarchy;
-  const w = calcBranchWidth(h, h.root);
-  const placement = placeNodes(h, h.root, w);
-  console.log("w", w);
-  console.log("p", [...placement.entries()]);
+const HierarchyView = React.memo(
+  React.forwardRef<HTMLDivElement, GridProps>(
+    function HierarchyView(props, ref) {
+      const h = sampleHierarchy;
+      const w = calcBranchWidth(h, h.root);
+      const placement = placeNodes(h, h.root, w);
+      console.log("w", w);
+      console.log("p", [...placement.entries()]);
 
-  return (
-    <NewPage>
-      <Stack>
-        <Heading color="blue.4" fontSize="3xl">
-          Руководство и структура
-        </Heading>
+      return (
         <Grid
-          gridAutoColumns="400px"
-          gridAutoRows="100px"
+          margin="10"
+          gridAutoColumns="455px"
+          gridAutoRows="auto"
           justifyItems="center"
           alignItems="center"
-          gap="4"
+          gap="8"
+          {...props}
+          ref={ref}
         >
           {[...placement.entries()].map(([key, { row, col, width, node }]) => (
             <Box
@@ -324,13 +375,43 @@ export const HierarchyPage = () => {
               gridColumnEnd={`span ${width}`}
               p="2"
               w={400}
-              borderWidth={1}
               h="full"
+              background={COLORS[row % COLORS.length].bg}
+              borderColor={COLORS[row % COLORS.length].border}
+              borderWidth={2}
+              borderRadius="2"
             >
               <Node h={h} node={node} />
             </Box>
           ))}
         </Grid>
+      );
+    },
+  ),
+);
+
+export const HierarchyPage = () => {
+  const viewRef = useRef<HTMLDivElement | null>(null);
+  const { onMouseDown } = useDraggableScroll(viewRef);
+
+  return (
+    <NewPage>
+      <Stack>
+        <Heading color="blue.4" fontSize="3xl">
+          Руководство и структура
+        </Heading>
+        <Box
+          w="full"
+          h="800px"
+          overflow="auto"
+          ref={viewRef}
+          onMouseDown={onMouseDown}
+          // touchAction="none"
+        >
+          <Flex w="2000px" h="2000px" justify="center" align="center">
+            <HierarchyView />
+          </Flex>
+        </Box>
       </Stack>
     </NewPage>
   );
