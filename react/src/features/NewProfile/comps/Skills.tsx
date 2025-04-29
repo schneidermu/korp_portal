@@ -1,7 +1,6 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import { IconButton, Input, Show, Tag, Wrap } from "@chakra-ui/react";
-import { Option as O } from "effect";
 
 import { UpdateUserFn, User } from "@/features/user/types";
 
@@ -100,7 +99,11 @@ export const Skills = React.memo(function Skills({
   highlightSkills?: string[];
 }) {
   const addSkill = useCallback(
-    (skill: string) => setSkills([...skills, skill]),
+    (skill: string) => {
+      if (skills.findIndex((s) => skill === s) < 0) {
+        setSkills([...skills, skill]);
+      }
+    },
     [skills, setSkills],
   );
 
@@ -141,23 +144,15 @@ export const UserSkills = React.memo(function UserSkills({
   updateUser: UpdateUserFn;
   highlightSkills?: string[];
 }) {
-  const skillsArr = useMemo(
-    () => O.getOrNull(skills)?.split(", ") || [],
-    [skills],
-  );
-
   const setSkills = useCallback(
-    (skills: string[]) =>
-      updateUser(
-        (user) => (user.skills = O.fromNullable(skills.join(", ") || null)),
-      ),
+    (skills: string[]) => updateUser((user) => (user.skills = skills)),
     [updateUser],
   );
 
   return (
     <Skills
       editing={editing}
-      skills={skillsArr}
+      skills={skills}
       setSkills={setSkills}
       highlightSkills={highlightSkills}
     />

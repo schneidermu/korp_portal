@@ -41,7 +41,7 @@ export type User = {
   office: string;
   workExperience: O.Option<string>;
   about: string;
-  skills: O.Option<string>;
+  skills: string[];
   photo: O.Option<string>;
   position: string;
   serviceRank: string;
@@ -174,7 +174,7 @@ export const filterUsers = (
         )) ||
       (fields.has("office") &&
         matchString(term.replace(/к(аб?)?.?\s*/g, ""), office)) ||
-      (fields.has("skills") && O.isSome(skills) && matchString(term, skills))
+      skills.some((skill) => matchString(term, skill))
     );
   });
 };
