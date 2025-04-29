@@ -43,7 +43,7 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
           className="flex items-center p-[10px] cursor-default"
           onMouseEnter={() => setShown(true)}
         >
-          <span>Орг. структура</span>
+          <span>Структура и пр.</span>
           <DropdownArrow />
         </div>
       </div>
@@ -61,6 +61,16 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
           </Link>
           <Link to={unitsLink} className="hover:underline cursor-pointer">
             Список отделов
+          </Link>
+          <Link to="/nextcloud" className="hover:underline cursor-pointer">
+            Облако
+          </Link>
+          <Link
+            to="/nextcloud-standalone"
+            className="hover:underline cursor-pointer"
+            target="_blank"
+          >
+            Облако (полный экран)
           </Link>
         </div>
       </div>
