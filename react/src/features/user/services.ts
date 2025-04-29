@@ -108,7 +108,7 @@ const toUser = (data: UserData): User => {
     office: data.office ?? "",
     workExperience: O.fromNullable(char?.experience),
     about: char?.about ?? "",
-    skills: O.fromNullable(char?.competences[0]?.name),
+    skills: char?.competences.map(({ name }) => name) ?? [],
     photo: O.fromNullable(data.avatar),
     position: data.job_title ?? "",
     serviceRank: data.class_rank ?? "",
@@ -196,9 +196,7 @@ const fromUser = (user: User): UserData => ({
   characteristic: {
     experience: O.getOrElse(user.workExperience, () => ""),
     about: user.about,
-    competences: O.map(user.skills, (name) => [{ name }]).pipe(
-      O.getOrElse(() => []),
-    ),
+    competences: user.skills.map((name) => ({ name })),
     careers: user.career.map((c) => ({
       name: c.position,
       year_start: c.year_start,
