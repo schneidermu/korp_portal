@@ -97,7 +97,7 @@ const Card = React.forwardRef<HTMLDivElement, BoxProps>(
 const BossCard = ({ boss }: { boss: User }) => {
   return (
     <HStack alignItems="start" gap="5">
-      <Avatar user={boss} fallbackSrc=""></Avatar>
+      <Avatar user={boss}></Avatar>
       <Stack mt="3">
         <Link to={`/new/profile/${boss.id}`}>
           <Heading as="h2" textDecor="underline" fontWeight="semibold">

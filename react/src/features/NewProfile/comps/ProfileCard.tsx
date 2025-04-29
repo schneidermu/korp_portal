@@ -36,8 +36,6 @@ import { Select } from "../parts/Select";
 import { Subsection } from "../parts/Subsection";
 import { UserSkills } from "./Skills";
 
-import fallbackAvatar from "@/assets/avatar-fallback.svg";
-
 const INFO_FIELDS = [
   "lastName",
   "firstName",
@@ -215,19 +213,13 @@ export const ProfileCard = React.memo(
                       <AvatarEditable
                         w="full"
                         h="full"
-                        fallbackSrc={fallbackAvatar}
                         user={user}
                         onUpload={(src) =>
                           updateUser((user) => (user.photo = O.some(src)))
                         }
                       />
                     ) : (
-                      <Avatar
-                        fallbackSrc={fallbackAvatar}
-                        user={user}
-                        w="full"
-                        h="full"
-                      />
+                      <Avatar user={user} w="full" h="full" />
                     )}
                   </Box>
                 </Flex>
