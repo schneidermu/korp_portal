@@ -12,8 +12,6 @@ import {
   createListCollection,
 } from "@chakra-ui/react";
 
-import { Option as O } from "effect";
-
 import { QUERY_DEBOUNCE_DELAY, USERS_PAGE_LIMIT } from "@/app/const";
 
 import { useFetchOrgs } from "@/features/org/services";
@@ -170,9 +168,7 @@ export const NewUserList = () => {
     let filteredUsers = filterUsers([...users.values()], query, FILTER_FIELDS);
     if (skills.length > 0) {
       filteredUsers = filteredUsers.filter((user) => {
-        const userSkills = (O.getOrNull(user.skills) ?? "")
-          .split(", ")
-          .map((s) => s.toLowerCase());
+        const userSkills = user.skills.map((s) => s.toLowerCase());
         const matchSkills = skills.map((s) => s.toLowerCase());
         if (requireEverySkill) {
           return matchSkills.every((matchSkill) =>
