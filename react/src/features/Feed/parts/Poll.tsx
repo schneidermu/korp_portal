@@ -241,19 +241,21 @@ const PollChoiceResultsVoters = ({ voters }: { voters: string[] }) => {
 
   const numCollapsedVoters = 3;
 
+  const collapsable = voters.length > numCollapsedVoters + 1;
+
   const Sep = () => <hr className="mt-[42px] mb-[32px] border-medium-gray" />;
 
   return (
     <div className="rounded border border-medium-gray px-[48px] py-[40px]">
       {voters
-        .slice(0, collapsed ? numCollapsedVoters : undefined)
+        .slice(0, collapsable && collapsed ? numCollapsedVoters : undefined)
         .map((userId, i) => (
           <Fragment key={userId}>
             {i > 0 && <Sep />}
             <PollChoiceResultsUserCard userId={userId} />
           </Fragment>
         ))}
-      {voters.length > numCollapsedVoters + 1 && (
+      {collapsable && (
         <>
           <Sep />
           <button
