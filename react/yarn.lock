@@ -5408,6 +5408,7 @@ __metadata:
     tailwindcss: "npm:^3.4.17"
     typescript: "npm:^5.7.3"
     typescript-eslint: "npm:^8.24.0"
+    use-draggable-scroll: "npm:^0.1.0"
     vite: "npm:^6.1.0"
     vite-tsconfig-paths: "npm:^5.1.4"
   languageName: unknown
@@ -5593,6 +5594,15 @@ __metadata:
   dependencies:
     punycode: "npm:^2.1.0"
   checksum: 10c0/4ef57b45aa820d7ac6496e9208559986c665e49447cb072744c13b66925a362d96dd5a46c4530a6b8e203e5db5fe849369444440cb22ecfc26c679359e5dfa3c
+  languageName: node
+  linkType: hard
+
+"use-draggable-scroll@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "use-draggable-scroll@npm:0.1.0"
+  peerDependencies:
+    react: ">=16"
+  checksum: 10c0/c38c50f5b192d65d3b4c26cf39697e604e7f5f5f86c45585e54e502d01204f042174a7eeb9f48e27f3b1f96d76ebfd5fbcebad1a5c8bd2be330ce33fdd455c5b
   languageName: node
   linkType: hard
 
