@@ -1,8 +1,11 @@
 import os.path
 
-from django.db import transaction
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+
+from django.db import transaction
 from employees.models import (
     Career,
     Characteristic,
@@ -26,8 +29,6 @@ from employees.models import (
 )
 from homepage.constants import CHARFIELD_LENGTH
 from homepage.models import Attachment, Choice, News, Poll
-from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
@@ -321,20 +322,9 @@ class CareerSerializer(serializers.ModelSerializer):
 class CompetenceSerializer(serializers.ModelSerializer):
     """Сериализатор для компетенций"""
 
-    file = serializers.CharField(required=False)
-
     class Meta:
         model = Competence
         exclude = ("characteristic",)
-
-    def validate_file(self, value):
-        if value is None:
-            return
-
-        if os.path.isfile(value):
-            return value
-        else:
-            raise serializers.ValidationError(f"Incorrect filename {value}")
 
 
 class TrainingSerializer(serializers.ModelSerializer):
@@ -496,7 +486,6 @@ class CharacteristicSerializer(serializers.ModelSerializer):
     careers = CareerSerializer(many=True, required=False)
     diplomas = DiplomaSerializer(many=True, required=False)
     universitys = UniversitySerializer(many=True, required=False)
-    competences = CompetenceSerializer(many=True, required=False)
     trainings = TrainingSerializer(many=True, required=False)
     hobbys = HobbySerializer(many=True, required=False)
     rewards = RewardSerializer(many=True, required=False)
@@ -505,6 +494,7 @@ class CharacteristicSerializer(serializers.ModelSerializer):
     performances = PerformanceSerializer(many=True, required=False)
     sports = SportSerializer(many=True, required=False)
     volunteers = VolunteerSerializer(many=True, required=False)
+    competences = CompetenceSerializer(many=True, required=False)
 
     class Meta:
         model = Characteristic
@@ -592,7 +582,6 @@ class ProfileSerializer(UserSerializer):
             raise serializers.ValidationError(f"Incorrect filename {value}")
 
     def get_supervisor(self, obj):
-
         if hasattr(obj, "structural_division") and obj.structural_division:
             structural_division = obj.structural_division
             supervisor = structural_division.supervisor
@@ -648,44 +637,116 @@ class ProfileSerializer(UserSerializer):
 
     @staticmethod
     def add_related_fields(characteristic_update, characteristic, name, model_class):
-        objects = characteristic_update.pop(name, None)
+        """
+        Adds related objects to the characteristic.
+        For Competence, uses get_or_create based on 'name'.
+        For other models, creates new instances.
+        Pops the key from characteristic_update dictionary.
+        """
+        objects_data = characteristic_update.pop(name, None)
 
-        if not objects:
+        # Skip if no data or data is not a list
+        if not objects_data or not isinstance(objects_data, list):
             return
 
-        new_objects = []
+        m2m_manager = getattr(characteristic, name)
+        instances_to_set = []
 
-        for obj in objects:
-            new_objects.append(model_class(**obj))
+        if model_class == Competence:
+            # --- Special handling for Competence ---
+            for competence_dict in objects_data:
+                # Ensure it's a dictionary and has a 'name' key
+                if isinstance(competence_dict, dict):
+                    competence_name = competence_dict.get("name")
+                    if competence_name:
+                        # Find existing or create new, using the dict as defaults
+                        competence_instance, created = Competence.objects.get_or_create(
+                            name=competence_name,
+                            defaults=competence_dict,  # Pass the whole dict as defaults
+                        )
+                        instances_to_set.append(competence_instance)
+        else:
+            # --- Original handling for other models ---
+            new_objects = []
+            for obj_data in objects_data:
+                # Ensure it's a dictionary before attempting ** unpacking
+                if isinstance(obj_data, dict):
+                    # Ensure data is suitable for model creation
+                    # You might need filtering/validation here depending on input
+                    try:
+                        new_objects.append(model_class(**obj_data))
+                    except TypeError as e:
+                        # Handle cases where obj_data keys don't match model fields
+                        print(
+                            f"Warning: Skipping object creation for {model_class.__name__} due to TypeError: {e}. Data: {obj_data}"
+                        )
+                        continue  # Skip this item
 
-        created_objects = model_class.objects.bulk_create(new_objects)
+            if new_objects:
+                try:
+                    created_objects = model_class.objects.bulk_create(new_objects)
+                    instances_to_set.extend(created_objects)
+                except Exception as e:
+                    # Handle potential bulk_create errors
+                    print(f"Error during bulk_create for {model_class.__name__}: {e}")
 
-        for created_object in created_objects:
-            getattr(characteristic, name).add(created_object)
+        # Use set() to assign the final list of instances to the M2M field
+        if instances_to_set:
+            m2m_manager.set(instances_to_set)
+        else:
+            # If input data was provided but resulted in no valid instances,
+            # ensure the relation is cleared.
+            m2m_manager.clear()
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        characteristic_update = validated_data.pop("characteristic", None)
+        characteristic_update_original = validated_data.pop("characteristic", None)
 
         super().update(instance, validated_data)
-        instance.save()
 
-        if characteristic_update:
+        if characteristic_update_original:
+            characteristic_update_copy = characteristic_update_original.copy()
+
             characteristic, created = Characteristic.objects.get_or_create(
                 employee=instance
             )
-            if not created:
-                characteristic.delete()
-                characteristic = Characteristic.objects.create(employee=instance)
 
-            for attribute, model in ATTRIBUTE_MODEL:
-                self.add_related_fields(
-                    characteristic_update, characteristic, attribute, model
-                )
+            # Get the names of fields managed by ATTRIBUTE_MODEL
+            m2m_field_names = {attr for attr, model in ATTRIBUTE_MODEL}
 
-            for key in characteristic_update:
-                if key:
-                    setattr(characteristic, key, characteristic_update[key])
+            # --- Clear existing M2M relations before adding new ones ---
+            for attribute_name in m2m_field_names:
+                # Only clear if new data for this M2M field was provided in the request
+                if attribute_name in characteristic_update_copy:
+                    if hasattr(characteristic, attribute_name):
+                        m2m_manager = getattr(characteristic, attribute_name)
+                        if hasattr(m2m_manager, "clear"):
+                            m2m_manager.clear()
+
+            for attribute_name, model in ATTRIBUTE_MODEL:
+                if attribute_name in characteristic_update_copy:
+                    self.add_related_fields(
+                        characteristic_update_copy,
+                        characteristic,
+                        attribute_name,
+                        model,
+                    )
+
+            # --- Update direct fields on Characteristic model ---
+            # Iterate through the *remaining* keys in the copy.
+            # These should only be the direct fields of Characteristic,
+            # as M2M keys were popped by add_related_fields.
+            for key, value in characteristic_update_copy.items():
+                # Double-check it's not an M2M field (belt-and-suspenders)
+                # and that the attribute exists on the model
+                if key not in m2m_field_names and hasattr(characteristic, key):
+                    field_object = characteristic.__class__._meta.get_field(key)
+                    if (
+                        not field_object.is_relation
+                        or field_object.one_to_one
+                        or field_object.many_to_one
+                    ):
+                        setattr(characteristic, key, value)
 
             characteristic.save()
 

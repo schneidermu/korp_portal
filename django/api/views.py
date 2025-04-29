@@ -5,9 +5,7 @@ from datetime import datetime
 
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from employees.models import Employee, Organization, Rating
-from homepage.models import News, Poll
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, generics, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
@@ -20,9 +18,12 @@ from django.db import transaction
 from django.db.models import CharField, Value
 from django.db.models.functions import Concat
 from django.shortcuts import get_object_or_404
+from employees.models import Competence, Employee, Organization, Rating
+from homepage.models import News, Poll
 
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 from .serializers import (
+    CompetenceSerializer,
     FileUploadSerializer,
     HierarchySerializer,
     NewsSerializer,
@@ -364,3 +365,22 @@ class ValidateNextCloudView(APIView):
             status=status.HTTP_200_OK,
             headers={"WWW-Authenticate": 'Basic realm="Nextcloud"'},
         )
+
+
+class CompetenceListView(generics.ListAPIView):
+    """
+    Provides a read-only list of all available Competences (id and name).
+
+    Supports searching by competence name using the 'search' query parameter.
+    Example: /api/v1/competences/?search=Python
+    """
+
+    queryset = Competence.objects.all().order_by("name").distinct('name')
+    serializer_class = CompetenceSerializer
+    permission_classes = (IsAuthenticated,)
+
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+    )
+    search_fields = ["name"]
