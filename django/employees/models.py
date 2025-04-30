@@ -4,7 +4,9 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
-from homepage.constants import CHARFIELD_LENGTH
+
+from homepage.constants import (CHARFIELD_LENGTH, OFFICE_NUMBER_LENGTH,
+                                PHONE_NUMBER_LENGTH)
 
 
 def return_name(instance, filename):
@@ -87,6 +89,7 @@ class Employee(AbstractUser):
         verbose_name="Номер телефона",
         blank=True,
         null=True,
+        max_length=PHONE_NUMBER_LENGTH
     )
 
     agreed_with_data_processing = models.BooleanField(
@@ -99,11 +102,13 @@ class Employee(AbstractUser):
         verbose_name="Внутренний номер телефона",
         blank=True,
         null=True,
+        max_length=PHONE_NUMBER_LENGTH
     )
     office = models.CharField(
         verbose_name="Кабинет",
         blank=True,
         null=True,
+        max_length=OFFICE_NUMBER_LENGTH
     )
 
     job_title = models.CharField(
@@ -301,6 +306,7 @@ class Characteristic(models.Model):
     about = models.TextField(
         verbose_name="Обо мне",
         blank=True,
+        max_length=CHARFIELD_LENGTH*4
     )
 
     class Meta:
