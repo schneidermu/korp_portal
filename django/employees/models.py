@@ -279,6 +279,7 @@ class Characteristic(models.Model):
     experience = models.CharField(
         verbose_name="Стаж работы",
         blank=True,
+        max_length=CHARFIELD_LENGTH
     )
 
     # Карьерный рост через class Career
@@ -418,6 +419,7 @@ class University(AbstractWithPhotoNameModel):
     faculty = models.CharField(
         verbose_name="Факультет",
         blank=True,
+        max_length=CHARFIELD_LENGTH
     )
 
     class Meta:
