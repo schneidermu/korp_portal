@@ -1,8 +1,14 @@
 import base64
 from datetime import datetime
 
+from django.db import transaction
+from django.db.models import CharField, Count, Value
+from django.db.models.functions import Concat
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from employees.models import Competence, Employee, Organization, Rating
+from homepage.models import News, Poll
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -12,13 +18,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from django.db import transaction
-from django.db.models import CharField, Count, Value
-from django.db.models.functions import Concat
-from django.shortcuts import get_object_or_404
-from employees.models import Competence, Employee, Organization, Rating
-from homepage.models import News, Poll
-
+from .filters import CompetenceFilter
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 from .serializers import (
     CompetenceSerializer,
@@ -374,6 +374,7 @@ class CompetenceListView(generics.ListAPIView):
         DjangoFilterBackend,
         filters.SearchFilter,
     )
+    filterset_class = CompetenceFilter
     search_fields = ["name"]
 
     def get_queryset(self):
