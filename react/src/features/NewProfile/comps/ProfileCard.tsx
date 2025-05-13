@@ -25,6 +25,7 @@ import {
   stripPhoneNumber,
 } from "@/shared/utils";
 
+import { UserSkills } from "@/features/Skills/Skills";
 import { Rating } from "@/features/rating/comps/Rating";
 import { Avatar, AvatarEditable } from "@/features/user/comps/Avatar";
 
@@ -34,7 +35,6 @@ import { Input } from "../parts/Input";
 import { Section } from "../parts/Section";
 import { Select } from "../parts/Select";
 import { Subsection } from "../parts/Subsection";
-import { UserSkills } from "./Skills";
 
 const INFO_FIELDS = [
   "lastName",

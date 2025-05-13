@@ -21,7 +21,7 @@ import { useIntSearchParam } from "@/shared/hooks/useSearchParam";
 
 import { NewPage } from "@/features/App/comps/NewPage";
 import { ProfileCard } from "@/features/NewProfile/comps/ProfileCard";
-import { Skills } from "@/features/NewProfile/comps/Skills";
+import { Skills } from "@/features/Skills/Skills";
 
 import { useReachBottom } from "@/shared/hooks/useReachBottom";
 import { SearchBar } from "../../shared/comps/SearchBarNew";

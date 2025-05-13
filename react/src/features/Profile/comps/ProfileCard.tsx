@@ -20,7 +20,7 @@ import {
   userPhotoPath,
 } from "@/shared/utils";
 
-import { UserSkills } from "@/features/NewProfile/comps/Skills";
+import { UserSkills } from "@/features/Skills/Skills";
 import { Rating } from "@/features/rating/comps/Rating";
 import { Icon } from "@/shared/comps/Icon";
 import { Picture } from "@/shared/comps/Picture";
