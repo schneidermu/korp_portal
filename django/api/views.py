@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from django.db import transaction
-from django.db.models import CharField, Value
+from django.db.models import CharField, Count, Value
 from django.db.models.functions import Concat
 from django.shortcuts import get_object_or_404
 from employees.models import Competence, Employee, Organization, Rating
@@ -367,7 +367,6 @@ class CompetenceListView(generics.ListAPIView):
     Example: /api/v1/competences/?search=Python
     """
 
-    queryset = Competence.objects.all().order_by("name").distinct('name')
     serializer_class = CompetenceSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -376,3 +375,13 @@ class CompetenceListView(generics.ListAPIView):
         filters.SearchFilter,
     )
     search_fields = ["name"]
+
+    def get_queryset(self):
+        """
+        Annotate the queryset with the count of related characteristics.
+        """
+        queryset = Competence.objects.annotate(
+            characteristic_count=Count("characteristic")
+        ).order_by("name")
+
+        return queryset.order_by("name")

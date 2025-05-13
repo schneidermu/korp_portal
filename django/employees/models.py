@@ -380,6 +380,12 @@ class Competence(AbstractNameModel):
         blank=True,
     )
 
+    is_important = models.BooleanField(
+        verbose_name="Важный навык",
+        default=False,
+        help_text="Указывает, была ли эта компетенция определена администратором как важный навык."
+    )
+
     class Meta:
         verbose_name = "запись компетенции"
         verbose_name_plural = "записи компетенций"

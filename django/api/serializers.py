@@ -322,6 +322,8 @@ class CareerSerializer(serializers.ModelSerializer):
 class CompetenceSerializer(serializers.ModelSerializer):
     """Сериализатор для компетенций"""
 
+    characteristic_count = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Competence
         exclude = ("characteristic",)
