@@ -6,7 +6,7 @@ version=$1
 timestamp=$(date +%Y-%m-%d)
 
 cd "$(git rev-parse --show-toplevel)"
-outdir="artefacts/dist/react"
+outdir="art/dist/react"
 mkdir -p "$outdir"
 
 name=korp-portal-portlet
