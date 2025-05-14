@@ -1,22 +1,26 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
-import { IconButton, Input, Show, Tag, Wrap } from "@chakra-ui/react";
+import { Show, Stack, StackProps, Tag, Wrap } from "@chakra-ui/react";
+import {
+  AutoComplete,
+  AutoCompleteCreatable,
+  AutoCompleteInput,
+  AutoCompleteItem,
+  AutoCompleteList,
+} from "@choc-ui/chakra-autocomplete";
 
 import { UpdateUserFn, User } from "@/features/user/types";
-
-import { LuPlus } from "@/shared/icons/LuPlus";
+import { useSkillsCompletion } from "@/features/Skills/services";
 
 const Skill = React.memo(function Skill({
   skill,
   editing,
-  index,
   removeSkill,
   highlight = false,
 }: {
   skill: string;
   editing?: boolean;
-  index: number;
-  removeSkill: (i: number) => void;
+  removeSkill: (skill: string) => void;
   highlight?: boolean;
 }) {
   return (
@@ -27,111 +31,141 @@ const Skill = React.memo(function Skill({
       px="3"
       py="1"
       role={editing ? "button" : undefined}
-      onClick={() => editing && removeSkill(index)}
+      onClick={() => editing && removeSkill(skill)}
     >
       <Tag.Label fontSize="inherit" lineHeight="inherit">
         {skill}
       </Tag.Label>
       <Show when={editing}>
         <Tag.EndElement>
-          <Tag.CloseTrigger type="button" onClick={() => removeSkill(index)} />
+          <Tag.CloseTrigger type="button" onClick={() => removeSkill(skill)} />
         </Tag.EndElement>
       </Show>
     </Tag.Root>
   );
 });
 
-const NewSkill = React.memo(function NewSkill({
+const SkillInput = React.memo(function NewSkill({
   addSkill,
   placeholder = "Новый навык",
+  excludeSkills,
 }: {
   addSkill: (skill: string) => void;
   placeholder?: string;
+  excludeSkills: string[];
 }) {
   const [skill, setSkill] = useState("");
+  const { data: skillsAll } = useSkillsCompletion({ minUsage: 7 });
 
-  const onAdd = () => {
-    if (skill === "") return;
+  const skills = useMemo(
+    () => skillsAll?.filter(({ name }) => !excludeSkills.includes(name)),
+    [skillsAll, excludeSkills],
+  );
+
+  const onAddSkill = (skill: string) => {
+    if (skill === "" || excludeSkills.includes(skill)) return false;
     addSkill(skill);
     setSkill("");
+    return true;
   };
 
   return (
-    <Tag.Root color="blue.1" bg="blue.3" borderRadius="small" px="3" py="1">
-      <Tag.StartElement asChild>
-        <IconButton minW="0" onClick={onAdd}>
-          <LuPlus />
-        </IconButton>
-      </Tag.StartElement>
-      <Tag.Label fontSize="inherit">
-        <Input
-          spellCheck
-          maxLength={35}
-          width="28"
-          height="auto"
-          outline="none !important"
-          value={skill}
-          placeholder={placeholder}
-          onChange={({ target }) => setSkill(target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              onAdd();
-            }
-          }}
-        />
-      </Tag.Label>
-    </Tag.Root>
+    <AutoComplete
+      openOnFocus
+      creatable
+      onSelectOption={({ item }) => onAddSkill(item.value)}
+      maxSuggestions={6}
+    >
+      <AutoCompleteInput
+        variant="subtle"
+        width="60%"
+        bg="blue.3"
+        borderRadius="small"
+        px="3"
+        py="1"
+        value={skill}
+        placeholder={placeholder}
+        onChange={({ target }) => setSkill(target.value)}
+        onKeyUp={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            event.stopPropagation();
+            onAddSkill(skill);
+          }
+        }}
+      />
+      <AutoCompleteList color="black" bg="white" py="2">
+        {skills?.map(({ id, name }) => (
+          <AutoCompleteItem
+            key={id}
+            value={name}
+            _focus={{ bg: "blue.2", color: "white" }}
+          >
+            {name}
+          </AutoCompleteItem>
+        ))}
+        <AutoCompleteCreatable />
+      </AutoCompleteList>
+    </AutoComplete>
   );
 });
 
-export const Skills = React.memo(function Skills({
-  editing,
-  placeholder,
-  skills,
-  setSkills,
-  highlightSkills,
-}: {
+export interface SkillsProps extends StackProps {
   editing?: boolean;
   placeholder?: string;
   skills: string[];
-  setSkills: (skills: string[]) => void;
+  setSkills: (updateSkills: (skills: string[]) => string[]) => void;
   highlightSkills?: string[];
-}) {
-  const addSkill = useCallback(
-    (skill: string) => {
-      if (skills.findIndex((s) => skill === s) < 0) {
-        setSkills([...skills, skill]);
-      }
-    },
-    [skills, setSkills],
-  );
+}
 
-  const removeSkill = useCallback(
-    (i: number) => setSkills([...skills.slice(0, i), ...skills.slice(i + 1)]),
-    [skills, setSkills],
-  );
+export const Skills = React.memo(
+  React.forwardRef<HTMLDivElement, SkillsProps>(function Skills(props, ref) {
+    const {
+      editing,
+      placeholder,
+      skills,
+      setSkills,
+      highlightSkills,
+      ...rest
+    } = props;
 
-  return (
-    <Wrap fontSize="md" gapX="4" gapY="2">
-      {skills.map((skill, i) => (
-        <Skill
-          key={i}
-          index={i}
-          skill={skill}
-          editing={editing}
-          removeSkill={removeSkill}
-          highlight={highlightSkills?.some((term) =>
-            skill.toLowerCase().includes(term.toLowerCase()),
-          )}
-        />
-      ))}
-      <Show when={editing}>
-        <NewSkill addSkill={addSkill} placeholder={placeholder} />
-      </Show>
-    </Wrap>
-  );
-});
+    const addSkill = useCallback(
+      (skill: string) => setSkills((skills) => [...skills, skill]),
+      [setSkills],
+    );
+
+    const removeSkill = useCallback(
+      (skill: string) =>
+        setSkills((skills) => skills.filter((s) => s !== skill)),
+      [setSkills],
+    );
+
+    return (
+      <Stack fontSize="md" gap="4" ref={ref} {...rest}>
+        <Wrap gapX="4" gapY="2">
+          {skills.map((skill) => (
+            <Skill
+              key={skill}
+              skill={skill}
+              editing={editing}
+              removeSkill={removeSkill}
+              highlight={highlightSkills?.some((term) =>
+                skill.toLowerCase().includes(term.toLowerCase()),
+              )}
+            />
+          ))}
+        </Wrap>
+        <Show when={editing}>
+          <SkillInput
+            addSkill={addSkill}
+            placeholder={placeholder}
+            excludeSkills={skills}
+          />
+        </Show>
+      </Stack>
+    );
+  }),
+);
 
 export const UserSkills = React.memo(function UserSkills({
   skills,
@@ -145,7 +179,8 @@ export const UserSkills = React.memo(function UserSkills({
   highlightSkills?: string[];
 }) {
   const setSkills = useCallback(
-    (skills: string[]) => updateUser((user) => (user.skills = skills)),
+    (updateSkills: (skills: string[]) => string[]) =>
+      updateUser((user) => (user.skills = updateSkills(user.skills))),
     [updateUser],
   );
 

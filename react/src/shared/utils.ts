@@ -9,6 +9,12 @@ import femaleAvatar from "/avatar/female.png";
 
 export const NBSP = "\xA0";
 
+export const sorted = <T>(xs: T[], compareFn?: (a: T, b: T) => number) => {
+  const ys = [...xs];
+  ys.sort(compareFn);
+  return ys;
+};
+
 export const urlBasename = (url: string): string => {
   const parts = decodeURI(url).split("/");
   return parts[parts.length - 1];

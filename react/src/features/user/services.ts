@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 
-import { Option as O } from "effect";
+import { Option as O, Option } from "effect";
 import { produce } from "immer";
 import useSWR, { mutate } from "swr";
 import useSWRInfinite from "swr/infinite";
@@ -9,10 +9,13 @@ import { USERS_PAGE_LIMIT } from "@/app/const";
 
 import { tokenFetch, useTokenFetcher } from "@/features/auth/hooks";
 import { Paged } from "@/shared/types";
-import { fileExtention, fullNameLong, trimExtention } from "@/shared/utils";
+import {
+  fileExtention,
+  fullNameLong,
+  sorted,
+  trimExtention,
+} from "@/shared/utils";
 import { User, UserStatus } from "./types";
-
-import { Option } from "effect";
 
 export const UserNotFoundError = new Error("User not found");
 
@@ -108,7 +111,7 @@ const toUser = (data: UserData): User => {
     office: data.office ?? "",
     workExperience: O.fromNullable(char?.experience),
     about: char?.about ?? "",
-    skills: char?.competences.map(({ name }) => name) ?? [],
+    skills: sorted(char?.competences.map(({ name }) => name) ?? []),
     photo: O.fromNullable(data.avatar),
     position: data.job_title ?? "",
     serviceRank: data.class_rank ?? "",

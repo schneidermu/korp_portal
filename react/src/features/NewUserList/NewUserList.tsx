@@ -168,7 +168,7 @@ export const NewUserList = () => {
     let filteredUsers = filterUsers([...users.values()], query, FILTER_FIELDS);
     if (skills.length > 0) {
       filteredUsers = filteredUsers.filter((user) => {
-        const userSkills = user.skills.map((s) => s.toLowerCase());
+        const userSkills = user.skills.map((skill) => skill.toLowerCase());
         const matchSkills = skills.map((s) => s.toLowerCase());
         if (requireEverySkill) {
           return matchSkills.every((matchSkill) =>
@@ -203,15 +203,17 @@ export const NewUserList = () => {
           />
         </Stack>
         <SearchBar debounceDelay={QUERY_DEBOUNCE_DELAY} onDebounce={setQuery} />
-        <Flex justify="space-between">
+        <Flex justify="space-between" align="start" gap="8">
           <Skills
             editing
+            flexGrow="1"
             placeholder="Поиск навыка"
             skills={skills}
             setSkills={setSkills}
           />
           <Show when={skills.length >= 2}>
             <Checkbox.Root
+              flexShrink="0"
               variant="outline"
               checked={requireEverySkill}
               onCheckedChange={({ checked }) => setRequireEverySkill(!!checked)}
