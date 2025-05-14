@@ -47,7 +47,7 @@ export const useLogin = (credentials?: Credentials) => {
       }
 
       const { auth_token: token }: { auth_token: string } = await fetch(
-        `${BACKEND_API_PREFIX}/auth/token/login`,
+        `${BACKEND_API_PREFIX}/auth/token/login/`,
         {
           method: "POST",
           credentials: "include",
