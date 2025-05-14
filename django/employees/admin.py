@@ -143,6 +143,11 @@ class OrganizationAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(Competence)
+class CompetenceAdmin(admin.ModelAdmin):
+    pass
+
+
 @admin.register(Rating)
 class RatingAdmin(admin.ModelAdmin):
     pass

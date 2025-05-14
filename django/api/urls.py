@@ -6,6 +6,7 @@ from .views import (
     AgreeWithDataProcessingView,
     ColleagueProfileViewset,
     CompetenceListView,
+    CustomTokenCreateView,
     FileUploadAPIView,
     HierarchyViewSet,
     NewsViewSet,
@@ -27,6 +28,7 @@ router_version1.register("hierarchy", HierarchyViewSet, basename="hierarchy")
 urlpatterns = [
     path("", include(router_version1.urls)),
     path("competences/", CompetenceListView.as_view(), name="competence-list"),
+    path("auth/token/login/", CustomTokenCreateView.as_view(), name="custom_login"),
     path("auth/", include("djoser.urls.authtoken")),
     path("upload-file/", FileUploadAPIView.as_view(), name="upload-file"),
     path(

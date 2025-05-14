@@ -4,7 +4,7 @@ import base64
 from datetime import datetime
 
 from django_filters.rest_framework import DjangoFilterBackend
-from djoser.views import UserViewSet
+from djoser.views import TokenCreateView, UserViewSet
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -15,12 +15,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from django.db import transaction
-from django.db.models import CharField, Value
+from django.db.models import CharField, Count, Value
 from django.db.models.functions import Concat
 from django.shortcuts import get_object_or_404
-from employees.models import Competence, Employee, Organization, Rating
-from homepage.models import News, Poll
 
+from employees.models import Competence, Employee, Organization, Rating
+from .filters import CompetenceFilter
+from homepage.models import News, Poll
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 from .serializers import (
     CompetenceSerializer,
@@ -375,7 +376,6 @@ class CompetenceListView(generics.ListAPIView):
     Example: /api/v1/competences/?search=Python
     """
 
-    queryset = Competence.objects.all().order_by("name").distinct('name')
     serializer_class = CompetenceSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -383,4 +383,65 @@ class CompetenceListView(generics.ListAPIView):
         DjangoFilterBackend,
         filters.SearchFilter,
     )
+    filterset_class = CompetenceFilter
     search_fields = ["name"]
+
+    def get_queryset(self):
+        """
+        Annotate the queryset with the count of related characteristics.
+        """
+        queryset = Competence.objects.annotate(
+            characteristic_count=Count("characteristic")
+        ).order_by("name")
+
+        return queryset.order_by("name")
+
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class CustomTokenCreateView(TokenCreateView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == status.HTTP_200_OK:
+            try:
+                auth_token_key = response.data.get("auth_token")
+
+                if not auth_token_key:
+                    return response
+
+                try:
+                    token_obj = Token.objects.select_related("user").get(
+                        key=auth_token_key
+                    )
+                except Token.DoesNotExist:
+                    return response
+
+                user_email = token_obj.user.email
+
+                if not user_email:
+                    return response
+
+                credentials_to_encode = f"{user_email}:{auth_token_key}"
+                credentials_as_bytes = credentials_to_encode.encode("utf-8")
+
+                encoded_credentials_bytes = base64.b64encode(credentials_as_bytes)
+
+                encoded_credentials_str = encoded_credentials_bytes.decode("utf-8")
+
+                response.set_cookie(
+                    key="nextcloud_authorization",
+                    value=encoded_credentials_str,
+                    secure=False,
+                    httponly=True,
+                    path="/",
+                    samesite="Lax",
+                )
+
+            except Exception as e:
+                pass
+
+        return response

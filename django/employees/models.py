@@ -4,7 +4,9 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
-from homepage.constants import CHARFIELD_LENGTH
+
+from homepage.constants import (CHARFIELD_LENGTH, OFFICE_NUMBER_LENGTH,
+                                PHONE_NUMBER_LENGTH)
 
 
 def return_name(instance, filename):
@@ -87,6 +89,7 @@ class Employee(AbstractUser):
         verbose_name="Номер телефона",
         blank=True,
         null=True,
+        max_length=PHONE_NUMBER_LENGTH
     )
 
     agreed_with_data_processing = models.BooleanField(
@@ -99,11 +102,13 @@ class Employee(AbstractUser):
         verbose_name="Внутренний номер телефона",
         blank=True,
         null=True,
+        max_length=PHONE_NUMBER_LENGTH
     )
     office = models.CharField(
         verbose_name="Кабинет",
         blank=True,
         null=True,
+        max_length=OFFICE_NUMBER_LENGTH
     )
 
     job_title = models.CharField(
@@ -274,6 +279,7 @@ class Characteristic(models.Model):
     experience = models.CharField(
         verbose_name="Стаж работы",
         blank=True,
+        max_length=CHARFIELD_LENGTH
     )
 
     # Карьерный рост через class Career
@@ -301,6 +307,7 @@ class Characteristic(models.Model):
     about = models.TextField(
         verbose_name="Обо мне",
         blank=True,
+        max_length=CHARFIELD_LENGTH*4
     )
 
     class Meta:
@@ -373,6 +380,12 @@ class Competence(AbstractNameModel):
         blank=True,
     )
 
+    is_important = models.BooleanField(
+        verbose_name="Важный навык",
+        default=False,
+        help_text="Указывает, была ли эта компетенция определена администратором как важный навык."
+    )
+
     class Meta:
         verbose_name = "запись компетенции"
         verbose_name_plural = "записи компетенций"
@@ -412,6 +425,7 @@ class University(AbstractWithPhotoNameModel):
     faculty = models.CharField(
         verbose_name="Факультет",
         blank=True,
+        max_length=CHARFIELD_LENGTH
     )
 
     class Meta:
