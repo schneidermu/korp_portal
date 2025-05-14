@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^3.14.2",
+    "@choc-ui/chakra-autocomplete": "^6.1.0",
     "@emotion/react": "^11.14.0",
     "@reduxjs/toolkit": "^2.5.1",
     "clsx": "^2.1.1",

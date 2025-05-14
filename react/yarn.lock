@@ -380,6 +380,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@choc-ui/chakra-autocomplete@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "@choc-ui/chakra-autocomplete@npm:6.1.0"
+  dependencies:
+    next-themes: "npm:^0.4.3"
+    react-icons: "npm:^5.3.0"
+    react-nanny: "npm:2.15.0"
+  peerDependencies:
+    "@chakra-ui/react": ^3.2.2
+    "@emotion/react": ^11.13.5
+    react: ">=18.2.0"
+  checksum: 10c0/7c8617d6048865a7cd1f2dba614646e74187cee39033578f624b285b24cc3a1632c1732d951bb28577d15aced88d0f3c1285b0eb19ca8b1c9b999f9cd3cd4053
+  languageName: node
+  linkType: hard
+
 "@clack/core@npm:0.4.1":
   version: 0.4.1
   resolution: "@clack/core@npm:0.4.1"
@@ -4276,6 +4291,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"next-themes@npm:^0.4.3":
+  version: 0.4.6
+  resolution: "next-themes@npm:0.4.6"
+  peerDependencies:
+    react: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17 || ^18 || ^19 || ^19.0.0-rc
+  checksum: 10c0/83590c11d359ce7e4ced14f6ea9dd7a691d5ce6843fe2dc520fc27e29ae1c535118478d03e7f172609c41b1ef1b8da6b8dd2d2acd6cd79cac1abbdbd5b99f2c4
+  languageName: node
+  linkType: hard
+
 "next-themes@npm:^0.4.4":
   version: 0.4.4
   resolution: "next-themes@npm:0.4.4"
@@ -4759,7 +4784,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-icons@npm:^5.5.0":
+"react-icons@npm:^5.3.0, react-icons@npm:^5.5.0":
   version: 5.5.0
   resolution: "react-icons@npm:5.5.0"
   peerDependencies:
@@ -4772,6 +4797,15 @@ __metadata:
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
   checksum: 10c0/33977da7a5f1a287936a0c85639fec6ca74f4f15ef1e59a6bc20338fc73dc69555381e211f7a3529b8150a1f71e4225525b41b60b52965bda53ce7d47377ada1
+  languageName: node
+  linkType: hard
+
+"react-nanny@npm:2.15.0":
+  version: 2.15.0
+  resolution: "react-nanny@npm:2.15.0"
+  peerDependencies:
+    react: ">=16.0.0"
+  checksum: 10c0/dadda08ec8320a1a241b2f3a23c071be57cac15ff052d6e03a50538e50d9331205b7f09f00920f97753234aa96e23190c4ac6becdac85bbdfea0ca7cb80093dc
   languageName: node
   linkType: hard
 
@@ -5377,6 +5411,7 @@ __metadata:
   dependencies:
     "@chakra-ui/cli": "npm:^3.8.1"
     "@chakra-ui/react": "npm:^3.14.2"
+    "@choc-ui/chakra-autocomplete": "npm:^6.1.0"
     "@emotion/react": "npm:^11.14.0"
     "@eslint/js": "npm:^9.20.0"
     "@reduxjs/toolkit": "npm:^2.5.1"
