@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 
 import clsx from "clsx/lite";
 
+import { NEXTCLOUD_PREFIX } from "@/app/const";
+
 import { useAuth } from "@/features/auth/slice";
 
 import { Icon } from "@/shared/comps/Icon";
@@ -65,13 +67,13 @@ const DropdownMenu = ({ position }: { position?: "left" | "right" }) => {
           <Link to="/nextcloud" className="hover:underline cursor-pointer">
             Облако
           </Link>
-          <Link
-            to="/nextcloud-standalone"
+          <a
+            href={NEXTCLOUD_PREFIX + "/"}
             className="hover:underline cursor-pointer"
             target="_blank"
           >
             Облако (полный экран)
-          </Link>
+          </a>
         </div>
       </div>
     </div>

@@ -8,11 +8,7 @@ import { Feed } from "@/features/Feed/Feed";
 import { NewFeedPage } from "@/features/NewFeed/NewFeed";
 import { NewProfilePage } from "@/features/NewProfile/NewProfile";
 import { NewUserList } from "@/features/NewUserList/NewUserList";
-import {
-  NextcloudPage,
-  Nextcloud,
-  NextcloudStandalone,
-} from "@/features/Nextcloud/Nextcloud";
+import { Nextcloud, NextcloudPage } from "@/features/Nextcloud/Nextcloud";
 import { NotFound } from "@/features/NotFound/NotFound";
 import { OrgPage } from "@/features/Org/Org";
 import { UserProfile } from "@/features/Profile/Profile";
@@ -33,10 +29,6 @@ export const App = () => {
             <Route path="/new/org/:orgId?" element={<OrgPage />} />
             <Route path="/new/list" element={<NewUserList />} />
             <Route path="/new/feed" element={<NewFeedPage />} />
-            <Route
-              path="/nextcloud-standalone"
-              element={<NextcloudStandalone />}
-            />
             <Route element={<Page />}>
               <Route path="/" element={<UserProfile />} />
               <Route path="/nextcloud" element={<Nextcloud />} />
