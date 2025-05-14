@@ -156,7 +156,7 @@ export const News = ({ news }: { news: types.News }) => {
         <ImgGrid imgs={news.images} />
       </Stack>
 
-      <Stack fontSize="2xl" px="8" gap="5">
+      <Stack fontSize="2xl" px="2" gap="5">
         {news.text.split("\n").map((para, i) => (
           <Text key={i}>{para}</Text>
         ))}
