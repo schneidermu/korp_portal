@@ -549,7 +549,10 @@ print(
     ),
     gen_table(
         "employees_competence",
-        [{"id": id, "name": skill} for skill, id in skill2id.items()],
+        [
+            {"id": id, "name": skill, "is_important": False}
+            for skill, id in skill2id.items()
+        ],
     ),
     gen_table(
         "employees_competence_characteristic",
