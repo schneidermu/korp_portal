@@ -9,17 +9,17 @@ export const NewNavBar = () => {
   const { orgId, userId } = useAuth();
 
   const links: { name: string; link: string; anchor?: boolean }[] = [
-    { name: "Новости", link: "/new/feed" },
-    { name: "Мой профиль", link: userId ? `/new/profile/${userId}` : "/" },
+    { name: "Новости", link: "/feed" },
+    { name: "Мой профиль", link: userId ? `/profile/${userId}` : "/" },
     {
       name: "Список сотрудников",
-      link: orgId !== null ? `/new/list?orgId=${orgId}` : "/list",
+      link: orgId !== null ? `/list?orgId=${orgId}` : "/list",
     },
     // {
     //   name: "Список отделов",
     //   link: orgId !== null ? `/units?org=${orgId}` : "/units",
     // },
-    { name: "Облако", link: "/new/nextcloud" },
+    { name: "Облако", link: "/nextcloud" },
     {
       name: "Облако (полный экран)",
       link: NEXTCLOUD_PREFIX + "/",

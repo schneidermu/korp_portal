@@ -71,7 +71,7 @@ export const NewProfilePage = () => {
 
   useEffect(() => {
     if (!params.userId && userId) {
-      navigate(`/new/profile/${userId}`);
+      navigate(`/profile/${userId}`);
     }
   }, [navigate, params.userId, userId]);
 

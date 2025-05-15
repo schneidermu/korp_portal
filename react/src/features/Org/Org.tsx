@@ -99,7 +99,7 @@ const BossCard = ({ boss }: { boss: User }) => {
     <HStack alignItems="start" gap="5">
       <Avatar user={boss}></Avatar>
       <Stack mt="3">
-        <Link to={`/new/profile/${boss.id}`}>
+        <Link to={`/profile/${boss.id}`}>
           <Heading as="h2" textDecor="underline" fontWeight="semibold">
             {fullNameLong(boss)}
           </Heading>
