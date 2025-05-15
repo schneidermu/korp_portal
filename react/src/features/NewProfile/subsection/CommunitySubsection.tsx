@@ -53,7 +53,11 @@ export const CommunitySubsection = React.memo(
       );
 
       return (
-        <Subsection show={communityWork.length > 0} ref={ref} {...rest}>
+        <Subsection
+          show={editing || communityWork.length > 0}
+          ref={ref}
+          {...rest}
+        >
           <ImageGrid
             editing={editing}
             imgs={imgs}
