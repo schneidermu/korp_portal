@@ -1,96 +1,50 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import clsx from "clsx/lite";
 import { Option } from "effect";
+
+import { RatingGroup } from "@chakra-ui/react";
 
 import { useAuth } from "@/features/auth/slice";
 import { User } from "@/features/user/types";
 import { useUpdateRating } from "../services";
 
-import { Icon } from "@/shared/comps/Icon";
-
-import starYellowIcon from "@/assets/star-yellow.svg";
-import starIcon from "@/assets/star.svg";
-
-const Stars = ({
-  stars,
-  onRate,
-  disabled = false,
-  small,
-}: {
-  stars: Option.Option<number>;
-  onRate: (rate: Option.Option<number>) => void;
-  disabled?: boolean;
-  small: boolean;
-}) => {
-  const [hoverStars, setHoverStars] = useState(Option.none<number>());
-
-  const numStars = Option.getOrElse(hoverStars, () =>
-    Option.getOrElse(stars, () => 0),
-  );
-
-  return (
-    <div
-      className={clsx(
-        "w-fit flex",
-        disabled || "cursor-pointer",
-        small ? "gap-[14px]" : "gap-[10px]",
-      )}
-      onMouseLeave={() => setHoverStars(Option.none())}
-    >
-      {[...Array(5)].map((_, i) => {
-        const n = i + 1;
-        const icon = n <= numStars ? starYellowIcon : starIcon;
-        return (
-          <button
-            key={i}
-            type="button"
-            disabled={disabled}
-            onClick={() =>
-              onRate(Option.contains(stars, n) ? Option.none() : Option.some(n))
-            }
-            onMouseEnter={() => setHoverStars(Option.some(n))}
-          >
-            {small ? (
-              <Icon src={icon} width="17px" height="17px" />
-            ) : (
-              <Icon src={icon} width="29px" height="29px" />
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
-};
-
-export const Rating = ({
-  user,
-  small = false,
-}: {
-  user: User;
-  small?: boolean;
-}) => {
+export const Rating = ({ user }: { user: User }) => {
   const { userId } = useAuth();
   const updateRating = useUpdateRating();
+
+  const readOnly = user.id === userId;
+  const [stars, setStars] = useState(readOnly ? user.avgRating : user.myRating);
+
+  useEffect(() => {
+    setStars(readOnly ? user.avgRating : user.myRating);
+  }, [readOnly, user.avgRating, user.myRating]);
 
   const rating = Option.map(
     user.avgRating,
     (r) => r.toFixed(1).replace(".", ",") + ` / ${user.numRates}`,
   );
 
-  const stars = user.id !== userId ? user.myRating : user.avgRating;
-
   return (
-    <div className="flex gap-[10px] items-center">
-      <Stars
-        stars={stars}
-        disabled={user.id === userId}
-        onRate={(rating) => updateRating(user, rating)}
-        small={small}
-      />
-      <div className={clsx(small || "text-[20px]")}>
-        {Option.getOrUndefined(rating)}
-      </div>
-    </div>
+    <RatingGroup.Root
+      gap="2"
+      alignItems="center"
+      count={5}
+      colorPalette="yellow"
+      size="lg"
+      readOnly={user.id === userId}
+      value={Option.getOrElse(stars, () => 0)}
+      onValueChange={({ value }) => {
+        const s =
+          value === Option.getOrNull(stars)
+            ? Option.none()
+            : Option.some(value);
+        setStars(s);
+        updateRating(user, s).catch(() => setStars(stars));
+      }}
+    >
+      <RatingGroup.HiddenInput />
+      <RatingGroup.Control gap="1" />
+      <RatingGroup.Label>{Option.getOrUndefined(rating)}</RatingGroup.Label>
+    </RatingGroup.Root>
   );
 };

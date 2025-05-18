@@ -224,7 +224,7 @@ export const ProfileCard = React.memo(
                   </Box>
                 </Flex>
                 <Box ml="8">
-                  <Rating small user={user} />
+                  <Rating user={user} />
                 </Box>
               </Stack>
 
