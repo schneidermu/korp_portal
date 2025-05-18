@@ -1,45 +1,44 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
-import clsx from "clsx/lite";
-import { AnimatePresence, motion } from "motion/react";
+import { Box, Center, Flex, FlexProps, HStack, Link } from "@chakra-ui/react";
+import { LuCheck } from "react-icons/lu";
 
 import { DPA_TERMS_URL } from "@/app/const";
 
 import { useAgreeDPA } from "../services";
 
-import { Icon } from "@/shared/comps/Icon";
-
-import tickIcon from "@/assets/tick.svg";
-
-const OneshotCheckbox = ({
-  className,
-  onCheck,
-}: {
-  className: string;
+interface OneshotCheckboxProps extends FlexProps {
   onCheck: () => void;
-}) => {
-  const [checked, setChecked] = useState(false);
+}
 
-  const check = () => {
-    setChecked(true);
-    onCheck();
-  };
+const OneshotCheckbox = React.forwardRef<HTMLDivElement, OneshotCheckboxProps>(
+  function OneshotCheckbox(props, ref) {
+    const { onCheck, ...rest } = props;
 
-  return (
-    <div className={clsx(className, "relative")}>
-      <div
-        style={{ width: 23, height: 23 }}
-        className={clsx(
-          "border border-[#1956A8] rounded-[5px]",
-          "flex justify-center items-center",
-        )}
-        onClick={check}
-      >
-        {checked && <Icon src={tickIcon} width="70%" height="70%" />}
-      </div>
-    </div>
-  );
-};
+    const [checked, setChecked] = useState(false);
+
+    const check = () => {
+      setChecked(true);
+      onCheck();
+    };
+
+    return (
+      <Flex position="relative" ref={ref} {...rest}>
+        <Center
+          w="4"
+          h="4"
+          borderWidth={1}
+          borderRadius="small"
+          borderColor="blue.5"
+          onClick={check}
+          p="1px"
+        >
+          {checked && <LuCheck />}
+        </Center>
+      </Flex>
+    );
+  },
+);
 
 /** Data Processing Agreement (DPA) Component
  *
@@ -58,35 +57,35 @@ const OneshotCheckbox = ({
 export const DPA = () => {
   const { shown, checked, check } = useAgreeDPA();
 
-  if (!shown) return undefined;
+  if (!shown || checked) return undefined;
 
   return (
-    <AnimatePresence>
-      {checked || (
-        <motion.div
-          initial={{ bottom: -200 }}
-          animate={{ bottom: 8 }}
-          exit={{ bottom: -200 }}
-          className={clsx(
-            "fixed right-[12px]",
-            "w-[690px] px-[48px] py-[64px]",
-            "flex gap-[12px]",
-            "bg-white rounded border border-[#2164be]",
-          )}
+    <HStack
+      position="fixed"
+      right="3"
+      bottom="2"
+      w="400px"
+      px="6"
+      py="8"
+      fontSize="lg"
+      bg="white"
+      borderWidth={1}
+      borderColor="blue.2"
+      borderRadius="2"
+      align="top"
+    >
+      <OneshotCheckbox mt="1" onCheck={check} />
+      <Box>
+        я даю согласие на обработку{" "}
+        <Link
+          href={DPA_TERMS_URL}
+          target="_blank"
+          textDecoration="underline"
+          color="blue.2"
         >
-          <OneshotCheckbox className="flex mt-[6px]" onCheck={check} />
-          <span className="text-[26px]">
-            я даю согласие на обработку{" "}
-            <a
-              href={DPA_TERMS_URL}
-              target="_blank"
-              className="underline text-[#2164be]"
-            >
-              персональных данных
-            </a>
-          </span>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          персональных данных
+        </Link>
+      </Box>
+    </HStack>
   );
 };
