@@ -4,6 +4,20 @@ import { mutate } from "swr";
 import { useTokenFetcher } from "@/features/auth/hooks";
 import { User } from "@/features/user/types";
 
+class RatingUpdateError extends Error {
+  user: User;
+  rating: Option.Option<number>;
+
+  constructor(user: User, rating: Option.Option<number>, statusText: string) {
+    super(
+      `HTTP ${statusText} while setting rating ${Option.getOrNull(rating)} for ${user.username}`,
+    );
+    this.name = "RatingUpdateError";
+    this.user = user;
+    this.rating = rating;
+  }
+}
+
 export const useUpdateRating = () => {
   const tokenFetch = useTokenFetcher();
 
@@ -53,6 +67,7 @@ export const useUpdateRating = () => {
 
     if (res.status >= 400) {
       mutate(key, user, { revalidate: false });
+      throw new RatingUpdateError(user, rating, res.statusText);
     }
   };
 };
