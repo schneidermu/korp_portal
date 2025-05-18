@@ -21,9 +21,9 @@ import * as types from "@/features/feed/types";
 import { useReachBottom } from "@/shared/hooks/useReachBottom";
 import { formatDateFuller, resolveMediaPath } from "@/shared/utils";
 
-import { NewPage } from "@/features/App/comps/NewPage";
+import { Page } from "@/features/App/comps/Page.tsx";
 
-import { SearchBar } from "@/shared/comps/SearchBarNew";
+import { SearchBar } from "@/shared/comps/SearchBar.tsx";
 import { Overlay } from "./parts/Overlay";
 import { SlideButtonLeft, SlideButtonRight } from "./parts/SlideButtons";
 
@@ -165,7 +165,7 @@ export const News = ({ news }: { news: types.News }) => {
   );
 };
 
-export const NewFeedPage = () => {
+export const FeedPage = () => {
   const { orgId } = useAuth();
   const [showNews, setShowNews] = useState(true);
   const [showPolls, setShowPolls] = useState(true);
@@ -181,7 +181,7 @@ export const NewFeedPage = () => {
   if (!posts) return;
 
   return (
-    <NewPage>
+    <Page>
       <Flex fontSize="2xl" color="blue.2" mb="4" justify="space-between">
         <HStack>
           <Button
@@ -218,6 +218,6 @@ export const NewFeedPage = () => {
           Ничего не найдено!
         </Text>
       </Show>
-    </NewPage>
+    </Page>
   );
 };

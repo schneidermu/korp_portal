@@ -19,12 +19,12 @@ import { cmpUsers, useFetchUsers } from "@/features/user/services";
 import { User, filterUsers } from "@/features/user/types";
 import { useIntSearchParam } from "@/shared/hooks/useSearchParam";
 
-import { NewPage } from "@/features/App/comps/NewPage";
-import { ProfileCard } from "@/features/NewProfile/comps/ProfileCard";
+import { Page } from "@/features/App/comps/Page.tsx";
+import { ProfileCard } from "@/features/Profile/comps/ProfileCard";
 import { Skills } from "@/features/Skills/Skills";
 
 import { useReachBottom } from "@/shared/hooks/useReachBottom";
-import { SearchBar } from "../../shared/comps/SearchBarNew";
+import { SearchBar } from "../../shared/comps/SearchBar.tsx";
 
 const FILTER_FIELDS = new Set<keyof User>([
   "unit",
@@ -141,7 +141,7 @@ const UnitPicker = React.memo(function UnitPicker({
   );
 });
 
-export const NewUserList = () => {
+export const UserList = () => {
   const [orgId, setOrgId] = useIntSearchParam("orgId");
   const [unitId, setUnitId] = useIntSearchParam("unitId");
   const [query, setQuery] = useState("");
@@ -192,7 +192,7 @@ export const NewUserList = () => {
     ([2, 3, 4].includes(l % 10) && ![12, 13, 14].includes(l % 100) ? "а" : "");
 
   return (
-    <NewPage>
+    <Page>
       <Stack gap="7">
         <Stack>
           <OrgPicker orgId={orgId} setOrgId={setOrgId} />
@@ -231,6 +231,6 @@ export const NewUserList = () => {
           <ProfileCard key={user.id} user={user} hightlightSkills={skills} />
         ))}
       </Stack>
-    </NewPage>
+    </Page>
   );
 };

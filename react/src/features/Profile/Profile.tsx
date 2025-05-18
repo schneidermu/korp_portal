@@ -13,7 +13,7 @@ import {
   UserNotFoundError,
 } from "@/features/user/services";
 
-import { NewPage } from "@/features/App/comps/NewPage";
+import { Page } from "@/features/App/comps/Page.tsx";
 
 import { ProfileCard } from "./comps/ProfileCard";
 import { Button } from "./parts/Button";
@@ -59,7 +59,7 @@ const EditControls = ({
   );
 };
 
-export const NewProfilePage = () => {
+export const ProfilePage = () => {
   const navigate = useNavigate();
   const params = useParams();
   const auth = useAuth();
@@ -110,7 +110,7 @@ export const NewProfilePage = () => {
   };
 
   return (
-    <NewPage
+    <Page
       sidebar={
         editable && (
           <EditControls
@@ -216,6 +216,6 @@ export const NewProfilePage = () => {
           </Section>
         </Stack>
       </Stack>
-    </NewPage>
+    </Page>
   );
 };

@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 
-import { NewPage } from "@/features/App/comps/NewPage";
+import { Page } from "@/features/App/comps/Page.tsx";
 import { useAuth } from "@/features/auth/slice";
 import { Avatar } from "@/features/user/comps/Avatar";
 import { sortUsers, useFetchUsers } from "@/features/user/services";
@@ -135,7 +135,7 @@ export const OrgPage = () => {
   const units = groupUsersByUnits([...(users?.values() ?? [])]);
 
   return (
-    <NewPage>
+    <Page>
       <Stack>
         <Heading color="blue.4" fontSize="3xl">
           Руководство и структура
@@ -174,6 +174,6 @@ export const OrgPage = () => {
           ))}
         </Grid>
       </Stack>
-    </NewPage>
+    </Page>
   );
 };

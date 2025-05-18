@@ -5,7 +5,7 @@ import { NEXTCLOUD_PREFIX } from "@/app/const.ts";
 
 import { useAuth } from "@/features/auth/slice";
 
-export const NewNavBar = () => {
+export const NavBar = () => {
   const { orgId, userId } = useAuth();
 
   const links: { name: string; link: string; anchor?: boolean }[] = [
