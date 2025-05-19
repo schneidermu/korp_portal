@@ -62,8 +62,8 @@ STATUSES = [
 ]
 
 orgs = {
-    1: {"name": "ЦА ФАВР", "address": "Москва, Кедрова 8к1"},
-    2: {"name": "Ленское БВУ", "address": "Якутск, Курашова 28/3"},
+    1: {"name": "ЦА ФАВР", "address": "Москва, Кедрова 8к1", "head_id": None},
+    2: {"name": "Ленское БВУ", "address": "Якутск, Курашова 28/3", "head_id": None},
 }
 
 plans = {
@@ -309,7 +309,7 @@ def gen_subdivs(
     plan,
     parent_id: int | None = None,
     boss_id: str | None = None,
-):
+) -> str | None:
     if org_id not in subdivs:
         subdivs[org_id] = []
     id = sum(map(len, subdivs.values())) + 1
@@ -325,6 +325,7 @@ def gen_subdivs(
             boss_title=boss_title,
         )
         subdiv.chief_id = subdiv_boss.id
+        return subdiv_boss.id
     elif isinstance(plan, tuple):
         name, children = plan
         subdiv = Subdiv(id, name, org_id, parent_id, chief_id=None)
@@ -335,6 +336,7 @@ def gen_subdivs(
         gen_subdivs(
             subdivs, users, org_id, plan=children, parent_id=id, boss_id=boss_id
         )
+        return subdiv_boss.id
     else:
         assert isinstance(plan, list)
         for sibling in plan:
@@ -446,7 +448,7 @@ users: dict[str, User] = {}
 subdivs: dict[int, list[Subdiv]] = {}
 
 for org_id, plan in plans.items():
-    gen_subdivs(subdivs, users, org_id, plan)
+    orgs[org_id]["head_id"] = gen_subdivs(subdivs, users, org_id, plan)
 
 skill2id = {
     skill: i
@@ -459,7 +461,10 @@ email = random.choice(
     list(
         email
         for email, user in users.items()
-        if user.sex == "male" and user.subdiv is not None and user.subdiv.org_id == 2
+        if user.sex == "male"
+        and user.subdiv is not None
+        and user.subdiv.org_id == 2
+        and user.chief_id is not None
     )
 )
 old_id = users[email].id
@@ -478,7 +483,10 @@ email = random.choice(
     list(
         email
         for email, user in users.items()
-        if user.sex == "female" and user.subdiv is not None and user.subdiv.org_id == 1
+        if user.sex == "female"
+        and user.subdiv is not None
+        and user.subdiv.org_id == 1
+        and user.chief_id is not None
     )
 )
 old_id = users[email].id
