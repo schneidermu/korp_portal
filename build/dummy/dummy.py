@@ -97,12 +97,16 @@ plans = {
 
 
 class Subdiv:
-    name: str
-
     def __init__(
-        self, id: int, org_id: int, parent_id: int | None, chief_id: str | None
+        self,
+        id: int,
+        name: str,
+        org_id: int,
+        parent_id: int | None,
+        chief_id: str | None,
     ):
         self.id = id
+        self.name = name
         self.org_id = org_id
         self.parent_id = parent_id
         self.chief_id = chief_id
@@ -304,30 +308,33 @@ def gen_subdivs(
     org_id: int,
     plan,
     parent_id: int | None = None,
-    boss: User | None = None,
+    boss_id: str | None = None,
 ):
     if org_id not in subdivs:
         subdivs[org_id] = []
-    chief_id = None if boss is None else boss.id
     id = sum(map(len, subdivs.values())) + 1
-    subdiv = Subdiv(id, org_id, parent_id, chief_id)
     if isinstance(plan, str):
-        subdiv.name = plan
-        subdivs[org_id].append(subdiv)
         boss_title = random.choice(BOSS_TITLES)
-        gen_users(
+        name = plan
+        subdiv = Subdiv(id, name, org_id, parent_id, chief_id=None)
+        subdivs[org_id].append(subdiv)
+        subdiv_boss = gen_users(
             users,
-            chief_id,
+            boss_id,
             subdiv,
             boss_title=boss_title,
         )
+        subdiv.chief_id = subdiv_boss.id
     elif isinstance(plan, tuple):
         name, children = plan
-        subdiv.name = name
-        boss_title = random.choice(BOSS_TITLES)
-        new_boss = gen_users(users, chief_id, subdiv, boss_title=boss_title)
+        subdiv = Subdiv(id, name, org_id, parent_id, chief_id=None)
         subdivs[org_id].append(subdiv)
-        gen_subdivs(subdivs, users, org_id, plan=children, parent_id=id, boss=new_boss)
+        boss_title = random.choice(BOSS_TITLES)
+        subdiv_boss = gen_users(users, boss_id, subdiv, boss_title=boss_title)
+        subdiv.chief_id = subdiv_boss.id
+        gen_subdivs(
+            subdivs, users, org_id, plan=children, parent_id=id, boss_id=boss_id
+        )
     else:
         assert isinstance(plan, list)
         for sibling in plan:
@@ -337,7 +344,7 @@ def gen_subdivs(
                 org_id,
                 plan=sibling,
                 parent_id=parent_id,
-                boss=boss,
+                boss_id=boss_id,
             )
 
 
@@ -463,6 +470,8 @@ users["petrov2"].id = "c3143187-a418-5262-23a0-7a6a457a841b"
 for user in users.values():
     if user.chief_id == old_id:
         user.chief_id = users["petrov2"].id
+if users["petrov2"].subdiv and users["petrov2"].subdiv.chief_id == old_id:
+    users["petrov2"].subdiv.chief_id = users["petrov2"].id
 del users[email]
 
 email = random.choice(
@@ -480,6 +489,8 @@ users["mariya3"].id = "7a52bad7-a5fe-9b01-2532-15e4e5a3de47"
 for user in users.values():
     if user.chief_id == old_id:
         user.chief_id = users["mariya3"].id
+if users["mariya3"].subdiv and users["mariya3"].subdiv.chief_id == old_id:
+    users["mariya3"].subdiv.chief_id = users["mariya3"].id
 del users[email]
 
 ratings = gen_ratings(users)
