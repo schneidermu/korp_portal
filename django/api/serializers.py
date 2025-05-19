@@ -975,6 +975,7 @@ class StructuralSubdivisionInHierarchySerializer(serializers.ModelSerializer):
             "name",
             "chief",
             "parent_structural_subdivision",
+            "supervisor",
         )
 
 
