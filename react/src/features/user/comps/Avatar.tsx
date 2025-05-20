@@ -39,7 +39,10 @@ export const Avatar = React.memo(
 
     return (
       <Box w="32" h="32" ref={ref} {...rest}>
-        <Link to={`/profile/${user.id}`}>
+        <Link
+          style={{ display: "block", width: "100%", height: "100%" }}
+          to={`/profile/${user.id}`}
+        >
           <ChakraAvatar.Root w="full" h="full">
             <ChakraAvatar.Image
               src={O.getOrUndefined(src)}
