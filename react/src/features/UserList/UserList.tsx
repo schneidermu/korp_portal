@@ -234,7 +234,7 @@ export const UserList = () => {
         </Flex>
         <Text>{countText}</Text>
         {filteredUsers.slice(0, numPages * USERS_PAGE_LIMIT).map((user) => (
-          <ProfileCard key={user.id} user={user} hightlightSkills={skills} />
+          <ProfileCard key={user.id} user={user} highlightSkills={skills} />
         ))}
       </Stack>
     </Page>

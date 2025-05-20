@@ -1,6 +1,6 @@
 import { Input } from "@chakra-ui/react";
 
-import { fileExtention } from "@/shared/utils";
+import { fileExtension } from "@/shared/utils";
 
 export const FileInput = ({
   accept,
@@ -20,7 +20,7 @@ export const FileInput = ({
           return;
         }
         const file = files[0];
-        const ext = fileExtention(file.name);
+        const ext = fileExtension(file.name);
         if (!ext || !accept.includes("." + ext)) {
           return;
         }

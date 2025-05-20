@@ -20,7 +20,7 @@ export const urlBasename = (url: string): string => {
   return parts[parts.length - 1];
 };
 
-export const fileExtention = (url: string): string | undefined => {
+export const fileExtension = (url: string): string | undefined => {
   const parts = decodeURI(url).split(".");
   if (parts.length < 2) {
     return;
@@ -28,7 +28,7 @@ export const fileExtention = (url: string): string | undefined => {
   return parts[parts.length - 1].toLowerCase();
 };
 
-export const trimExtention = (path: string) => {
+export const trimExtension = (path: string) => {
   const parts = path.split(".");
   if (parts.length < 2) {
     return path;

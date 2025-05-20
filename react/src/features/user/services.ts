@@ -10,10 +10,10 @@ import { USERS_PAGE_LIMIT } from "@/app/const";
 import { tokenFetch, useTokenFetcher } from "@/features/auth/hooks";
 import { Paged } from "@/shared/types";
 import {
-  fileExtention,
+  fileExtension,
   fullNameLong,
   sorted,
-  trimExtention,
+  trimExtension,
 } from "@/shared/utils";
 import { User, UserStatus } from "./types";
 
@@ -457,11 +457,11 @@ export const uploadFile = async (token: string, uri: string | null) => {
   if (!uri?.startsWith("blob:")) {
     return uri ?? undefined;
   }
-  const ext = fileExtention(uri);
+  const ext = fileExtension(uri);
   if (!ext) {
     return;
   }
-  uri = trimExtention(uri);
+  uri = trimExtension(uri);
   const blob = await fetch(uri).then((res) => res.blob());
   const formData = new FormData();
   const timestamp = new Date().getTime();

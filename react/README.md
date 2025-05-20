@@ -12,7 +12,7 @@
 
 - react, typescript
 - [vercel/swr](https://swr.vercel.app/), data fetching
-- [redux](https://redux.js.org/), state managment
+- [redux](https://redux.js.org/), state management
 - [react-router](https://reactrouter.com/), routing
 - [immer](https://immerjs.github.io/immer/), immutability helper
 - [clsx](https://github.com/lukeed/clsx), react `className` utility
