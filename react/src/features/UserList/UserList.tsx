@@ -19,7 +19,7 @@ import { cmpUsers, useFetchUsers } from "@/features/user/services";
 import { User, filterUsers } from "@/features/user/types";
 import { useIntSearchParam } from "@/shared/hooks/useSearchParam";
 
-import { Page } from "@/features/App/comps/Page.tsx";
+import { Page } from "@/features/App/comps/Page";
 import { ProfileCard } from "@/features/Profile/comps/ProfileCard";
 import { Skills } from "@/features/Skills/Skills";
 

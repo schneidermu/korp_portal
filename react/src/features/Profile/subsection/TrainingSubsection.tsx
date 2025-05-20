@@ -3,7 +3,7 @@ import React, { Fragment } from "react";
 import { Option as O } from "effect";
 
 import { UpdateUserFn, User } from "@/features/user/types";
-import { toNumber } from "@/shared/utils.ts";
+import { toNumber } from "@/shared/utils";
 
 import { Subsection, SubsectionProps } from "../parts/Subsection";
 import { Timeline, TimelineInput, TimelineItem } from "../parts/Timeline";

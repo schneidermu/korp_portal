@@ -4,9 +4,9 @@ import { ChakraProvider } from "@chakra-ui/react";
 
 import { system } from "./theme";
 
-import { FeedPage } from "@/features/Feed/Feed.tsx";
-import { ProfilePage } from "@/features/Profile/Profile.tsx";
-import { UserList } from "@/features/UserList/UserList.tsx";
+import { FeedPage } from "@/features/Feed/Feed";
+import { ProfilePage } from "@/features/Profile/Profile";
+import { UserList } from "@/features/UserList/UserList";
 import { NextcloudPage } from "@/features/Nextcloud/Nextcloud";
 import { NotFound } from "@/features/NotFound/NotFound";
 import { OrgPage } from "@/features/Org/Org";

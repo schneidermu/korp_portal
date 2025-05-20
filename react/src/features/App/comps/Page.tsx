@@ -4,7 +4,7 @@ import { Box, Grid, Separator, Show } from "@chakra-ui/react";
 
 import { DPA } from "@/features/dpa/comps/DPA";
 
-import { NavBar } from "../parts/NavBar.tsx";
+import { NavBar } from "../parts/NavBar";
 
 export const Page = ({
   children,

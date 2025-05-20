@@ -1,7 +1,7 @@
 import { Stack, Text } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 
-import { NEXTCLOUD_PREFIX } from "@/app/const.ts";
+import { NEXTCLOUD_PREFIX } from "@/app/const";
 
 import { useAuth } from "@/features/auth/slice";
 

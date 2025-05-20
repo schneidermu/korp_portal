@@ -15,15 +15,15 @@ import {
 } from "@chakra-ui/react";
 import { LuX } from "react-icons/lu";
 
-import { useAuth } from "@/features/auth/slice.ts";
+import { useAuth } from "@/features/auth/slice";
 import { useFeed } from "@/features/feed/services";
 import * as types from "@/features/feed/types";
 import { useReachBottom } from "@/shared/hooks/useReachBottom";
 import { formatDateFuller, resolveMediaPath } from "@/shared/utils";
 
-import { Page } from "@/features/App/comps/Page.tsx";
+import { Page } from "@/features/App/comps/Page";
 
-import { SearchBar } from "@/shared/comps/SearchBar.tsx";
+import { SearchBar } from "@/shared/comps/SearchBar";
 import { Overlay } from "./parts/Overlay";
 import { SlideButtonLeft, SlideButtonRight } from "./parts/SlideButtons";
 

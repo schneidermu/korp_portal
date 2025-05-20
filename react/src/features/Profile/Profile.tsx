@@ -13,7 +13,7 @@ import {
   UserNotFoundError,
 } from "@/features/user/services";
 
-import { Page } from "@/features/App/comps/Page.tsx";
+import { Page } from "@/features/App/comps/Page";
 
 import { ProfileCard } from "./comps/ProfileCard";
 import { Button } from "./parts/Button";

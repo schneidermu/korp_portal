@@ -2,7 +2,7 @@ import { Box, Heading, Separator, Stack } from "@chakra-ui/react";
 
 import { NEXTCLOUD_PREFIX } from "@/app/const";
 
-import { Page } from "@/features/App/comps/Page.tsx";
+import { Page } from "@/features/App/comps/Page";
 
 export const NextcloudPage = () => {
   return (

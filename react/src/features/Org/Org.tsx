@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 
-import { Page } from "@/features/App/comps/Page.tsx";
+import { Page } from "@/features/App/comps/Page";
 import { useAuth } from "@/features/auth/slice";
 import { Avatar } from "@/features/user/comps/Avatar";
 import { sortUsers, useFetchUsers } from "@/features/user/services";

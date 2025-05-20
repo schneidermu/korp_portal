@@ -1,8 +1,8 @@
 import useSWR from "swr";
 
-import { useTokenFetcher } from "@/features/auth/hooks.ts";
+import { useTokenFetcher } from "@/features/auth/hooks";
 
-import { SkillCompletion, SkillCompletionRaw } from "./types.ts";
+import { SkillCompletion, SkillCompletionRaw } from "./types";
 
 export const useSkillsCompletion = ({
   minUsage = 0,
