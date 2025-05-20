@@ -130,7 +130,9 @@ const UnitsCard = ({ things }: { things: string[] }) => {
 export const OrgPage = () => {
   const auth = useAuth();
   const [orgId] = useIntSearchParam("id");
-  const { data: users } = useFetchUsers({ orgId: orgId ?? auth.orgId });
+  const {
+    data: { users },
+  } = useFetchUsers({ orgId: orgId ?? auth.orgId });
 
   const units = groupUsersByUnits([...(users?.values() ?? [])]);
 

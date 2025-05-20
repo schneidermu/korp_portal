@@ -280,6 +280,7 @@ export const useFetchUsers = ({
 
   const {
     data: pages,
+    isLoading,
     error,
     size,
     setSize,
@@ -288,7 +289,7 @@ export const useFetchUsers = ({
     revalidateFirstPage: false,
   });
 
-  const data = useMemo(
+  const users = useMemo(
     () =>
       new Map(
         pages?.flatMap((page) => page.results.map((user) => [user.id, user])) ??
@@ -305,7 +306,14 @@ export const useFetchUsers = ({
     }
   }, [size, pages?.length, setSize, allAreLoaded]);
 
-  return { data, error };
+  return {
+    data: {
+      isLoading,
+      users,
+      totalUsers: (pages && pages[0]?.count) ?? 0,
+    },
+    error,
+  };
 };
 
 export const cmpUsers = (u1: User, u2: User): -1 | 0 | 1 => {

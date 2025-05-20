@@ -25,6 +25,7 @@ import { Skills } from "@/features/Skills/Skills";
 
 import { useReachBottom } from "@/shared/hooks/useReachBottom";
 import { SearchBar } from "@/shared/comps/SearchBar";
+import { ruOnNum } from "@/shared/utils/lang.ts";
 
 const FILTER_FIELDS = new Set<keyof User>([
   "unit",
@@ -147,7 +148,9 @@ export const UserList = () => {
   const [query, setQuery] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [requireEverySkill, setRequireEverySkill] = useState(false);
-  const { data: users } = useFetchUsers({ orgId, unitId, sort: true });
+  const {
+    data: { isLoading, users, totalUsers },
+  } = useFetchUsers({ orgId, unitId, sort: true });
   const [numPages, setNumPages] = useState(1);
 
   useReachBottom(() => {
@@ -186,10 +189,13 @@ export const UserList = () => {
     return filteredUsers;
   }, [users, query, skills, requireEverySkill, orgId]);
 
-  const l = filteredUsers.length;
-  const countText =
-    `Найдено всего: ${l} человек` +
-    ([2, 3, 4].includes(l % 10) && ![12, 13, 14].includes(l % 100) ? "а" : "");
+  const l = query === "" && skills.length === 0 ? totalUsers : filteredUsers.length;
+  const countText = ruOnNum(l, {
+    zero: isLoading ? "Идёт поиск..." : "Не нашлось ни одного человека",
+    one: `Нашёлся ${l} человек`,
+    x234: `Нашлось ${l} человека`,
+    other: `Нашлось ${l} человек`,
+  });
 
   return (
     <Page>

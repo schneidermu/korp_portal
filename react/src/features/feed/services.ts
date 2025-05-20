@@ -210,7 +210,9 @@ const usePosts = <P extends Post, Data>(
 };
 
 const useBirthdays = (orgId: number | null): Birthday[] => {
-  const { data: users } = useFetchUsers({ orgId });
+  const {
+    data: { users },
+  } = useFetchUsers({ orgId });
 
   if (!users) return [];
   if (orgId === null) return [];
