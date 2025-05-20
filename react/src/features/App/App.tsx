@@ -4,6 +4,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 
 import { system } from "./theme";
 
+import { UserTreePage } from "@/features/UserTree/UserTree.tsx";
 import { FeedPage } from "@/features/Feed/Feed";
 import { ProfilePage } from "@/features/Profile/Profile";
 import { UserList } from "@/features/UserList/UserList";
@@ -20,6 +21,7 @@ export const App = () => {
         <Routes>
           <Route element={<AuthLoader />}>
             <Route path="/nextcloud" element={<NextcloudPage />} />
+            <Route path="/tree/:orgId?" element={<UserTreePage />} />
             <Route path="/" element={<ProfilePage />} />
             <Route path="/profile/:userId?" element={<ProfilePage />} />
             <Route path="/new/org/:orgId?" element={<OrgPage />} />

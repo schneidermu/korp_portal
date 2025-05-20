@@ -47,3 +47,13 @@ export const DPA_TERMS_URL: string =
   "/media/doc/Положение_о_защите_и_обработке_персональных_данных.pdf";
 
 export const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+/**
+ * User hierarchy tree bg and border color palette.
+ */
+export const USER_TREE_COLORS = [
+  { bg: "#DDEAFC", border: "#4D71BE" },
+  { bg: "#F7FEF7", border: "#5AC75C" },
+  { bg: "#FFFCFA", border: "#FF7B02" },
+  { bg: "#FFFEF2", border: "#F1DC1E" },
+];
