@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 
-import { Show, Stack, StackProps, Tag, Wrap } from "@chakra-ui/react";
+import { Box, Show, Stack, StackProps, Tag, Wrap } from "@chakra-ui/react";
 import {
   AutoComplete,
   AutoCompleteCreatable,
@@ -78,7 +78,6 @@ const SkillInput = React.memo(function NewSkill({
     >
       <AutoCompleteInput
         variant="subtle"
-        width="60%"
         bg="blue.3"
         borderRadius="small"
         px="3"
@@ -156,11 +155,13 @@ export const Skills = React.memo(
           ))}
         </Wrap>
         <Show when={editing}>
-          <SkillInput
-            addSkill={addSkill}
-            placeholder={placeholder}
-            excludeSkills={skills}
-          />
+          <Box width="60%">
+            <SkillInput
+              addSkill={addSkill}
+              placeholder={placeholder}
+              excludeSkills={skills}
+            />
+          </Box>
         </Show>
       </Stack>
     );
