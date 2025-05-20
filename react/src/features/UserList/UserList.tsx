@@ -24,7 +24,7 @@ import { ProfileCard } from "@/features/Profile/comps/ProfileCard";
 import { Skills } from "@/features/Skills/Skills";
 
 import { useReachBottom } from "@/shared/hooks/useReachBottom";
-import { SearchBar } from "../../shared/comps/SearchBar.tsx";
+import { SearchBar } from "@/shared/comps/SearchBar";
 
 const FILTER_FIELDS = new Set<keyof User>([
   "unit",
