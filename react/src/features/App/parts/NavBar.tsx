@@ -37,7 +37,7 @@ export const NavBar = () => {
           textDecoration={{ _hover: "underline" }}
         >
           {link.anchor ? (
-            <a href={link.link}>{link.name}</a>
+            <a href={link.link} target="_blank">{link.name}</a>
           ) : (
             <Link to={link.link}>{link.name}</Link>
           )}
