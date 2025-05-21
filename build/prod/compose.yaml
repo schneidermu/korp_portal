@@ -8,6 +8,7 @@ services:
   django:
     build: ../../django/
     stop_signal: SIGINT
+    restart: always
     volumes:
       - ./volumes/media/:/media/
       - django_static:/srv/static/
@@ -36,6 +37,7 @@ services:
   nextcloud:
     image: nextcloud:31.0-fpm-alpine
     user: www-data
+    restart: always
     volumes:
       - ./volumes/nextcloud:/var/www/html:z
       - ../nextcloud/init.sh:/docker-entrypoint-hooks.d/post-installation/init.sh:ro
@@ -54,6 +56,7 @@ services:
     image: nginx:1.27-alpine
     depends_on:
       - nextcloud
+    restart: always
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./volumes/nextcloud:/var/www/html:z,ro
@@ -62,6 +65,7 @@ services:
     image: caddy:2.10-alpine
     ports:
       - 8000:80
+    restart: always
     volumes:
       - ./caddy/:/etc/caddy/
       - caddy_data:/data
@@ -78,6 +82,7 @@ services:
       context: ../../react/
       target: dev
     command: yarn preview
+    restart: always
     volumes:
       - ../../react:/app
     environment:
