@@ -45,6 +45,7 @@ export const CareerSubsection = React.memo(
               <Fragment key={row}>
                 <TimelineItem row={row}>
                   <TimelineInput
+                    fontSize="xl"
                     value={year_start || ""}
                     maxLength={4}
                     onChange={({ target }) =>
@@ -60,6 +61,7 @@ export const CareerSubsection = React.memo(
 
                 <TimelineItem row={row}>
                   <TimelineInput
+                    fontSize="xl"
                     value={O.match(year_leave, {
                       onNone: () => "н. вр.",
                       onSome: (y) => y.toString(),
@@ -78,6 +80,7 @@ export const CareerSubsection = React.memo(
 
                 <TimelineItem lastCol row={row}>
                   <TimelineInput
+                    fontSize="xl"
                     value={position}
                     maxLength={80}
                     onChange={({ target }) =>

@@ -51,6 +51,8 @@ export const ImageGridItem = React.memo(function ImageGridItem({
           position="absolute"
           left="100%"
           bottom="100%"
+          color="black"
+          bg="white"
           onClick={() => onRemove(index)}
         >
           <LuX />
@@ -121,6 +123,8 @@ const AddButton = React.memo(function AddButton({
     <Stack gap="9" w="36">
       <Button
         h="36"
+        color="black"
+        bg="transparent"
         borderWidth={1}
         borderColor="gray.1"
         borderRadius="1"

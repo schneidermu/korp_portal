@@ -69,8 +69,8 @@ const OrgPicker = React.memo(function OrgPicker({
       <Select.HiddenSelect />
       <Heading as="h1" color="blue.4" fontSize="3xl">
         <Select.Control>
-          <Select.Trigger>
-            <Select.ValueText placeholder="Выберите организацию" />
+          <Select.Trigger fontSize="inherit" borderWidth={0}>
+            <Select.ValueText placeholder="Выберите организацию" overflow="visible" />
           </Select.Trigger>
         </Select.Control>
       </Heading>
@@ -122,8 +122,8 @@ const UnitPicker = React.memo(function UnitPicker({
       <Select.HiddenSelect />
       <Heading as="h2" color="blue.4" fontSize="2xl">
         <Select.Control>
-          <Select.Trigger>
-            <Select.ValueText />
+          <Select.Trigger fontSize="inherit" borderWidth={0}>
+            <Select.ValueText overflow="visible" />
           </Select.Trigger>
         </Select.Control>
       </Heading>

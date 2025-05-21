@@ -94,7 +94,9 @@ export const InfoGrid = React.memo(
 
         <Field label="Статус" editing={editing}>
           <Select
+            h="100%"
             editing={editing}
+            borderWidth={0}
             value={[info.status]}
             onValueChange={({ value }) =>
               updateUser((user) => (user.status = value[0] as UserStatus))

@@ -12,7 +12,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         theme = { color: "white", bg: "blue.1" };
         break;
       case "outline":
-        // theme = { };
+        theme = { background: "transparent" };
         break;
       case "ghost":
         theme = { borderColor: "transparent" };
@@ -24,6 +24,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         px="5"
         py="2"
+        fontSize="md"
         fontWeight="semibold"
         borderRadius="1"
         borderWidth={1}

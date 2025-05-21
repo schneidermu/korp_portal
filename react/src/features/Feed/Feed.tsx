@@ -72,6 +72,8 @@ const OverlayImg = ({
             bottom="100%"
             left="100%"
             onClick={onClose}
+            color="black"
+            bg="transparent"
             _hover={{ color: "blue.2" }}
           >
             <LuX style={{ width: "100%", height: "100%" }} />
@@ -185,6 +187,10 @@ export const FeedPage = () => {
       <Flex fontSize="2xl" color="blue.2" mb="4" justify="space-between">
         <HStack>
           <Button
+            fontSize="2xl"
+            color="blue.2"
+            bg="transparent"
+            px="0"
             onClick={() => setShowNews(!showNews)}
             textDecoration={showNews ? "underline" : undefined}
           >
@@ -192,6 +198,10 @@ export const FeedPage = () => {
           </Button>
           &ndash;
           <Button
+            fontSize="2xl"
+            color="blue.2"
+            bg="transparent"
+            px="0"
             onClick={() => setShowPolls(!showPolls)}
             textDecoration={showPolls ? "underline" : undefined}
           >

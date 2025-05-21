@@ -73,6 +73,8 @@ export const TimelineInput = React.memo(
           disabled={!editing}
           opacity="1"
           outline="none"
+          borderWidth={0}
+          cursor="auto"
           ref={ref}
           {...props}
         />

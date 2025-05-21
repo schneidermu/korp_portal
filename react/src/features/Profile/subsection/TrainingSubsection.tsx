@@ -40,6 +40,7 @@ export const TrainingSubsection = React.memo(
               <Fragment key={row}>
                 <TimelineItem row={row}>
                   <TimelineInput
+                    fontSize="xl"
                     value={year || ""}
                     maxLength={4}
                     onChange={({ target }) =>
@@ -52,6 +53,7 @@ export const TrainingSubsection = React.memo(
                 </TimelineItem>
                 <TimelineItem lastCol row={row}>
                   <TimelineInput
+                    fontSize="xl"
                     value={name}
                     maxLength={80}
                     onChange={({ target }) =>

@@ -41,6 +41,7 @@ export const EducationSubsection = React.memo(
               <Fragment key={row}>
                 <TimelineItem row={row}>
                   <TimelineInput
+                    fontSize="xl"
                     value={year || ""}
                     maxLength={4}
                     onChange={({ target }) =>
@@ -53,6 +54,7 @@ export const EducationSubsection = React.memo(
                 </TimelineItem>
                 <TimelineItem lastCol row={row}>
                   <TimelineInput
+                    fontSize="xl"
                     placeholder="Университет"
                     maxLength={80}
                     value={university}

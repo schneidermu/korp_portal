@@ -12,6 +12,8 @@ const SlideButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
         h="50%"
         top="50%"
         transform="translateY(-50%)"
+        bg="transparent"
+        color="black"
         _hover={{ color: "blue.2" }}
         ref={ref}
         {...props}

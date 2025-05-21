@@ -32,6 +32,9 @@ export const FieldValue = React.forwardRef<HTMLDivElement, FieldValueProps>(
             }
           : {
               fontSize: "xl",
+              borderWidth: 0,
+              pl: 0,
+              cursor: "auto",
             })}
         {...rest}
       />

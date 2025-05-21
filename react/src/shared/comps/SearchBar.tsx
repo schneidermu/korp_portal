@@ -26,12 +26,15 @@ export const SearchBar = React.forwardRef<HTMLDivElement, SearchBarProps>(
         borderWidth={1}
         borderRadius="small"
         borderColor="gray.1"
+        // _focusVisible={{outline: "blue.4"}}
         ref={ref}
         {...rest}
       >
         <Input
           placeholder="Поиск..."
           value={query}
+          outlineColor="blue.2"
+          _focusVisible={{borderColor: "blue.2"}}
           onChange={({ target }) => setQuery(target.value)}
         />
       </InputGroup>
