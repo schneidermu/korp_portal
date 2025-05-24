@@ -1144,6 +1144,9 @@ class ProfileSerializer(UserSerializer):
         return rate
 
     def get_chief(self, obj):
+        if obj.chief is not None:
+            return obj.chief.id
+
         current_division = obj.structural_division
 
         while current_division is not None:
@@ -1501,6 +1504,7 @@ class StructuralSubdivisionInHierarchySerializer(serializers.ModelSerializer):
             "name",
             "chief",
             "parent_structural_subdivision",
+            "supervisor",
         )
 
 
