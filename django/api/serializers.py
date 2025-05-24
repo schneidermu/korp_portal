@@ -1615,3 +1615,25 @@ class HierarchySerializer(serializers.ModelSerializer):
         )
 
         return serializer.data
+
+
+class MyProfileSerializer(ProfileSerializer):
+    """
+    Сериализатор для эндпоинта /me/, включающий группы пользователя.
+    Наследует все поля от ProfileSerializer.
+    """
+
+    user_groups_display = serializers.SerializerMethodField()
+
+    class Meta(ProfileSerializer.Meta):
+        fields = ProfileSerializer.Meta.fields + ("user_groups_display",)
+
+    def get_user_groups_display(self, obj):
+        """
+        Возвращает список имен групп пользователя.
+        obj - это экземпляр Employee (request.user).
+        """
+        if not hasattr(obj, "groups"):
+            return []
+
+        return [group.name for group in obj.groups.all().order_by("name")]

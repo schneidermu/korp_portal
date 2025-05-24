@@ -26,6 +26,7 @@ from .serializers import (
     CompetenceSerializer,
     FileUploadSerializer,
     HierarchySerializer,
+    MyProfileSerializer,
     NewsSerializer,
     OrganizationSerializer,
     OrgStructureSerializer,
@@ -319,7 +320,9 @@ class ColleagueProfileViewset(UserViewSet):
         return queryset
 
     def get_serializer_class(self):
-        if (
+        if self.action == "me":
+            return MyProfileSerializer
+        elif (
             self.action not in ("list", "retrieve", "create")
             and self.request.user.is_staff
             and self.kwargs.get("username")
