@@ -1,9 +1,13 @@
 import base64
 from datetime import datetime
 
+from django.db import transaction
+from django.db.models import CharField, Count, Q, Value
+from django.db.models.functions import Concat
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import TokenCreateView, UserViewSet
-from django.utils import timezone
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -13,15 +17,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from django.db import transaction
-from django.db.models import CharField, Count, Value, Q
-from django.db.models.functions import Concat
-from django.shortcuts import get_object_or_404
-
 from employees.models import Competence, Employee, Organization, Rating
-from homepage.models import Question, PollSubmission, Answer
+from homepage.models import Answer, News, Poll, PollSubmission, Question
+
 from .filters import CompetenceFilter
-from homepage.models import News, Poll
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 from .serializers import (
     CompetenceSerializer,
@@ -31,11 +30,11 @@ from .serializers import (
     OrganizationSerializer,
     OrgStructureSerializer,
     PollSerializer,
+    PollSubmissionCreateSerializer,
     ProfileInOrganizationSerializer,
     RatingDELETESerializer,
     RatingPOSTSerializer,
     RatingPUTSerializer,
-    PollSubmissionCreateSerializer,
 )
 
 
@@ -121,9 +120,7 @@ class PollViewset(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(
-        detail=True, methods=["post"]
-    )
+    @action(detail=True, methods=["post"])
     def complete(self, request, pk=None):
         """Завершает опрос."""
         poll = self.get_object()
@@ -194,9 +191,7 @@ class PollViewset(viewsets.ModelViewSet):
             {"message": "Ваши ответы успешно приняты."}, status=status.HTTP_201_CREATED
         )
 
-    @action(
-        detail=True, methods=["get"]
-    )
+    @action(detail=True, methods=["get"])
     def statistics(self, request, pk=None):
         """Возвращает статистику по опросу."""
         poll = self.get_object()

@@ -2,7 +2,6 @@ import os.path
 
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -36,10 +35,10 @@ from homepage.models import (
     Choice,
     News,
     Poll,
+    PollGroup,
     PollSubmission,
     Question,
     QuestionDependency,
-    PollGroup,
 )
 
 
@@ -154,9 +153,7 @@ class QuestionSerializer(serializers.ModelSerializer):
                         "choices": "Для вопросов с выбором вариантов необходимо предоставить варианты ответов."
                     }
                 )
-            if (
-                choices is not None and not choices and self.instance
-            ):
+            if choices is not None and not choices and self.instance:
                 raise serializers.ValidationError(
                     {
                         "choices": "Нельзя удалить все варианты у вопроса с типом 'выбор'. Измените тип вопроса или добавьте варианты."
@@ -195,9 +192,7 @@ class QuestionSerializer(serializers.ModelSerializer):
                         "choices": "Для вопросов со свободным текстовым ответом варианты ответов не указываются."
                     }
                 )
-            if (
-                min_choices is not None or max_choices is not None
-            ):
+            if min_choices is not None or max_choices is not None:
                 raise serializers.ValidationError(
                     {
                         "min_choices_max_choices": "Для вопросов со свободным текстовым ответом min/max вариантов не указываются."
@@ -264,14 +259,20 @@ class PollSerializer(serializers.ModelSerializer):
 
     def _handle_questions(self, poll_instance, questions_data_list_original):
         question_orders_in_payload = [
-            q_data.get('order') for q_data in questions_data_list_original if q_data.get('order') is not None
+            q_data.get("order")
+            for q_data in questions_data_list_original
+            if q_data.get("order") is not None
         ]
         if len(question_orders_in_payload) != len(set(question_orders_in_payload)):
             raise serializers.ValidationError(
-                {"questions": "Порядок (order) вопросов в рамках одного запроса должен быть уникальным."}
+                {
+                    "questions": "Порядок (order) вопросов в рамках одного запроса должен быть уникальным."
+                }
             )
 
-        questions_data_list_for_first_pass = [q_data.copy() for q_data in questions_data_list_original]
+        questions_data_list_for_first_pass = [
+            q_data.copy() for q_data in questions_data_list_original
+        ]
 
         created_questions_map = {}
         created_choices_map = {}
@@ -280,18 +281,24 @@ class PollSerializer(serializers.ModelSerializer):
         for q_data in questions_data_list_for_first_pass:
             question_id_from_payload = q_data.pop("id", None)
             choices_data_list = q_data.pop("choices", [])
-            q_data.pop("dependency_rule", None) 
-            
+            q_data.pop("dependency_rule", None)
+
             question_order = q_data.get("order")
             if question_order is None:
                 raise serializers.ValidationError(
                     {"questions": "Каждый вопрос должен иметь поле 'order'."}
                 )
 
-            choice_orders_in_question = [c_data.get('order') for c_data in choices_data_list if c_data.get('order') is not None]
+            choice_orders_in_question = [
+                c_data.get("order")
+                for c_data in choices_data_list
+                if c_data.get("order") is not None
+            ]
             if len(choice_orders_in_question) != len(set(choice_orders_in_question)):
-                 raise serializers.ValidationError(
-                    {"questions": f"Порядок (order) вариантов ответов для вопроса с order={question_order} должен быть уникальным."}
+                raise serializers.ValidationError(
+                    {
+                        "questions": f"Порядок (order) вариантов ответов для вопроса с order={question_order} должен быть уникальным."
+                    }
                 )
 
             if question_id_from_payload:
@@ -322,15 +329,19 @@ class PollSerializer(serializers.ModelSerializer):
                     choice_order = choice_item_data.get("order")
                     if choice_order is None:
                         raise serializers.ValidationError(
-                            {"questions": f"Каждый вариант ответа для вопроса с order={question_order} должен иметь поле 'order'."}
+                            {
+                                "questions": f"Каждый вариант ответа для вопроса с order={question_order} должен иметь поле 'order'."
+                            }
                         )
 
                     if choice_id_from_payload:
                         choice_instance = get_object_or_404(
-                            Choice, id=choice_id_from_payload, question=question_instance
+                            Choice,
+                            id=choice_id_from_payload,
+                            question=question_instance,
                         )
                         for attr, value in choice_item_data.items():
-                             if hasattr(choice_instance, attr):
+                            if hasattr(choice_instance, attr):
                                 setattr(choice_instance, attr, value)
                         choice_instance.save()
                     else:
@@ -338,8 +349,10 @@ class PollSerializer(serializers.ModelSerializer):
                             question=question_instance, **choice_item_data
                         )
                     processed_choice_ids_for_question.append(choice_instance.id)
-                    created_choices_map[(question_order, choice_order)] = choice_instance
-                
+                    created_choices_map[
+                        (question_order, choice_order)
+                    ] = choice_instance
+
                 if question_id_from_payload:
                     question_instance.choices.exclude(
                         id__in=processed_choice_ids_for_question
@@ -349,61 +362,93 @@ class PollSerializer(serializers.ModelSerializer):
 
         for q_data_original_for_deps in questions_data_list_original:
             question_order_for_deps = q_data_original_for_deps.get("order")
-            dependent_question_instance = created_questions_map.get(question_order_for_deps)
+            dependent_question_instance = created_questions_map.get(
+                question_order_for_deps
+            )
 
             if not dependent_question_instance:
                 continue
 
-            if hasattr(dependent_question_instance, "dependency_rule") and dependent_question_instance.dependency_rule:
+            if (
+                hasattr(dependent_question_instance, "dependency_rule")
+                and dependent_question_instance.dependency_rule
+            ):
                 dependent_question_instance.dependency_rule.delete()
 
             dependency_rule_payload = q_data_original_for_deps.get("dependency_rule")
 
-            if isinstance(dependency_rule_payload, dict) and not dependency_rule_payload:
+            if (
+                isinstance(dependency_rule_payload, dict)
+                and not dependency_rule_payload
+            ):
                 dependency_rule_payload = None
 
             if dependency_rule_payload:
-                trigger_question_order = dependency_rule_payload.get("trigger_question_order")
-                trigger_choice_order = dependency_rule_payload.get("trigger_choice_order")
+                trigger_question_order = dependency_rule_payload.get(
+                    "trigger_question_order"
+                )
+                trigger_choice_order = dependency_rule_payload.get(
+                    "trigger_choice_order"
+                )
 
                 if trigger_question_order is not None:
-                    trigger_question_instance = created_questions_map.get(trigger_question_order)
+                    trigger_question_instance = created_questions_map.get(
+                        trigger_question_order
+                    )
                     if not trigger_question_instance:
                         raise serializers.ValidationError(
-                            {"questions": f"[Order: {question_order_for_deps}] Вопрос-триггер с order={trigger_question_order} не найден среди созданных/обновленных вопросов."}
+                            {
+                                "questions": f"[Order: {question_order_for_deps}] Вопрос-триггер с order={trigger_question_order} не найден среди созданных/обновленных вопросов."
+                            }
                         )
 
-                    if dependent_question_instance.order <= trigger_question_instance.order:
+                    if (
+                        dependent_question_instance.order
+                        <= trigger_question_instance.order
+                    ):
                         raise serializers.ValidationError(
-                            {"questions": f"[Order: {question_order_for_deps}] Зависимый вопрос (order: {dependent_question_instance.order}) должен идти после вопроса-триггера (order: {trigger_question_instance.order}) по порядку."}
+                            {
+                                "questions": f"[Order: {question_order_for_deps}] Зависимый вопрос (order: {dependent_question_instance.order}) должен идти после вопроса-триггера (order: {trigger_question_instance.order}) по порядку."
+                            }
                         )
 
                     trigger_choice_instance = None
                     if trigger_question_instance.question_type in [
-                        Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE
+                        Question.QuestionType.SINGLE_CHOICE,
+                        Question.QuestionType.MULTIPLE_CHOICE,
                     ]:
                         if trigger_choice_order is None:
                             raise serializers.ValidationError(
-                                {"questions": f"[Order: {question_order_for_deps}] Для вопроса-триггера (order={trigger_question_order}) типа 'выбор' необходимо указать 'trigger_choice_order'."}
+                                {
+                                    "questions": f"[Order: {question_order_for_deps}] Для вопроса-триггера (order={trigger_question_order}) типа 'выбор' необходимо указать 'trigger_choice_order'."
+                                }
                             )
-                        trigger_choice_instance = created_choices_map.get((trigger_question_order, trigger_choice_order))
+                        trigger_choice_instance = created_choices_map.get(
+                            (trigger_question_order, trigger_choice_order)
+                        )
                         if not trigger_choice_instance:
                             raise serializers.ValidationError(
-                                {"questions": f"[Order: {question_order_for_deps}] Вариант-триггер (order={trigger_choice_order}) для вопроса-триггера (order={trigger_question_order}) не найден."}
+                                {
+                                    "questions": f"[Order: {question_order_for_deps}] Вариант-триггер (order={trigger_choice_order}) для вопроса-триггера (order={trigger_question_order}) не найден."
+                                }
                             )
                     elif trigger_choice_order is not None:
                         raise serializers.ValidationError(
-                            {"questions": f"[Order: {question_order_for_deps}] Вопрос-триггер (order={trigger_question_order}) не является вопросом с выбором вариантов, 'trigger_choice_order' не должен быть указан."}
+                            {
+                                "questions": f"[Order: {question_order_for_deps}] Вопрос-триггер (order={trigger_question_order}) не является вопросом с выбором вариантов, 'trigger_choice_order' не должен быть указан."
+                            }
                         )
-                    
+
                     QuestionDependency.objects.create(
                         dependent_question=dependent_question_instance,
                         trigger_question=trigger_question_instance,
                         trigger_choice=trigger_choice_instance,
                     )
 
-        if poll_instance.pk: 
-            poll_instance.questions.exclude(id__in=processed_question_ids_for_poll).delete()
+        if poll_instance.pk:
+            poll_instance.questions.exclude(
+                id__in=processed_question_ids_for_poll
+            ).delete()
 
     @transaction.atomic
     def create(self, validated_data):
@@ -461,10 +506,7 @@ class AnswerCreateSerializer(serializers.Serializer):
         try:
             question = Question.objects.get(id=question_id)
         except Question.DoesNotExist:
-
-            raise serializers.ValidationError(
-                {"question_id": "Вопрос не найден."}
-            )
+            raise serializers.ValidationError({"question_id": "Вопрос не найден."})
 
         if question.question_type == Question.QuestionType.SINGLE_CHOICE:
             if free_text_answer:
@@ -479,9 +521,7 @@ class AnswerCreateSerializer(serializers.Serializer):
                         "selected_choice_ids": "Для вопроса с одним вариантом ответа можно выбрать только один вариант."
                     }
                 )
-            if (
-                not selected_choice_ids and question.is_required
-            ):
+            if not selected_choice_ids and question.is_required:
                 raise serializers.ValidationError(
                     {
                         "selected_choice_ids": "Необходимо выбрать вариант для обязательного вопроса."
@@ -548,7 +588,6 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
         )
 
     def validate_poll(self, poll_instance):
-
         if poll_instance.status != Poll.StatusChoices.PUBLISHED:
             raise serializers.ValidationError(
                 "Данный опрос не опубликован и не может быть пройден."
@@ -577,9 +616,7 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         "Данный опрос недоступен для вашей организации."
                     )
-        elif (
-            not poll_instance.is_public
-        ):
+        elif not poll_instance.is_public:
             raise serializers.ValidationError(
                 "Невозможно определить доступность непубличного опроса."
             )
@@ -587,7 +624,6 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
         return poll_instance
 
     def validate_answers(self, answers_data):
-
         poll_pk = self.initial_data.get("poll")
         if not poll_pk:
             raise serializers.ValidationError({"poll": "Необходимо указать опрос."})

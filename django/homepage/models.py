@@ -1,8 +1,7 @@
-from employees.models import Employee, Organization
-
 from django.core.validators import FileExtensionValidator
 from django.db import models
 
+from employees.models import Employee, Organization
 from .constants import CHARFIELD_LENGTH
 
 
@@ -64,7 +63,6 @@ class News(Published):
     )
 
     text = models.TextField(verbose_name="Текст", blank=True)
-
 
     video = models.FileField(
         verbose_name="Видео",
@@ -211,7 +209,11 @@ class Question(models.Model):
     )
 
     def __str__(self):
-        return f"{self.text[:50]}... (Опрос: {self.poll.name[:20]})" if self.text else "Пусто"
+        return (
+            f"{self.text[:50]}... (Опрос: {self.poll.name[:20]})"
+            if self.text
+            else "Пусто"
+        )
 
     class Meta:
         verbose_name = "Вопрос"
@@ -237,9 +239,9 @@ class Choice(models.Model):
 
     def __str__(self):
         question_text = "[Вопрос не указан]"
-        if self.question and hasattr(self.question, 'text'):
+        if self.question and hasattr(self.question, "text"):
             question_text = f"'{self.question.text[:30]}...'"
-        
+
         return f"Вариант '{self.choice_text}' для вопроса {question_text}"
 
     class Meta:
@@ -263,7 +265,7 @@ class QuestionDependency(models.Model):
         related_name="trigger_for_dependencies",
         verbose_name="Вопрос-триггер (от ответа на который зависит показ)",
         null=True,
-        blank=True
+        blank=True,
     )
 
     trigger_choice = models.ForeignKey(
@@ -294,14 +296,16 @@ class PollSubmission(models.Model):
 
     def __str__(self):
         user_info = self.user.get_full_name() if self.user else "Аноним"
-        return f"Ответы от {user_info} на опрос '{self.poll.name}'" if self.poll.name else "Заполните имя опроса"
+        return (
+            f"Ответы от {user_info} на опрос '{self.poll.name}'"
+            if self.poll.name
+            else "Заполните имя опроса"
+        )
 
     class Meta:
         verbose_name = "Прохождение опроса"
         verbose_name_plural = "Прохождения опросов"
-        unique_together = [
-            ["poll", "user"]
-        ]
+        unique_together = [["poll", "user"]]
 
 
 class Answer(models.Model):
@@ -323,9 +327,17 @@ class Answer(models.Model):
             Question.QuestionType.SINGLE_CHOICE,
             Question.QuestionType.MULTIPLE_CHOICE,
         ]:
-            return f"Ответ на '{self.question.text[:30]}...' (выбор)" if self.question.text else "Пусто"
+            return (
+                f"Ответ на '{self.question.text[:30]}...' (выбор)"
+                if self.question.text
+                else "Пусто"
+            )
         elif self.question.question_type == Question.QuestionType.FREE_TEXT:
-            return f"Ответ на '{self.question.text[:30]}...': {self.free_text_answer[:30] if self.free_text_answer else '[пусто]'}" if self.question.text else "Пусто"
+            return (
+                f"Ответ на '{self.question.text[:30]}...': {self.free_text_answer[:30] if self.free_text_answer else '[пусто]'}"
+                if self.question.text
+                else "Пусто"
+            )
         return f"Ответ на вопрос ID {self.question.id}"
 
     class Meta:

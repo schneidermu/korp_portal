@@ -1,14 +1,15 @@
 from django.contrib import admin
+
 from .models import (
-    Attachment,
-    News,
-    PollGroup,
-    Poll,
-    Question,
-    Choice,
-    QuestionDependency,
-    PollSubmission,
     Answer,
+    Attachment,
+    Choice,
+    News,
+    Poll,
+    PollGroup,
+    PollSubmission,
+    Question,
+    QuestionDependency,
 )
 
 
@@ -61,9 +62,7 @@ class QuestionDependencyInline(admin.StackedInline):
                     kwargs["queryset"] = Question.objects.filter(
                         poll=dependent_question.poll,
                         order__lt=dependent_question.order,
-                    ).exclude(
-                        pk=dependent_question.pk
-                    )
+                    ).exclude(pk=dependent_question.pk)
                 except (ValueError, Question.DoesNotExist):
                     pass
 
@@ -84,9 +83,7 @@ class QuestionAdmin(admin.ModelAdmin):
         "poll__name",
         "order",
     )
-    readonly_fields = (
-        "poll_link",
-    )
+    readonly_fields = ("poll_link",)
 
     fieldsets = (
         (
