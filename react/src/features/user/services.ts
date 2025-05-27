@@ -16,6 +16,7 @@ import {
   trimExtension,
 } from "@/shared/utils";
 import { User, UserStatus } from "./types";
+import { useAuth } from "../auth/slice";
 
 export const UserNotFoundError = new Error("User not found");
 
@@ -430,10 +431,14 @@ export const useFetchColleagues = (
 };
 
 export const useFetchUser = (userId: O.Option<string>) => {
+  const auth = useAuth();
   const tokenFetcher = useTokenFetcher();
 
   const { data, ...rest } = useSWR<User>(
-    O.map(userId, (id) => `/colleagues/${id}/`).pipe(O.getOrNull),
+    O.map(
+      userId,
+      (id) => `/colleagues/${id === auth.userId ? "me" : id}/`,
+    ).pipe(O.getOrNull),
     async (path: string) =>
       tokenFetcher(path)
         .then((res) => {
