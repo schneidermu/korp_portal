@@ -14,9 +14,9 @@ import {
 } from "@/features/user/services";
 
 import { Page } from "@/features/App/comps/Page";
+import { Button } from "@/shared/comps/Button";
 
 import { ProfileCard } from "./comps/ProfileCard";
-import { Button } from "./parts/Button";
 import { Section } from "./parts/Section";
 
 import { AboutSubsection } from "./subsection/AboutSubsection";

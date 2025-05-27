@@ -8,8 +8,8 @@ import { useFetchColleagues, useFetchUser } from "@/features/user/services";
 import { User } from "@/features/user/types";
 
 import { Avatar } from "@/features/user/comps/Avatar";
+import { Button } from "@/shared/comps/Button";
 
-import { Button } from "../parts/Button";
 import { Subsection, SubsectionProps } from "../parts/Subsection";
 
 const UserGrid = React.memo(function UserGrid({ users }: { users: User[] }) {
