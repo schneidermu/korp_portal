@@ -295,6 +295,7 @@ class ColleagueProfileViewset(UserViewSet):
         "chief__id",
         "structural_division__organization__id",
     )
+    search_fields = ('email', 'username', 'surname', 'patronym', 'birth_date', 'email', 'telephone_number', 'inner_telephone_number', 'office', 'job_title', 'class_rank', 'status')
 
     def get_queryset(self):
         queryset = super().get_queryset()
