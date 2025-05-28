@@ -295,6 +295,12 @@ class ColleagueProfileViewset(UserViewSet):
         "chief__id",
         "structural_division__organization__id",
     )
+    filterset_fields = {
+        "structural_division__name": ["exact", "icontains"],
+        "structural_division__id": ["exact", "isnull"],
+        "chief__id": ["exact", "isnull"],
+        "structural_division__organization__id": ["exact", "isnull"],
+    }
     search_fields = ('email', 'username', 'surname', 'patronym', 'birth_date', 'email', 'telephone_number', 'inner_telephone_number', 'office', 'job_title', 'class_rank', 'status')
 
     def get_queryset(self):
