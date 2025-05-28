@@ -1,9 +1,11 @@
 import base64
+import csv
 from datetime import datetime
 
 from django.db import transaction
 from django.db.models import CharField, Count, Q, Value
 from django.db.models.functions import Concat
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -213,53 +215,56 @@ class PollViewset(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        submissions_count = poll.submissions.count()
-        question_stats = []
-        for question in poll.questions.select_related("poll").prefetch_related(
-            "choices", "answers", "answers__selected_choices"
-        ):
-            q_stat = {
-                "question_id": question.id,
-                "text": question.text,
-                "type": question.question_type,
-            }
-            if question.question_type in [
-                Question.QuestionType.SINGLE_CHOICE,
-                Question.QuestionType.MULTIPLE_CHOICE,
-            ]:
-                choice_counts = []
-                for choice in question.choices.all():
-                    count = Answer.objects.filter(
-                        question=question,
-                        selected_choices=choice,
-                        submission__poll_id=poll.id,
-                    ).count()
-                    choice_counts.append(
-                        {
-                            "choice_id": choice.id,
-                            "text": choice.choice_text,
-                            "count": count,
-                        }
-                    )
-                q_stat["choices_stats"] = choice_counts
-            elif question.question_type == Question.QuestionType.FREE_TEXT:
-                q_stat["answers_count"] = (
-                    Answer.objects.filter(
-                        question=question, submission__poll_id=poll.id
-                    )
-                    .exclude(free_text_answer__exact="")
-                    .count()
-                )
-            question_stats.append(q_stat)
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="poll_{poll.id}_statistics.csv"'
 
-        return Response(
-            {
-                "poll_id": poll.id,
-                "poll_name": poll.name,
-                "total_submissions": submissions_count,
-                "question_statistics": question_stats,
-            }
-        )
+        writer = csv.writer(response)
+
+        writer.writerow(['ID Опроса', poll.id])
+        writer.writerow(['Название Опроса', poll.name])
+        writer.writerow(['Всего прохождений', poll.submissions.count()])
+        writer.writerow([])
+
+        questions_with_related = poll.questions.prefetch_related('choices', 'answers__selected_choices')
+
+        for question in questions_with_related:
+            writer.writerow(['--- Вопрос ---'])
+            writer.writerow(['ID Вопроса', question.id])
+            writer.writerow(['Текст вопроса', question.text])
+            writer.writerow(['Тип вопроса', question.get_question_type_display()])
+
+            if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+                writer.writerow(['Вариант ответа', 'Количество выборов', 'Процент от общего числа прохождений'])
+                total_submissions = poll.submissions.count()
+                
+                annotated_choices = question.choices.annotate(
+                    num_answers=Count('chosen_in_answers', filter=Q(chosen_in_answers__submission__poll=poll))
+                )
+
+                for choice in annotated_choices:
+                    count = choice.num_answers
+                    percentage = (count / total_submissions * 100) if total_submissions > 0 else 0
+                    writer.writerow([
+                        choice.choice_text, 
+                        count, 
+                        f"{percentage:.2f}%"
+                    ])
+            elif question.question_type == Question.QuestionType.FREE_TEXT:
+                writer.writerow(['Текстовые ответы:'])
+                text_answers = Answer.objects.filter(
+                    question=question, 
+                    submission__poll=poll
+                ).exclude(free_text_answer__exact='').exclude(free_text_answer__isnull=True).values_list('free_text_answer', flat=True)
+                
+                if text_answers.exists():
+                    for ans_text in text_answers:
+                        writer.writerow([ans_text])
+                else:
+                    writer.writerow(['Нет текстовых ответов'])
+            
+            writer.writerow([])
+
+        return response
 
 
 class NewsViewSet(viewsets.ModelViewSet):
