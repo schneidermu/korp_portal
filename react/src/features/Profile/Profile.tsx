@@ -101,7 +101,12 @@ export const ProfilePage = () => {
 
   if (!user || !userState) return;
 
-  const editable = user.id === auth.userId;
+  const editable =
+    user.id === auth.userId ||
+    auth.groups.includes("edit-profile-any") ||
+    (auth.groups.includes("edit-profile-sameorg") &&
+      auth.orgId &&
+      O.getOrNull(user.organization)?.id === auth.orgId);
 
   const handleSubmit: FormEventHandler = (event) => {
     event.preventDefault();
