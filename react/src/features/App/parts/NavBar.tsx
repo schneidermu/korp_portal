@@ -28,7 +28,7 @@ export const NavBar = () => {
   ];
 
   return (
-    <Stack fontSize="2xl" color="blue.2" gap="9">
+    <Stack fontSize="2xl" color="blue.2" gap="9" userSelect="none">
       {links.map((link) => (
         <Text
           key={link.link}
