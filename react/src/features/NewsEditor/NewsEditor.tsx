@@ -204,7 +204,13 @@ const NewsRightPanel = ({
       <ImgGrid
         gapX="3"
         gapY="2"
-        templateRows="12rem 12rem"
+        templateRows={
+          imgs.length === 0
+            ? undefined
+            : imgs.length <= 2
+              ? "12rem"
+              : "12rem 12rem"
+        }
         imgs={imgs}
         onRemove={onRemove}
       />

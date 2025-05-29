@@ -118,7 +118,13 @@ export const ImgGrid = React.memo(
       <Grid
         autoFlow={windowInd === 0 ? "row" : "column"}
         templateColumns="1fr 1fr"
-        templateRows="24rem 24rem"
+        templateRows={
+          imgs.length === 0
+            ? undefined
+            : imgs.length <= 2
+              ? "24rem"
+              : "24rem 24rem"
+        }
         gapX="6"
         gapY="5"
         position="relative"
