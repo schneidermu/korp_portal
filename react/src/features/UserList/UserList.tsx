@@ -6,7 +6,6 @@ import {
   Flex,
   Heading,
   Select,
-  Separator,
   Show,
   Stack,
   Text,
@@ -28,6 +27,7 @@ import { SearchBar } from "@/shared/comps/SearchBar";
 import { ruOnNum } from "@/shared/utils/lang.ts";
 import { useIntParam } from "@/shared/hooks/useIntParam.ts";
 import { useNavigate } from "react-router-dom";
+import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
 
 const FILTER_FIELDS = new Set<keyof User>([
   "unit",
@@ -73,7 +73,7 @@ const OrgPicker = React.memo(function OrgPicker({
       <Select.Control>
         <Select.Trigger borderWidth={0}>
           <Heading as="h1" w="full" color="blue.4" fontSize="3xl">
-            <Select.ValueText placeholder="Выберите организацию" />
+            Список сотрудников (<Select.ValueText display="inline" />)
           </Heading>
         </Select.Trigger>
       </Select.Control>
@@ -213,21 +213,20 @@ export const UserList = () => {
   return (
     <Page>
       <Stack gap="7">
-        <Stack>
-          <OrgPicker
-            orgId={orgId}
-            setOrgId={(orgId) =>
-              navigate(orgId === null ? "/list/" : `/list/${orgId}`)
-            }
-          />
-          <Show when={orgId}>
-            <UnitPicker orgId={orgId} unitId={unitId} setUnitId={setUnitId} />
-          </Show>
-          <Separator
-            borderColor="gray.4"
-            borderWidth="var(--separator-thickness)"
-          />
-        </Stack>
+        <PageHeading>
+          <Stack w="full">
+            <OrgPicker
+              orgId={orgId}
+              setOrgId={(orgId) =>
+                navigate(orgId === null ? "/list/" : `/list/${orgId}`)
+              }
+            />
+            <Show when={orgId}>
+              <UnitPicker orgId={orgId} unitId={unitId} setUnitId={setUnitId} />
+            </Show>
+          </Stack>
+        </PageHeading>
+
         <SearchBar debounceDelay={QUERY_DEBOUNCE_DELAY} onDebounce={setQuery} />
         <Flex justify="space-between" align="start" gap="8">
           <Show
