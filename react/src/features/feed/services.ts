@@ -209,6 +209,8 @@ const usePosts = <P extends Post, Data>(
   };
 };
 
+// @ts-expect-error Unused
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const useBirthdays = (orgId: number | null): Birthday[] => {
   const {
     data: { users },
@@ -315,10 +317,9 @@ export const useFeed = ({
 
   const news = useNews(FEED_PAGE_LIMIT, orgId);
   const polls = usePolls(FEED_PAGE_LIMIT, orgId);
-  const birthdays = useBirthdays(orgId);
 
   const posts = useMemo(() => {
-    const posts: Post[] = [...birthdays];
+    const posts: Post[] = [];
     if (showNews && news.data) {
       posts.push(...news.data.filter(newsMatchQuery(query)));
     }
@@ -328,7 +329,7 @@ export const useFeed = ({
     // Reverse chronological order.
     posts.sort((p1, p2) => p2.publishedAt.getTime() - p1.publishedAt.getTime());
     return posts;
-  }, [birthdays, news, polls, showNews, showPolls, query]);
+  }, [news, polls, showNews, showPolls, query]);
 
   const loadMore = useMemo(
     () => () => {
