@@ -51,7 +51,7 @@ export const News = ({ news }: { news: types.News }) => {
 };
 
 export const FeedPage = () => {
-  const { orgId } = useAuth();
+  const { groups, orgId } = useAuth();
   const [showNews, setShowNews] = useState(true);
   const [showPolls, setShowPolls] = useState(true);
   const [query, setQuery] = useState("");
@@ -97,9 +97,11 @@ export const FeedPage = () => {
             Опросы
           </Button>
         </HStack>
-        <Link to="/post-news">
-          <Button variant="solid">Опубликовать новость</Button>
-        </Link>
+        <Show when={groups.includes("post-news")}>
+          <Link to="/post-news">
+            <Button variant="solid">Опубликовать новость</Button>
+          </Link>
+        </Show>
       </Flex>
 
       <Stack gap="20">
