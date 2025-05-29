@@ -111,7 +111,7 @@ export const ProfilePage = () => {
   const handleSubmit: FormEventHandler = (event) => {
     event.preventDefault();
     if (editing) {
-      saveUser(auth.token, userState).catch(() => updateUserState(user));
+      saveUser(auth, userState).catch(() => updateUserState(user));
     }
     setEditing(false);
   };

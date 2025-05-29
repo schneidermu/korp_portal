@@ -16,7 +16,7 @@ import {
   trimExtension,
 } from "@/shared/utils";
 import { User, UserStatus } from "./types";
-import { useAuth } from "../auth/slice";
+import {AuthState, useAuth} from "../auth/slice";
 
 export const UserNotFoundError = new Error("User not found");
 
@@ -489,7 +489,7 @@ export const uploadFile = async (token: string, uri: string | null) => {
     .then(({ file }) => decodeURI(file));
 };
 
-export const saveUser = async (token: string, user: User) => {
+export const saveUser = async (auth: AuthState, user: User) => {
   user = {
     ...user,
     // Drop entries with empty images.
@@ -509,12 +509,12 @@ export const saveUser = async (token: string, user: User) => {
   ] as const;
 
   await Promise.all([
-    uploadFile(token, O.getOrNull(user.photo)).then((file) => {
+    uploadFile(auth.token, O.getOrNull(user.photo)).then((file) => {
       data.avatar = file ?? null;
     }),
     ...attrs.flatMap(([attr, apiAttr]) =>
       (user[attr] || []).map(({ attachment }, i) =>
-        uploadFile(token, O.getOrNull(attachment))
+        uploadFile(auth.token, O.getOrNull(attachment))
           .then((file) => {
             if (data.characteristic) {
               data.characteristic[apiAttr][i].file = file;
@@ -525,7 +525,9 @@ export const saveUser = async (token: string, user: User) => {
     ),
   ]);
 
-  return tokenFetch(token, `/colleagues/${user.id}/`, {
+  const userId = auth.userId === user.id ? "me" : user.id;
+
+  return tokenFetch(auth.token, `/colleagues/${userId}/`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -544,8 +546,7 @@ export const saveUser = async (token: string, user: User) => {
       const opt = {
         revalidate: false,
       };
-      mutate(`/colleagues/${user.id}/`, user, opt);
-      mutate(`/colleagues/me/`, user, opt);
+      mutate(`/colleagues/${userId}/`, user, opt);
       mutate(
         "/colleagues/",
         (users?: Map<string, User>) => {
