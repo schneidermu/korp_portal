@@ -241,25 +241,35 @@ export const useFetchUsers = ({
   orgId,
   unitId,
   sort,
+  query,
 }: {
   orgId: number | null;
   unitId?: number | null;
   sort?: boolean;
+  query?: string;
 }) => {
   const tokenFetcher = useTokenFetcher();
 
   const limit = USERS_PAGE_LIMIT;
 
   const getKey = (index: number, prevPage: Paged<UserData>) => {
+    if (!orgId && (!query || query.length < 3)) {
+      return null;
+    }
     let key = `/colleagues/?limit=${limit}`;
     if (sort) {
       key += `&sort_by=name`;
     }
-    if (orgId !== null) {
+    if (orgId) {
       key += `&structural_division__organization__id=${orgId}`;
+    } else {
+      key += `&structural_division__id__isnull=${orgId === 0 ? "true" : "false"}`;
     }
     if (typeof unitId === "number") {
       key += `&structural_division__id=${unitId}`;
+    }
+    if (!orgId && query) {
+      key += `&search=${query}`;
     }
     if (index === 0) return key;
     if (prevPage && prevPage.next === null) return null;

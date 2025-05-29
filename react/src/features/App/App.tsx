@@ -26,7 +26,7 @@ export const App = () => {
             <Route path="/" element={<ProfilePage />} />
             <Route path="/profile/:userId?" element={<ProfilePage />} />
             <Route path="/new/org/:orgId?" element={<OrgPage />} />
-            <Route path="/list" element={<UserList />} />
+            <Route path="/list/:orgId?" element={<UserList />} />
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/404" element={<NotFound />} />
             <Route path="/post-news" element={<PostNewsForm />} />

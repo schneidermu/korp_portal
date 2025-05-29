@@ -13,7 +13,7 @@ export const NavBar = () => {
     { name: "Мой профиль", link: userId ? `/profile/${userId}` : "/" },
     {
       name: "Список сотрудников",
-      link: orgId !== null ? `/list?orgId=${orgId}` : "/list",
+      link: orgId !== null ? `/list/${orgId}` : "/list",
     },
     {
       name: "Орг. структура",
