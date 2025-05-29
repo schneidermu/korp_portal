@@ -225,7 +225,7 @@ MEDIA_ROOT = "/media/"
 
 LANGUAGE_CODE = "ru-ru"
 
-TIME_ZONE = "Europe/Moscow"
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 

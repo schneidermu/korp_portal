@@ -1,6 +1,5 @@
 import base64
 import csv
-from datetime import datetime
 
 from django.db import transaction
 from django.db.models import CharField, Count, Q, Value
@@ -278,10 +277,12 @@ class NewsViewSet(viewsets.ModelViewSet):
         IsAuthenticated,
         IsAdminUserOrReadOnly,
     )
-    queryset = News.objects.filter(
-        is_published=True, pub_date__lte=datetime.now()
-    ).order_by("-pub_date")
     serializer_class = NewsSerializer
+
+    def get_queryset(self):
+        return News.objects.filter(
+            is_published=True, pub_date__lte=timezone.now()
+        ).order_by("-pub_date")
 
 
 class ColleagueProfileViewset(UserViewSet):
