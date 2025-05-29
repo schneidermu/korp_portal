@@ -9,16 +9,16 @@ export const NavBar = () => {
   const { orgId, userId } = useAuth();
 
   const links: { name: string; link: string; anchor?: boolean }[] = [
-    { name: "Новости", link: "/feed" },
+    { name: "Наша жизнь", link: "/feed" },
     { name: "Мой профиль", link: userId ? `/profile/${userId}` : "/" },
     {
       name: "Список сотрудников",
       link: orgId !== null ? `/list?orgId=${orgId}` : "/list",
     },
-    // {
-    //   name: "Список отделов",
-    //   link: orgId !== null ? `/units?org=${orgId}` : "/units",
-    // },
+    {
+      name: "Орг. структура",
+      link: orgId !== null ? `/tree/${orgId}` : "/tree",
+    },
     { name: "Облако", link: "/nextcloud" },
     {
       name: "Облако (полный экран)",
