@@ -8,8 +8,9 @@ import React, {
 
 import useDraggableScroll from "use-draggable-scroll";
 import { produce } from "immer";
+import { useNavigate } from "react-router-dom";
 
-import { Box, Flex, Grid, GridProps, Heading, Stack } from "@chakra-ui/react";
+import { Box, Flex, Grid, GridProps, Stack } from "@chakra-ui/react";
 
 import { Canvas } from "@/shared/comps/Canvas";
 import { drawRoundedChain } from "@/features/UserTree/utils";
@@ -26,6 +27,8 @@ import { NodeView } from "./parts/NodeView";
 import { USER_TREE_COLORS } from "@/app/const";
 import { useAuth } from "@/features/auth/slice.ts";
 import { useIntParam } from "@/shared/hooks/useIntParam.ts";
+import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
+import { OrgPicker } from "@/features/org/comps/OrgPicker.tsx";
 
 interface UserTreeView extends GridProps {
   tree: Tree;
@@ -116,6 +119,7 @@ export const UserTreePage = () => {
   // @ts-expect-error: The types are too restrictive.
   const { onMouseDown } = useDraggableScroll(viewRef);
 
+  const navigate = useNavigate();
   const auth = useAuth();
   const orgId = useIntParam("orgId") ?? auth.orgId;
 
@@ -130,9 +134,14 @@ export const UserTreePage = () => {
   return (
     <Page>
       <Stack>
-        <Heading color="blue.4" fontSize="3xl">
-          Руководство и структура
-        </Heading>
+        <PageHeading>
+          <OrgPicker
+            title="Руководство и структура"
+            concreteOnly
+            orgId={orgId}
+            setOrgId={(orgId) => navigate(`/tree/${orgId}`)}
+          />
+        </PageHeading>
         <Box
           w="full"
           h="800px"
