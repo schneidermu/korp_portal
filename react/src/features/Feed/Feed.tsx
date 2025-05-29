@@ -1,147 +1,27 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   Button,
   Flex,
-  Grid,
   Heading,
   HStack,
-  IconButton,
-  Image,
   Separator,
   Show,
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { LuX } from "react-icons/lu";
 
 import { useAuth } from "@/features/auth/slice";
 import { useFeed } from "@/features/feed/services";
 import * as types from "@/features/feed/types";
 import { useReachBottom } from "@/shared/hooks/useReachBottom";
-import { formatDateFuller, resolveMediaPath } from "@/shared/utils";
+import { formatDateFuller } from "@/shared/utils";
 
 import { Page } from "@/features/App/comps/Page";
 
 import { SearchBar } from "@/shared/comps/SearchBar";
-import { Overlay } from "./parts/Overlay";
-import { SlideButtonLeft, SlideButtonRight } from "./parts/SlideButtons";
 
-const OverlayImg = ({
-  imgs,
-  index,
-  onClose,
-}: {
-  imgs: string[];
-  index: number | null;
-  onClose: () => void;
-}) => {
-  const [j, setJ] = useState<number | null>(index);
-
-  useEffect(() => setJ(index), [index]);
-
-  useEffect(() => {
-    if (j === null) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      event.preventDefault();
-      const { key } = event;
-      if (key === "ArrowLeft" && j > 0) {
-        setJ(j - 1);
-      }
-      if (key === "ArrowRight" && j + 1 < imgs.length) {
-        setJ(j + 1);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [j, imgs.length]);
-
-  return (
-    <Overlay position="relative" present={j !== null} onClose={onClose}>
-      {j !== null && (
-        <>
-          <IconButton
-            position="absolute"
-            p="2"
-            w="10"
-            h="10"
-            bottom="100%"
-            left="100%"
-            onClick={onClose}
-            color="black"
-            bg="transparent"
-            _hover={{ color: "blue.2" }}
-          >
-            <LuX style={{ width: "100%", height: "100%" }} />
-          </IconButton>
-          <SlideButtonLeft disabled={j <= 0} onClick={() => setJ(j - 1)} />
-          <SlideButtonRight
-            disabled={j + 1 >= imgs.length}
-            onClick={() => setJ(j + 1)}
-          />
-          <Image
-            role="button"
-            w="74rem"
-            h="42rem"
-            userSelect="none"
-            cursor="default"
-            src={resolveMediaPath(imgs[j])}
-            onClick={onClose}
-          />
-        </>
-      )}
-    </Overlay>
-  );
-};
-
-const ImgGrid = ({ imgs }: { imgs: string[] }) => {
-  const [windowInd, setWindowIndex] = useState(0);
-  const [overlayImg, setOverlayImg] = useState<number | null>(null);
-
-  const windowSize = 4;
-  const step = 2;
-
-  return (
-    <Grid
-      gridAutoFlow="column"
-      templateColumns="1fr 1fr"
-      templateRows="24rem 24rem"
-      gapX="6"
-      gapY="5"
-      position="relative"
-    >
-      <SlideButtonLeft
-        disabled={windowInd <= 0}
-        onClick={() => setWindowIndex(windowInd - step)}
-      />
-      <SlideButtonRight
-        disabled={windowInd + windowSize >= imgs.length}
-        onClick={() => setWindowIndex(windowInd + step)}
-      />
-      {imgs.slice(windowInd, windowInd + windowSize).map((src, i) => (
-        <Image
-          key={src}
-          role="button"
-          w="full"
-          h="full"
-          userSelect="none"
-          src={resolveMediaPath(src)}
-          onClick={() => setOverlayImg(i)}
-        />
-      ))}
-
-      <OverlayImg
-        imgs={imgs}
-        index={overlayImg}
-        onClose={() => setOverlayImg(null)}
-      />
-    </Grid>
-  );
-};
+import { ImgGrid } from "./comps/ImgGrid";
 
 export const News = ({ news }: { news: types.News }) => {
   return (
