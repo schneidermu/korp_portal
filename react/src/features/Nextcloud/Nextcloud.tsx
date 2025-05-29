@@ -1,17 +1,15 @@
-import { Box, Heading, Separator, Stack } from "@chakra-ui/react";
+import { Box, Stack } from "@chakra-ui/react";
 
 import { NEXTCLOUD_PREFIX } from "@/app/const";
 
 import { Page } from "@/features/App/comps/Page";
+import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
 
 export const NextcloudPage = () => {
   return (
     <Page>
       <Stack gap="6" h="full">
-        <Heading as="h1" fontSize="3xl" color="blue.4">
-          Облачное хранилище
-        </Heading>
-        <Separator borderWidth={1} borderColor="gray.4" />
+        <PageHeading title="Облачное хранилище" />
         <Box
           borderWidth={1}
           borderColor="gray.1"
