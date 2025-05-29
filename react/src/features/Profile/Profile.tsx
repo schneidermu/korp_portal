@@ -14,7 +14,9 @@ import {
 } from "@/features/user/services";
 
 import { Page } from "@/features/App/comps/Page";
+import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
 import { Button } from "@/shared/comps/Button";
+import { fullNameLong } from "@/shared/utils";
 
 import { ProfileCard } from "./comps/ProfileCard";
 import { Section } from "./parts/Section";
@@ -125,6 +127,10 @@ export const ProfilePage = () => {
         )
       }
     >
+      <PageHeading
+        title={user.id === auth.userId ? "Мой профиль" : fullNameLong(user)}
+      />
+
       <Stack gap="7" as="form" onSubmit={handleSubmit}>
         <VisuallyHidden>
           {/* Dummy submit button to trigger input submits with Enter.
