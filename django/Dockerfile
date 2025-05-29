@@ -1,6 +1,6 @@
 FROM python:3.9
 
-ENV DJANGO_PORT 8000
+ENV DJANGO_PORT=8000
 
 RUN useradd -s /bin/sh -md /app user
 WORKDIR /app
