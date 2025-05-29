@@ -70,16 +70,13 @@ const OrgPicker = React.memo(function OrgPicker({
       onValueChange={({ value }) => setOrgId(value[0] || null)}
     >
       <Select.HiddenSelect />
-      <Heading as="h1" color="blue.4" fontSize="3xl">
-        <Select.Control>
-          <Select.Trigger fontSize="inherit" borderWidth={0}>
-            <Select.ValueText
-              placeholder="Выберите организацию"
-              overflow="visible"
-            />
-          </Select.Trigger>
-        </Select.Control>
-      </Heading>
+      <Select.Control>
+        <Select.Trigger borderWidth={0}>
+          <Heading as="h1" w="full" color="blue.4" fontSize="3xl">
+            <Select.ValueText placeholder="Выберите организацию" />
+          </Heading>
+        </Select.Trigger>
+      </Select.Control>
       <Select.Positioner w="full">
         <Select.Content>
           {collection.items.map((item) => (
@@ -126,13 +123,13 @@ const UnitPicker = React.memo(function UnitPicker({
       onValueChange={({ value }) => setUnitId(value[0] || null)}
     >
       <Select.HiddenSelect />
-      <Heading as="h2" color="blue.4" fontSize="2xl">
-        <Select.Control>
-          <Select.Trigger fontSize="inherit" borderWidth={0}>
-            <Select.ValueText overflow="visible" />
-          </Select.Trigger>
-        </Select.Control>
-      </Heading>
+      <Select.Control>
+        <Select.Trigger borderWidth={0}>
+          <Heading as="h2" w="full" color="blue.4" fontSize="2xl">
+            <Select.ValueText />
+          </Heading>
+        </Select.Trigger>
+      </Select.Control>
       <Select.Positioner w="full">
         <Select.Content>
           {collection.items.map((item) => (
