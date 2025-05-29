@@ -22,6 +22,7 @@ export const SearchBar = React.forwardRef<HTMLDivElement, SearchBarProps>(
 
     return (
       <InputGroup
+        h="fit"
         startElement={<LuSearch />}
         borderWidth={1}
         borderRadius="small"
