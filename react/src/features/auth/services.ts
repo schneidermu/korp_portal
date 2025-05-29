@@ -73,10 +73,12 @@ export const useLogin = (credentials?: Credentials) => {
           ({
             id: userId,
             is_superuser: isAdmin,
+            user_groups_display: groups,
             organization,
           }: {
             id: string;
             is_superuser: boolean;
+            user_groups_display: string[];
             organization: null | { id: number };
           }) => {
             dispatch(
@@ -85,6 +87,7 @@ export const useLogin = (credentials?: Credentials) => {
                 email,
                 token,
                 isAdmin,
+                groups,
                 orgId: organization?.id ?? null,
               }),
             );

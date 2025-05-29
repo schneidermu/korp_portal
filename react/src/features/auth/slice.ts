@@ -7,6 +7,7 @@ export interface AuthState {
   email: string;
   token: string;
   isAdmin: boolean;
+  groups: string[];
   isLoggedIn: boolean;
   orgId: number | null;
 }
@@ -16,6 +17,7 @@ const initialState: AuthState = {
   email: "",
   token: "",
   isAdmin: false,
+  groups: [],
   isLoggedIn: false,
   orgId: null,
 };
@@ -33,6 +35,7 @@ export const authSlice = createSlice({
         email: string;
         token: string;
         isAdmin: boolean;
+        groups: string[];
         orgId: number | null;
       }>,
     ) => {
