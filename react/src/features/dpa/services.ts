@@ -31,7 +31,7 @@ export const useAgreeDPA = () => {
         if (status === 200) {
           ok = true;
           mutate(
-            `/colleages/${user.id}`,
+            `/colleagues/me/`,
             {
               ...user,
               agreeDataProcessing: true,
