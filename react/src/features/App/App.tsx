@@ -11,6 +11,7 @@ import { UserList } from "@/features/UserList/UserList";
 import { NextcloudPage } from "@/features/Nextcloud/Nextcloud";
 import { NotFound } from "@/features/NotFound/NotFound";
 import { OrgPage } from "@/features/Org/Org";
+import { PostNewsForm } from "@/features/NewsEditor/NewsEditor.tsx";
 
 import { AuthLoader } from "./parts/AuthLoader";
 
@@ -28,6 +29,7 @@ export const App = () => {
             <Route path="/list" element={<UserList />} />
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/404" element={<NotFound />} />
+            <Route path="/post-news" element={<PostNewsForm />} />
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Route>
         </Routes>

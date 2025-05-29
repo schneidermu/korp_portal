@@ -94,6 +94,9 @@ export const formatDatePretty = new Intl.DateTimeFormat(LOCALE, {
 }).format;
 
 export const resolveMediaPath = (path: string) => {
+  if (path.startsWith("data:")) {
+    return path;
+  }
   if (path.startsWith("blob:")) {
     return path.replace(/\.[a-z0-9]+$/, "");
   }

@@ -10,6 +10,7 @@ const customConfig = defineConfig({
           2: { value: "#656565" },
           3: { value: "#8C8C8C" },
           4: { value: "#C1C2C8" },
+          5: { value: "#E5F0FF" },
         },
         blue: {
           1: { value: "#2F80ED" },
@@ -17,6 +18,7 @@ const customConfig = defineConfig({
           3: { value: "#DBEAFF" },
           4: { value: "#0E3C7A" },
           5: { value: "#1956A8" },
+          6: { value: "#BAD4F6" },
         },
         red: {
           1: { value: "#CF2020" },

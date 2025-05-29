@@ -57,3 +57,6 @@ export const USER_TREE_COLORS = [
   { bg: "#FFFCFA", border: "#FF7B02" },
   { bg: "#FFFEF2", border: "#F1DC1E" },
 ];
+
+// The maximum size of an image to upload (10 MiB).
+export const MAX_IMG_SIZE = 10 * 1024 * 1024;
