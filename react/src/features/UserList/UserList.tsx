@@ -1,19 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import {
-  Checkbox,
-  createListCollection,
-  Flex,
-  Heading,
-  Select,
-  Show,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
+import { Checkbox, Flex, Show, Stack, Text } from "@chakra-ui/react";
 
 import { QUERY_DEBOUNCE_DELAY, USERS_PAGE_LIMIT } from "@/app/const";
-
-import { useFetchOrgs } from "@/features/org/services";
 import { cmpUsers, useFetchUsers } from "@/features/user/services";
 import { filterUsers, User } from "@/features/user/types";
 import { useIntSearchParam } from "@/shared/hooks/useSearchParam";
@@ -28,6 +17,7 @@ import { ruOnNum } from "@/shared/utils/lang.ts";
 import { useIntParam } from "@/shared/hooks/useIntParam.ts";
 import { useNavigate } from "react-router-dom";
 import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
+import { OrgPicker, UnitPicker } from "@/features/org/comps/OrgPicker";
 
 const FILTER_FIELDS = new Set<keyof User>([
   "unit",
@@ -39,111 +29,6 @@ const FILTER_FIELDS = new Set<keyof User>([
   "serviceRank",
   "office",
 ]);
-
-const OrgPicker = React.memo(function OrgPicker({
-  orgId,
-  setOrgId,
-}: {
-  orgId: number | null;
-  setOrgId: (orgId: string | null) => void;
-}) {
-  const { data: orgs } = useFetchOrgs();
-
-  const collection = useMemo(() => {
-    const items =
-      orgs?.map((org) => ({
-        value: org.id.toString(),
-        label: org.name,
-      })) ?? [];
-    items.unshift(
-      { value: "0", label: "Без организации" },
-      { value: "", label: "Все организации" },
-    );
-    return createListCollection({ items });
-  }, [orgs]);
-
-  return (
-    <Select.Root
-      position="relative"
-      collection={collection}
-      value={orgId === null ? [""] : [orgId.toString()]}
-      onValueChange={({ value }) => setOrgId(value[0] || null)}
-    >
-      <Select.HiddenSelect />
-      <Select.Control>
-        <Select.Trigger borderWidth={0}>
-          <Heading as="h1" w="full" color="blue.4" fontSize="3xl">
-            Список сотрудников (<Select.ValueText display="inline" />)
-          </Heading>
-        </Select.Trigger>
-      </Select.Control>
-      <Select.Positioner w="full">
-        <Select.Content>
-          {collection.items.map((item) => (
-            <Select.Item key={item.value} item={item} fontSize="smaller">
-              <Text color="blue.4" fontSize="2xl">
-                {item.label}
-              </Text>
-            </Select.Item>
-          ))}
-        </Select.Content>
-      </Select.Positioner>
-    </Select.Root>
-  );
-});
-
-const UnitPicker = React.memo(function UnitPicker({
-  orgId,
-  unitId,
-  setUnitId,
-}: {
-  orgId: number | null;
-  unitId: number | null;
-  setUnitId: (unitId: string | null) => void;
-}) {
-  const { data: orgs } = useFetchOrgs();
-
-  const collection = useMemo(() => {
-    const items =
-      orgs
-        ?.find((org) => org.id === orgId)
-        ?.units.map((unit) => ({
-          value: unit.id.toString(),
-          label: unit.name,
-        })) ?? [];
-    items.unshift({ value: "", label: "Все подразделения" });
-    return createListCollection({ items });
-  }, [orgs, orgId]);
-
-  return (
-    <Select.Root
-      position="relative"
-      collection={collection}
-      value={[unitId?.toString() ?? ""]}
-      onValueChange={({ value }) => setUnitId(value[0] || null)}
-    >
-      <Select.HiddenSelect />
-      <Select.Control>
-        <Select.Trigger borderWidth={0}>
-          <Heading as="h2" w="full" color="blue.4" fontSize="2xl">
-            <Select.ValueText />
-          </Heading>
-        </Select.Trigger>
-      </Select.Control>
-      <Select.Positioner w="full">
-        <Select.Content>
-          {collection.items.map((item) => (
-            <Select.Item key={item.value} item={item} fontSize="smaller">
-              <Text color="blue.4" fontSize="xl">
-                {item.label}
-              </Text>
-            </Select.Item>
-          ))}
-        </Select.Content>
-      </Select.Positioner>
-    </Select.Root>
-  );
-});
 
 // /list/ -> orgId=null, users with an org
 // /list/0 -> orgId=0, users with no org
@@ -216,6 +101,7 @@ export const UserList = () => {
         <PageHeading>
           <Stack w="full">
             <OrgPicker
+              title="Список сотрудников"
               orgId={orgId}
               setOrgId={(orgId) =>
                 navigate(orgId === null ? "/list/" : `/list/${orgId}`)
