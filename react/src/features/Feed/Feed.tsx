@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import {
-  Button,
   Flex,
   Heading,
   HStack,
@@ -10,6 +9,8 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
+
+import { Link } from "react-router-dom";
 
 import { useAuth } from "@/features/auth/slice";
 import { useFeed } from "@/features/feed/services";
@@ -20,8 +21,10 @@ import { formatDateFuller } from "@/shared/utils";
 import { Page } from "@/features/App/comps/Page";
 
 import { SearchBar } from "@/shared/comps/SearchBar";
+import { Button } from "@/shared/comps/Button";
 
 import { ImgGrid } from "./comps/ImgGrid";
+import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
 
 export const News = ({ news }: { news: types.News }) => {
   return (
@@ -64,9 +67,14 @@ export const FeedPage = () => {
 
   return (
     <Page>
-      <Flex fontSize="2xl" color="blue.2" mb="4" justify="space-between">
+      <PageHeading title="Наша жизнь">
+        <SearchBar width="40%" debounceDelay={300} onDebounce={setQuery} />
+      </PageHeading>
+
+      <Flex justify="space-between" mb={8}>
         <HStack>
           <Button
+            variant="ghost"
             fontSize="2xl"
             color="blue.2"
             bg="transparent"
@@ -78,6 +86,7 @@ export const FeedPage = () => {
           </Button>
           &ndash;
           <Button
+            variant="ghost"
             fontSize="2xl"
             color="blue.2"
             bg="transparent"
@@ -88,8 +97,9 @@ export const FeedPage = () => {
             Опросы
           </Button>
         </HStack>
-
-        <SearchBar width="30%" debounceDelay={300} onDebounce={setQuery} />
+        <Link to="/post-news">
+          <Button variant="solid">Опубликовать новость</Button>
+        </Link>
       </Flex>
 
       <Stack gap="20">
