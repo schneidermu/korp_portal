@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import { Grid, GridProps, IconButton, Image, Show } from "@chakra-ui/react";
+import {
+  Box,
+  Grid,
+  GridProps,
+  IconButton,
+  Image,
+  Show,
+} from "@chakra-ui/react";
 
 import { LuX } from "react-icons/lu";
 
@@ -82,11 +89,12 @@ const OverlayImg = ({
 
 export interface ImgGridProps extends GridProps {
   imgs: string[];
+  onRemove?: (i: number) => void;
 }
 
 export const ImgGrid = React.memo(
   React.forwardRef<HTMLDivElement, ImgGridProps>(function ImgGrid(props, ref) {
-    const { imgs, ...rest } = props;
+    const { imgs, onRemove, ...rest } = props;
 
     const [windowInd, setWindowIndex] = useState(0);
     const [overlayImg, setOverlayImg] = useState<number | null>(null);
@@ -124,15 +132,39 @@ export const ImgGrid = React.memo(
           <SlideButtonRight onClick={() => setWindowIndex(windowInd + 1)} />
         </Show>
         {windowImgs.map((src, i) => (
-          <Image
-            key={i}
-            role="button"
-            w="full"
-            h="full"
-            userSelect="none"
-            src={resolveMediaPath(src)}
-            onClick={() => setOverlayImg(i)}
-          />
+          <Box position="relative" key={i}>
+            <Image
+              role="button"
+              w="full"
+              h="full"
+              userSelect="none"
+              src={resolveMediaPath(src)}
+              onClick={() => setOverlayImg(i)}
+            />
+            {onRemove && (
+              <IconButton
+                inset="0"
+                h="full"
+                position="absolute"
+                bg="transparent"
+                color="transparent"
+                _hover={{ bg: "gray.1", color: "black" }}
+                opacity="0.8"
+                onClick={() => {
+                  // Visible before the removal.
+                  const numVisible = imgs.length - step * windowInd;
+                  const isLastWindow =
+                    step * windowInd + windowSize >= imgs.length;
+                  if (windowInd > 0 && isLastWindow && numVisible < 4) {
+                    setWindowIndex(windowInd - 1);
+                  }
+                  onRemove(i);
+                }}
+              >
+                <LuX />
+              </IconButton>
+            )}
+          </Box>
         ))}
 
         <OverlayImg

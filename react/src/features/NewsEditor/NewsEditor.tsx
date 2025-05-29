@@ -190,12 +190,24 @@ const NewsRightPanel = ({
     [setImgs],
   );
 
+  const onRemove = useCallback(
+    (i: number) =>
+      setImgs((imgs) => [...imgs.slice(0, i), ...imgs.slice(i + 1)]),
+    [setImgs],
+  );
+
   return (
     <Stack gap="4">
       <NewsField label="Загрузка медиаматериалов">
         <NewsDropzone onDrop={onDrop} />
       </NewsField>
-      <ImgGrid gapX="3" gapY="2" templateRows="12rem 12rem" imgs={imgs} />
+      <ImgGrid
+        gapX="3"
+        gapY="2"
+        templateRows="12rem 12rem"
+        imgs={imgs}
+        onRemove={onRemove}
+      />
     </Stack>
   );
 };
