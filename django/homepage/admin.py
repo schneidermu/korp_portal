@@ -52,22 +52,41 @@ class QuestionDependencyInline(admin.StackedInline):
     fields = ("trigger_question", "trigger_choice")
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "trigger_question":
-            if request.resolver_match and "object_id" in request.resolver_match.kwargs:
-                try:
-                    dependent_question_id = int(
-                        request.resolver_match.kwargs["object_id"]
-                    )
-                    dependent_question = Question.objects.get(pk=dependent_question_id)
-                    kwargs["queryset"] = Question.objects.filter(
-                        poll=dependent_question.poll,
-                        order__lt=dependent_question.order,
-                    ).exclude(pk=dependent_question.pk)
-                except (ValueError, Question.DoesNotExist):
-                    pass
 
+        dependent_question_instance = None
+        if request.resolver_match and "object_id" in request.resolver_match.kwargs:
+            try:
+                dependent_question_id = int(request.resolver_match.kwargs["object_id"])
+                dependent_question_instance = Question.objects.get(pk=dependent_question_id)
+            except (ValueError, Question.DoesNotExist):
+                pass
+
+        if db_field.name == "trigger_question":
+            if dependent_question_instance and dependent_question_instance.poll:
+                kwargs["queryset"] = Question.objects.filter(
+                    poll=dependent_question_instance.poll,
+                    order__lt=dependent_question_instance.order,
+                ).exclude(pk=dependent_question_instance.pk)
+            else:
+                kwargs["queryset"] = Question.objects.none() 
+        
         if db_field.name == "trigger_choice":
-            pass
+            
+            current_dependency_instance = kwargs.get('instance')
+
+            if current_dependency_instance and current_dependency_instance.trigger_question:
+                kwargs["queryset"] = Choice.objects.filter(question=current_dependency_instance.trigger_question)
+            elif dependent_question_instance and dependent_question_instance.poll:
+
+                possible_trigger_questions = Question.objects.filter(
+                    poll=dependent_question_instance.poll,
+                    order__lt=dependent_question_instance.order
+                ).exclude(pk=dependent_question_instance.pk)
+                
+                kwargs["queryset"] = Choice.objects.filter(question__in=possible_trigger_questions)
+            else:
+                kwargs["queryset"] = Choice.objects.none()
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
