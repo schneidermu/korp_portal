@@ -291,7 +291,7 @@ class ColleagueProfileViewset(UserViewSet):
 
     permission_classes = (
         IsAuthenticated,
-        IsUserOrReadOnly,
+        IsAdminUserOrReadOnly,
     )
     queryset = Employee.objects.all()
 
