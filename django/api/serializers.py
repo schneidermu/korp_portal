@@ -218,7 +218,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class PollSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, required=False, default=[])
-    author = serializers.SlugRelatedField(slug_field="username", read_only=True)
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
     organization = serializers.PrimaryKeyRelatedField(
         queryset=Organization.objects.all(), many=True, required=False
     )
