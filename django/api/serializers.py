@@ -802,9 +802,16 @@ class NewsSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         attachments_data = validated_data.pop("attachments", [])
+        organization_data = validated_data.pop("organization", None)
+
         news = News.objects.create(**validated_data)
+
+        if organization_data is not None:
+            news.organization.set(organization_data)
+
         for attachment_data in attachments_data:
             Attachment.objects.create(publication=news, **attachment_data)
+
         return news
 
 
