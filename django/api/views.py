@@ -18,7 +18,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from employees.models import Competence, Employee, Organization, Rating
-from homepage.models import Answer, News, Poll, PollSubmission, Question
+from homepage.models import Answer, News, Poll, PollGroup, PollSubmission, Question
 
 from .filters import CompetenceFilter
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
@@ -30,6 +30,7 @@ from .serializers import (
     NewsSerializer,
     OrganizationSerializer,
     OrgStructureSerializer,
+    PollGroupSerializer,
     PollSerializer,
     PollSubmissionCreateSerializer,
     ProfileInOrganizationSerializer,
@@ -583,3 +584,23 @@ class CustomTokenCreateView(TokenCreateView):
                 pass
 
         return response
+
+
+class PollGroupListView(generics.ListAPIView):
+    """
+    View for PollGroup
+    """
+
+    serializer_class = PollGroupSerializer
+    permission_classes = (IsAuthenticated,)
+
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+    )
+    filterset_fields = {
+        "name": ["exact", "icontains"],
+    }
+    search_fields = ["name"]
+
+    queryset = PollGroup.objects.all()

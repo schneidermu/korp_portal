@@ -1637,3 +1637,11 @@ class MyProfileSerializer(ProfileSerializer):
             return []
 
         return [group.name for group in obj.groups.all().order_by("name")]
+
+
+class PollGroupSerializer(serializers.ModelSerializer):
+    """Сериализатор для типов опросов"""
+
+    class Meta:
+        model = PollGroup
+        fields = "__all__"
