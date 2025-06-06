@@ -31,6 +31,7 @@ export const NavBar = () => {
     <Stack fontSize="2xl" color="blue.2" gap="9" userSelect="none">
       {links.map((link) => (
         <Text
+          color="inherit"
           key={link.link}
           asChild
           fontWeight="semibold"

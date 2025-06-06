@@ -19,7 +19,7 @@ export const Page = ({
         <Box position="relative" w={1440} p="9" pr="16" pb="20" minH="100vh">
           {children}
         </Box>
-        <Box height="fit" mt="20" position="sticky" top="10">
+        <Box height="fit" mt="20" position="sticky" top="20">
           <NavBar />
           <Show when={sidebar}>
             <Separator borderWidth={1} my={8} />
