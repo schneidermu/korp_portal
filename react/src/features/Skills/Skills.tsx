@@ -1,13 +1,17 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback } from "react";
 
-import { Box, Show, Stack, StackProps, Tag, Wrap } from "@chakra-ui/react";
 import {
-  AutoComplete,
-  AutoCompleteCreatable,
-  AutoCompleteInput,
-  AutoCompleteItem,
-  AutoCompleteList,
-} from "@choc-ui/chakra-autocomplete";
+  Box,
+  Show,
+  Stack,
+  StackProps,
+  Tag,
+  Wrap,
+  Combobox,
+  useListCollection,
+  useFilter,
+  Portal,
+} from "@chakra-ui/react";
 
 import { UpdateUserFn, User } from "@/features/user/types";
 import { useSkillsCompletion } from "@/features/Skills/services";
@@ -54,58 +58,70 @@ const SkillInput = React.memo(function NewSkill({
   placeholder?: string;
   excludeSkills: string[];
 }) {
-  const [skill, setSkill] = useState("");
-  const { data: skillsAll } = useSkillsCompletion({ minUsage: 7 });
-
-  const skills = useMemo(
-    () => skillsAll?.filter(({ name }) => !excludeSkills.includes(name)),
-    [skillsAll, excludeSkills],
-  );
+  const { data: skills } = useSkillsCompletion({ minUsage: 7 });
 
   const onAddSkill = (skill: string) => {
-    if (skill === "" || excludeSkills.includes(skill)) return false;
+    if (skill === "" || excludeSkills.includes(skill)) {
+      return;
+    }
     addSkill(skill);
-    setSkill("");
-    return true;
   };
 
+  const { contains } = useFilter({ sensitivity: "base" });
+
+  const { collection, filter } = useListCollection({
+    initialItems: skills ?? [],
+    itemToString: ({ name }) => name,
+    itemToValue: ({ id }) => id.toFixed(),
+    isItemDisabled: ({ name }) => excludeSkills.includes(name),
+    filter: contains,
+  });
+
   return (
-    <AutoComplete
-      openOnFocus
-      creatable
-      onSelectOption={({ item }) => onAddSkill(item.value)}
-      maxSuggestions={6}
+    <Combobox.Root
+      openOnClick
+      collection={collection}
+      onInputValueChange={(e) => filter(e.inputValue)}
     >
-      <AutoCompleteInput
-        variant="subtle"
-        bg="blue.3"
-        borderRadius="small"
-        px="3"
-        py="1"
-        value={skill}
-        placeholder={placeholder}
-        onChange={({ target }) => setSkill(target.value)}
-        onKeyUp={(event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            event.stopPropagation();
-            onAddSkill(skill);
-          }
-        }}
-      />
-      <AutoCompleteList color="black" bg="white" py="2">
-        {skills?.map(({ id, name }) => (
-          <AutoCompleteItem
-            key={id}
-            value={name}
-            _focus={{ bg: "blue.2", color: "white" }}
-          >
-            {name}
-          </AutoCompleteItem>
-        ))}
-        <AutoCompleteCreatable />
-      </AutoCompleteList>
-    </AutoComplete>
+      <Combobox.Control>
+        <Combobox.Input
+          placeholder={placeholder}
+          spellCheck
+          bg="blue.3"
+          borderColor="blue.1"
+          borderRadius="small"
+          px="3"
+          py="1"
+          outlineColor="blue.1"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onAddSkill(e.currentTarget.value);
+            }
+          }}
+        />
+        <Combobox.IndicatorGroup>
+          <Combobox.ClearTrigger />
+          <Combobox.Trigger />
+        </Combobox.IndicatorGroup>
+      </Combobox.Control>
+      <Portal>
+        <Combobox.Positioner>
+          <Combobox.Content>
+            <Combobox.Empty>Вводите свой навык</Combobox.Empty>
+            {collection.items.map((skill) => (
+              <Combobox.Item
+                item={skill}
+                key={skill.id}
+                _hover={{ bg: "blue.2", color: "white", transition: "ease" }}
+              >
+                {skill.name}
+                <Combobox.ItemIndicator />
+              </Combobox.Item>
+            ))}
+          </Combobox.Content>
+        </Combobox.Positioner>
+      </Portal>
+    </Combobox.Root>
   );
 });
 
