@@ -5,7 +5,7 @@ import { useAuth } from "@/features/auth/slice.ts";
 import { Page } from "@/features/App/comps/Page.tsx";
 import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
 
-export const ProtectedPage = ({ groups }: { groups: string[] }) => {
+export default function ProtectedPage({ groups }: { groups: string[] }) {
   const auth = useAuth();
   const allowed = groups.some((group) => auth.groups.includes(group));
 

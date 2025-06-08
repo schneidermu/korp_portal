@@ -127,7 +127,7 @@ const UnitsCard = ({ things }: { things: string[] }) => {
   );
 };
 
-export const OrgPage = () => {
+export default function OrgPage () {
   const auth = useAuth();
   const [orgId] = useIntSearchParam("id");
   const {

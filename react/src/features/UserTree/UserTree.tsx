@@ -114,7 +114,7 @@ const UserTreeView = React.memo(
   ),
 );
 
-export const UserTreePage = () => {
+export default function UserTreePage () {
   const viewRef = useRef<HTMLDivElement | null>(null);
   // @ts-expect-error: The types are too restrictive.
   const { onMouseDown } = useDraggableScroll(viewRef);

@@ -57,7 +57,7 @@ const LoginForm = ({ onLogin }: { onLogin: (cred: Credentials) => void }) => {
   );
 };
 
-export const AuthLoader = () => {
+export default function AuthLoader() {
   const dispatch = useAppDispatch();
 
   const embed = import.meta.env.VITE_LIFERAY_EMBED === "true";

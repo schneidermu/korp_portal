@@ -34,7 +34,7 @@ const FILTER_FIELDS = new Set<keyof User>([
 // /list/0 -> orgId=0, users with no org
 // /list/{id} -> orgId={id}, users with org {id}
 
-export const UserList = () => {
+export default function UserList() {
   const navigate = useNavigate();
   const orgId = useIntParam("orgId");
   const [unitId, setUnitId] = useIntSearchParam("unitId");

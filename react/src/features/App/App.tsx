@@ -1,20 +1,29 @@
+import React from "react";
+
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { ChakraProvider } from "@chakra-ui/react";
 
 import { system } from "./theme";
 
-import { UserTreePage } from "@/features/UserTree/UserTree.tsx";
-import { FeedPage } from "@/features/Feed/Feed";
-import { ProfilePage } from "@/features/Profile/Profile";
-import { UserList } from "@/features/UserList/UserList";
-import { NextcloudPage } from "@/features/Nextcloud/Nextcloud";
-import { NotFound } from "@/features/NotFound/NotFound";
-import { OrgPage } from "@/features/Org/Org";
-import { PostNewsForm } from "@/features/NewsEditor/NewsEditor.tsx";
+import NotFound from "@/features/NotFound/NotFound";
+import NextcloudPage from "@/features/Nextcloud/Nextcloud";
 
-import { AuthLoader } from "./parts/AuthLoader";
-import { ProtectedPage } from "./parts/ProtectedPage";
+import AuthLoader from "./parts/AuthLoader";
+import ProtectedPage from "./parts/ProtectedPage";
+
+const ProfilePage = React.lazy(
+  async () => import("@/features/Profile/Profile"),
+);
+const UserList = React.lazy(async () => import("@/features/UserList/UserList"));
+const UserTreePage = React.lazy(
+  async () => import("@/features/UserTree/UserTree"),
+);
+const FeedPage = React.lazy(async () => import("@/features/Feed/Feed"));
+const OrgPage = React.lazy(async () => import("@/features/Org/Org"));
+const PostNewsForm = React.lazy(
+  async () => import("@/features/NewsEditor/NewsEditor"),
+);
 
 export const App = () => {
   return (

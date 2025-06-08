@@ -5,7 +5,7 @@ import { NEXTCLOUD_PREFIX } from "@/app/const";
 import { Page } from "@/features/App/comps/Page";
 import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
 
-export const NextcloudPage = () => {
+export default function NextcloudPage() {
   return (
     <Page>
       <Stack gap="6" h="full">

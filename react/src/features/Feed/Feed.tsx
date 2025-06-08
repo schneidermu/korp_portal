@@ -50,7 +50,7 @@ export const News = ({ news }: { news: types.News }) => {
   );
 };
 
-export const FeedPage = () => {
+export default function FeedPage() {
   const { groups, orgId } = useAuth();
   const [showNews, setShowNews] = useState(true);
   const [showPolls, setShowPolls] = useState(true);
@@ -122,4 +122,4 @@ export const FeedPage = () => {
       </Show>
     </Page>
   );
-};
+}

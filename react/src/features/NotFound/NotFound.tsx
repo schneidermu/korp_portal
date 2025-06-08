@@ -1,4 +1,4 @@
-export const NotFound = () => {
+export default function NotFound() {
   return (
     <div>
       <p>Ошибка 404</p>

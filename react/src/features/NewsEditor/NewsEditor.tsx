@@ -218,7 +218,7 @@ const NewsRightPanel = ({
   );
 };
 
-export const PostNewsForm = () => {
+export default function PostNewsForm() {
   const auth = useAuth();
   const navigate = useNavigate();
   const [isPublishing, setIsPublishing] = useState(false);

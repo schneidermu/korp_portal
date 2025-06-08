@@ -61,7 +61,7 @@ const EditControls = ({
   );
 };
 
-export const ProfilePage = () => {
+export default function ProfilePage() {
   const navigate = useNavigate();
   const params = useParams();
   const auth = useAuth();
