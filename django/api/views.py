@@ -196,7 +196,7 @@ class PollViewset(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def statistics(self, request, pk=None):
-        """Возвращает статистику по опросу."""
+        """Возвращает статистику по опросу в формате CSV."""
         poll = self.get_object()
 
         can_view_stats = False
@@ -217,12 +217,12 @@ class PollViewset(viewsets.ModelViewSet):
 
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="poll_{poll.id}_statistics.csv"'
-
         writer = csv.writer(response)
 
         writer.writerow(['ID Опроса', poll.id])
-        writer.writerow(['Название Опроса', poll.name])
-        writer.writerow(['Всего прохождений', poll.submissions.count()])
+        writer.writerow(['Название Опроса', poll.name if poll.name else "N/A"])
+        total_submissions_count = poll.submissions.count()
+        writer.writerow(['Всего прохождений', total_submissions_count])
         writer.writerow([])
 
         questions_with_related = poll.questions.prefetch_related('choices', 'answers__selected_choices')
@@ -235,29 +235,42 @@ class PollViewset(viewsets.ModelViewSet):
 
             if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
                 writer.writerow(['Вариант ответа', 'Количество выборов', 'Процент от общего числа прохождений'])
-                total_submissions = poll.submissions.count()
                 
                 annotated_choices = question.choices.annotate(
                     num_answers=Count('chosen_in_answers', filter=Q(chosen_in_answers__submission__poll=poll))
                 )
-
                 for choice in annotated_choices:
                     count = choice.num_answers
-                    percentage = (count / total_submissions * 100) if total_submissions > 0 else 0
+                    percentage = (count / total_submissions_count * 100) if total_submissions_count > 0 else 0
                     writer.writerow([
                         choice.choice_text, 
                         count, 
                         f"{percentage:.2f}%"
                     ])
+                
+                if question.allow_custom_answer:
+                    custom_answers = Answer.objects.filter(
+                        question=question, submission__poll=poll
+                    ).exclude(custom_choice_text__exact='').exclude(custom_choice_text__isnull=True)
+                    
+                    custom_answers_count = custom_answers.count()
+                    custom_percentage = (custom_answers_count / total_submissions_count * 100) if total_submissions_count > 0 else 0
+                    writer.writerow(["Другое (свой вариант)", custom_answers_count, f"{custom_percentage:.2f}%"])
+                    
+                    if custom_answers.exists():
+                        writer.writerow(["Тексты своих вариантов ('Другое'):"])
+                        for c_ans_text in custom_answers.values_list('custom_choice_text', flat=True):
+                            writer.writerow([c_ans_text])
+            
             elif question.question_type == Question.QuestionType.FREE_TEXT:
-                writer.writerow(['Текстовые ответы:'])
                 text_answers = Answer.objects.filter(
                     question=question, 
                     submission__poll=poll
-                ).exclude(free_text_answer__exact='').exclude(free_text_answer__isnull=True).values_list('free_text_answer', flat=True)
+                ).exclude(free_text_answer__exact='').exclude(free_text_answer__isnull=True)
                 
+                writer.writerow(['Текстовые ответы:', text_answers.count()])
                 if text_answers.exists():
-                    for ans_text in text_answers:
+                    for ans_text in text_answers.values_list('free_text_answer', flat=True):
                         writer.writerow([ans_text])
                 else:
                     writer.writerow(['Нет текстовых ответов'])

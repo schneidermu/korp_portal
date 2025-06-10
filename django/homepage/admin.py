@@ -106,17 +106,14 @@ class QuestionAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            None,
+            None, 
             {"fields": ("poll_link", "text", "question_type", "order", "is_required")},
         ),
-        (
-            "Настройки для вопросов с выбором",
+        ("Настройки для вопросов с выбором",
             {
                 "classes": ("collapse",),
-                "fields": ("min_choices", "max_choices"),
-                "description": "Эти поля актуальны только для типов вопросов 'Один вариант' и 'Несколько вариантов'.",
-            },
-        ),
+                "fields": ("min_choices", "max_choices", "allow_custom_answer"),
+            }),
     )
 
     def poll_link(self, obj):
@@ -168,6 +165,7 @@ class QuestionInline(admin.StackedInline):
         "is_required",
         "min_choices",
         "max_choices",
+        "allow_custom_answer"
     )
     ordering = ("order",)
     fk_name = "poll"
@@ -269,8 +267,8 @@ class AnswerInline(admin.TabularInline):
     model = Answer
     extra = 0
     can_delete = False
-    readonly_fields = ("question", "selected_choices_display", "free_text_answer")
-    fields = ("question", "selected_choices_display", "free_text_answer")
+    readonly_fields = ("question", "selected_choices_display", "free_text_answer", "custom_choice_text")
+    fields = ("question", "selected_choices_display", "free_text_answer", "custom_choice_text")
 
     def selected_choices_display(self, obj):
         return ", ".join([choice.choice_text for choice in obj.selected_choices.all()])

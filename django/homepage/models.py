@@ -207,12 +207,17 @@ class Question(models.Model):
         blank=True,
         verbose_name="Максимальное количество выбранных вариантов",
     )
+    allow_custom_answer = models.BooleanField(
+        default=False,
+        verbose_name="Разрешить свой вариант ответа ('Другое')",
+        help_text="Если отмечено, пользователь сможет вписать свой вариант (для типов 'Один вариант' и 'Несколько вариантов')."
+    )
 
     def __str__(self):
         return (
-            f"{self.text[:50]}... (Опрос: {self.poll.name[:20]})"
+            f"{self.text[:50]}... (Опрос: {self.poll.name[:20] if self.poll and self.poll.name else '[Опрос не указан]'})"
             if self.text
-            else "Пусто"
+            else "Пустой вопрос"
         )
 
     class Meta:
@@ -321,6 +326,12 @@ class Answer(models.Model):
     )
 
     free_text_answer = models.TextField(blank=True, null=True)
+
+    custom_choice_text = models.TextField(
+        blank=True, null=True,
+        verbose_name="Текст своего варианта ответа ('Другое')",
+        help_text="Заполняется, если пользователь выбрал опцию 'Другое' и вписал свой вариант."
+    )
 
     def __str__(self):
         if self.question.question_type in [
