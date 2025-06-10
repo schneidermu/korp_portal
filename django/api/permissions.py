@@ -128,4 +128,4 @@ class IsAdminUserOrReadOnly(IsAdminUser):
         model_meta = obj._meta
         permission_codename = f"{model_meta.app_label}.{perm_verb_object}_{model_meta.model_name}"
 
-        return request.user.has_perm(permission_codename, obj)
+        return request.user.has_perm(permission_codename)
