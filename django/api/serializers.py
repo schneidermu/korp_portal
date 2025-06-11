@@ -1652,3 +1652,53 @@ class PollGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = PollGroup
         fields = "__all__"
+
+
+class UserInPollAnswersSerializer(serializers.ModelSerializer):
+    """Сериализатор для краткой информации о пользователе."""
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Employee
+        fields = ('id', 'username')
+
+    def get_full_name(self, obj):
+        return obj.get_full_name() if hasattr(obj, 'get_full_name') else obj.username
+
+class AnswerDetailForUserSerializer(serializers.ModelSerializer):
+    """Сериализатор для детального ответа пользователя на один вопрос."""
+    question_id = serializers.ReadOnlyField(source='question.id')
+    question_text = serializers.ReadOnlyField(source='question.text')
+    question_type = serializers.ReadOnlyField(source='question.question_type')
+    selected_choices = ChoiceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Answer
+        fields = (
+            'question_id',
+            'question_text',
+            'question_type',
+            'selected_choices',
+            'free_text_answer',
+            'custom_choice_text'
+        )
+
+class PollSubmissionWithAnswersSerializer(serializers.ModelSerializer):
+    """Сериализатор для одного прохождения опроса с ответами пользователя."""
+    user = UserInPollAnswersSerializer(read_only=True) # Может быть null для анонимных
+    answers = AnswerDetailForUserSerializer(many=True, read_only=True)
+    submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+
+
+    class Meta:
+        model = PollSubmission
+        fields = ('user', 'submitted_at', 'answers')
+
+
+class PollUserAnswersListSerializer(serializers.Serializer):
+    poll_id = serializers.IntegerField()
+    poll_name = serializers.CharField()
+    results = PollSubmissionWithAnswersSerializer(many=True) 
+    count = serializers.IntegerField()
+    next = serializers.URLField(allow_null=True)
+    previous = serializers.URLField(allow_null=True)
