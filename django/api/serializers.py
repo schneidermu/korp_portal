@@ -1656,14 +1656,11 @@ class PollGroupSerializer(serializers.ModelSerializer):
 
 class UserInPollAnswersSerializer(serializers.ModelSerializer):
     """Сериализатор для краткой информации о пользователе."""
-    full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
         fields = ('id', 'username')
 
-    def get_full_name(self, obj):
-        return obj.get_full_name() if hasattr(obj, 'get_full_name') else obj.username
 
 class AnswerDetailForUserSerializer(serializers.ModelSerializer):
     """Сериализатор для детального ответа пользователя на один вопрос."""
