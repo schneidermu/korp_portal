@@ -508,7 +508,7 @@ class AnswerCreateSerializer(serializers.Serializer):
     free_text_answer = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, default=None
     )
-    custom_choice_text = serializers.CharField(
+    custom_choice_text = serializers.CharField( 
         required=False, allow_blank=True, allow_null=True, default=None
     )
 
@@ -523,56 +523,72 @@ class AnswerCreateSerializer(serializers.Serializer):
         except Question.DoesNotExist:
             raise serializers.ValidationError({"question_id": "Вопрос не найден."})
 
-        if custom_choice_text:
+        if custom_choice_text: 
             if not question.allow_custom_answer:
                 raise serializers.ValidationError(
-                    {"custom_choice_text": f"Для вопроса '{question.text}' не разрешен свой вариант ответа."}
+                    {"custom_choice_text": f"Для вопроса '{question.text}' не разрешен свой вариант ответа ('Другое')."}
                 )
             if question.question_type == Question.QuestionType.FREE_TEXT:
                  raise serializers.ValidationError(
-                    {"custom_choice_text": "Свой вариант ответа ('Другое') не применим к вопросам типа 'Свободный текстовый ответ'."}
+                    {"custom_choice_text": "Опция 'Другое' не применима к вопросам типа 'Свободный текстовый ответ'."}
                 )
             if question.question_type == Question.QuestionType.SINGLE_CHOICE and selected_choice_ids:
                 raise serializers.ValidationError(
-                    {"selected_choice_ids": "Если указан свой вариант ответа ('Другое') для вопроса с одним выбором, другие варианты не должны быть выбраны.",
-                     "custom_choice_text": "Если указан свой вариант ответа ('Другое') для вопроса с одним выбором, другие варианты не должны быть выбраны."} # Можно добавить и сюда
+                    {"selected_choice_ids": "Если указан свой вариант ответа ('Другое') для вопроса с одним выбором, другие стандартные варианты не должны быть выбраны.",
+                     "custom_choice_text": "Если указан свой вариант ответа ('Другое') для вопроса с одним выбором, другие стандартные варианты не должны быть выбраны."}
+                )
+
+        total_options_selected = 0
+        if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+            total_options_selected = len(selected_choice_ids)
+            if custom_choice_text and question.allow_custom_answer:
+                total_options_selected += 1
+
+        if question.question_type == Question.QuestionType.SINGLE_CHOICE:
+            if total_options_selected > 1:
+                raise serializers.ValidationError(
+                    {"selected_choice_ids": "Для вопроса с одним вариантом ответа можно выбрать только одну опцию (стандартную или свой вариант).",
+                     "custom_choice_text": "Для вопроса с одним вариантом ответа можно выбрать только одну опцию (стандартную или свой вариант)."}
                 )
         
-        if question.question_type == Question.QuestionType.SINGLE_CHOICE:
-            if free_text_answer:
-                raise serializers.ValidationError({"free_text_answer": "Для вопросов с одним вариантом ответа свободный текст не ожидается."})
-
-            if not custom_choice_text and selected_choice_ids and len(selected_choice_ids) > 1:
-                 raise serializers.ValidationError({"selected_choice_ids": "Для вопроса с одним вариантом ответа можно выбрать только один вариант."})
-        
         elif question.question_type == Question.QuestionType.MULTIPLE_CHOICE:
-            if free_text_answer:
-                raise serializers.ValidationError({"free_text_answer": "Для вопросов с несколькими вариантами ответа свободный текст не ожидается."})
-            if selected_choice_ids:
-                if question.min_choices and len(selected_choice_ids) < question.min_choices:
-                    raise serializers.ValidationError({"selected_choice_ids": f"Необходимо выбрать минимум {question.min_choices} стандартных вариантов."})
-                if question.max_choices and len(selected_choice_ids) > question.max_choices:
-                    raise serializers.ValidationError({"selected_choice_ids": f"Можно выбрать максимум {question.max_choices} стандартных вариантов."})
+            if question.min_choices and total_options_selected < question.min_choices:
+                raise serializers.ValidationError(
+                    {"selected_choice_ids": f"Необходимо выбрать минимум {question.min_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}.",
+                     "custom_choice_text": f"Необходимо выбрать минимум {question.min_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}."}
+                )
+            if question.max_choices and total_options_selected > question.max_choices:
+                raise serializers.ValidationError(
+                    {"selected_choice_ids": f"Можно выбрать максимум {question.max_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}.",
+                     "custom_choice_text": f"Можно выбрать максимум {question.max_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}."}
+                )
 
         elif question.question_type == Question.QuestionType.FREE_TEXT:
-            if selected_choice_ids:
+            if selected_choice_ids: 
                 raise serializers.ValidationError({"selected_choice_ids": "Для вопросов со свободным текстом варианты выбора не ожидаются."})
+            if custom_choice_text:
+                raise serializers.ValidationError({"custom_choice_text": "Опция 'Другое' не применима к вопросам типа 'Свободный текстовый ответ'."})
 
         if question.is_required:
             answered = False
             if question.question_type == Question.QuestionType.FREE_TEXT:
-                if free_text_answer:
+                if free_text_answer: 
                     answered = True
             elif question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
-                if selected_choice_ids:
+                if total_options_selected > 0: 
                     answered = True
-                elif custom_choice_text and question.allow_custom_answer:
-                    answered = True
-            
+
             if not answered:
-                raise serializers.ValidationError(
-                     {f"question_{question.id}": f"Ответ на обязательный вопрос '{question.text}' не предоставлен."}
-                )
+                error_message = f"Ответ на обязательный вопрос '{question.text}' не предоставлен."
+                if question.question_type == Question.QuestionType.FREE_TEXT:
+                    raise serializers.ValidationError({"free_text_answer": error_message})
+                elif question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+                    error_fields = {"selected_choice_ids": error_message}
+                    if question.allow_custom_answer:
+                        error_fields["custom_choice_text"] = error_message
+                    raise serializers.ValidationError(error_fields)
+                else:
+                    raise serializers.ValidationError({f"question_{question.id}": error_message})
         return data
 
 
