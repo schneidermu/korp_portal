@@ -34,6 +34,7 @@ from .serializers import (
     PollGroupSerializer,
     PollSerializer,
     PollSubmissionCreateSerializer,
+    PollSubmissionWithAnswersSerializer,
     ProfileInOrganizationSerializer,
     RatingDELETESerializer,
     RatingPOSTSerializer,
@@ -278,6 +279,115 @@ class PollViewset(viewsets.ModelViewSet):
             writer.writerow([])
 
         return response
+
+
+    @action(detail=True, methods=['get'], url_path='answers')
+    def user_answers_list(self, request, pk=None):
+        """
+        Возвращает список ответов пользователей для данного опроса.
+        Доступно только для неанонимных опросов.
+        """
+        poll = self.get_object()
+
+        can_view_details = False
+        if request.user.is_staff or request.user.is_superuser:
+            can_view_details = True
+        elif request.user.is_authenticated and (
+            poll.author == request.user
+            or poll.editors.filter(id=request.user.id).exists()
+            or poll.stats_viewers.filter(id=request.user.id).exists()
+        ):
+            can_view_details = True
+        
+        if not can_view_details:
+            return Response(
+                {"detail": "У вас нет прав для просмотра детальных ответов этого опроса."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if poll.is_anonymous:
+            return Response(
+                {"detail": "Просмотр ответов по пользователям недоступен для анонимных опросов."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        submissions = poll.submissions.filter(user__isnull=False).select_related('user').prefetch_related(
+            'answers__question', 
+            'answers__selected_choices'
+        ).order_by('submitted_at')
+
+
+        serializer = PollSubmissionWithAnswersSerializer(submissions, many=True, context={'request': request})
+        return Response({
+            'poll_id': poll.id,
+            'poll_name': poll.name,
+            'results': serializer.data
+        })
+    
+
+    @action(detail=True, methods=['get'], url_path='answers/(?P<user_pk>[^/.]+)') # (?P<user_pk>[^/.]+) - для UUID или int
+    def retrieve_user_answers(self, request, pk=None, user_pk=None):
+        """
+        Возвращает ответы конкретного пользователя на данный опрос.
+        pk - ID опроса
+        user_pk - ID пользователя
+        """
+        poll = self.get_object()
+
+        if poll.is_anonymous:
+            return Response(
+                {"detail": "Просмотр ответов по пользователям недоступен для анонимных опросов."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            target_user = get_object_or_404(Employee, pk=user_pk)
+        except (ValueError, Employee.DoesNotExist):
+             return Response(
+                {"detail": "Пользователь с указанным ID не найден."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        current_user = request.user
+        can_view_target_user_answers = False
+
+        if current_user.is_staff or current_user.is_superuser:
+            can_view_target_user_answers = True
+        elif current_user.is_authenticated:
+            if (poll.author == current_user or
+                poll.editors.filter(id=current_user.id).exists() or
+                poll.stats_viewers.filter(id=current_user.id).exists()):
+                can_view_target_user_answers = True
+            elif current_user == target_user:
+                can_view_target_user_answers = True
+        
+        if not can_view_target_user_answers:
+            return Response(
+                {"detail": "У вас нет прав для просмотра ответов этого пользователя на данный опрос."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            submission = PollSubmission.objects.select_related('user').prefetch_related(
+                'answers__question', 
+                'answers__selected_choices'
+            ).get(poll=poll, user=target_user)
+        except PollSubmission.DoesNotExist:
+            return Response(
+                {"detail": "Указанный пользователь не проходил данный опрос, или ответы не найдены."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = PollSubmissionWithAnswersSerializer(submission, context={'request': request})
+        
+        response_data = {
+            'poll_id': poll.id,
+            'poll_name': poll.name,
+            'submission_details': serializer.data
+        }
+        return Response(response_data)
+    
+    
 
 
 class NewsViewSet(viewsets.ModelViewSet):
