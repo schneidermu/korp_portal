@@ -60,19 +60,22 @@ const SkillInput = React.memo(function NewSkill({
 }) {
   const { data: skills } = useSkillsCompletion({ minUsage: 7 });
 
-  const onAddSkill = (skill: string) => {
-    if (skill === "" || excludeSkills.includes(skill)) {
-      return;
-    }
-    addSkill(skill);
-  };
+  const onAddSkill = useCallback(
+    (skill: string) => {
+      if (skill === "" || excludeSkills.includes(skill)) {
+        return;
+      }
+      addSkill(skill);
+    },
+    [excludeSkills, addSkill],
+  );
 
   const { contains } = useFilter({ sensitivity: "base" });
 
   const { collection, filter } = useListCollection({
     initialItems: skills ?? [],
     itemToString: ({ name }) => name,
-    itemToValue: ({ id }) => id.toFixed(),
+    itemToValue: ({ name }) => name,
     isItemDisabled: ({ name }) => excludeSkills.includes(name),
     filter: contains,
   });
@@ -80,8 +83,10 @@ const SkillInput = React.memo(function NewSkill({
   return (
     <Combobox.Root
       openOnClick
+      selectionBehavior="clear"
       collection={collection}
       onInputValueChange={(e) => filter(e.inputValue)}
+      onSelect={(e) => onAddSkill(e.itemValue)}
     >
       <Combobox.Control>
         <Combobox.Input
