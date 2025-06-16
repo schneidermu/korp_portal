@@ -2,6 +2,7 @@ import os.path
 
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -119,6 +120,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "max_choices",
             "choices",
             "dependency_rule",
+            "allow_custom_answer",
         )
 
     def validate_choices(self, choices_data):
@@ -213,12 +215,21 @@ class QuestionSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"dependency_rule": "Вопрос не может зависеть сам от себя."}
                 )
+
+        question_type = data.get("question_type", getattr(self.instance, "question_type", None))
+        allow_custom_answer = data.get("allow_custom_answer", getattr(self.instance, "allow_custom_answer", False) if self.instance else False)
+
+        if allow_custom_answer and question_type == Question.QuestionType.FREE_TEXT:
+            raise serializers.ValidationError(
+                {"allow_custom_answer": "Опция 'Разрешить свой вариант ответа' не применима к вопросам типа 'Свободный текстовый ответ'."}
+            )
+
         return data
 
 
 class PollSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, required=False, default=[])
-    author = serializers.SlugRelatedField(slug_field="username", read_only=True)
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
     organization = serializers.PrimaryKeyRelatedField(
         queryset=Organization.objects.all(), many=True, required=False
     )
@@ -497,83 +508,87 @@ class AnswerCreateSerializer(serializers.Serializer):
     free_text_answer = serializers.CharField(
         required=False, allow_blank=True, allow_null=True, default=None
     )
+    custom_choice_text = serializers.CharField( 
+        required=False, allow_blank=True, allow_null=True, default=None
+    )
 
     def validate(self, data):
         question_id = data.get("question_id")
-        selected_choice_ids = data.get("selected_choice_ids")
+        selected_choice_ids = data.get("selected_choice_ids", [])
         free_text_answer = data.get("free_text_answer")
+        custom_choice_text = data.get("custom_choice_text")
 
         try:
             question = Question.objects.get(id=question_id)
         except Question.DoesNotExist:
             raise serializers.ValidationError({"question_id": "Вопрос не найден."})
 
-        if question.question_type == Question.QuestionType.SINGLE_CHOICE:
-            if free_text_answer:
+        if custom_choice_text: 
+            if not question.allow_custom_answer:
                 raise serializers.ValidationError(
-                    {
-                        "free_text_answer": "Для вопросов с одним вариантом ответа свободный текст не ожидается."
-                    }
+                    {"custom_choice_text": f"Для вопроса '{question.text}' не разрешен свой вариант ответа ('Другое')."}
                 )
-            if selected_choice_ids and len(selected_choice_ids) > 1:
-                raise serializers.ValidationError(
-                    {
-                        "selected_choice_ids": "Для вопроса с одним вариантом ответа можно выбрать только один вариант."
-                    }
+            if question.question_type == Question.QuestionType.FREE_TEXT:
+                 raise serializers.ValidationError(
+                    {"custom_choice_text": "Опция 'Другое' не применима к вопросам типа 'Свободный текстовый ответ'."}
                 )
-            if not selected_choice_ids and question.is_required:
+            if question.question_type == Question.QuestionType.SINGLE_CHOICE and selected_choice_ids:
                 raise serializers.ValidationError(
-                    {
-                        "selected_choice_ids": "Необходимо выбрать вариант для обязательного вопроса."
-                    }
+                    {"selected_choice_ids": "Если указан свой вариант ответа ('Другое') для вопроса с одним выбором, другие стандартные варианты не должны быть выбраны.",
+                     "custom_choice_text": "Если указан свой вариант ответа ('Другое') для вопроса с одним выбором, другие стандартные варианты не должны быть выбраны."}
                 )
 
-        elif question.question_type == Question.QuestionType.MULTIPLE_CHOICE:
-            if free_text_answer:
+        total_options_selected = 0
+        if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+            total_options_selected = len(selected_choice_ids)
+            if custom_choice_text and question.allow_custom_answer:
+                total_options_selected += 1
+
+        if question.question_type == Question.QuestionType.SINGLE_CHOICE:
+            if total_options_selected > 1:
                 raise serializers.ValidationError(
-                    {
-                        "free_text_answer": "Для вопросов с несколькими вариантами ответа свободный текст не ожидается."
-                    }
+                    {"selected_choice_ids": "Для вопроса с одним вариантом ответа можно выбрать только одну опцию (стандартную или свой вариант).",
+                     "custom_choice_text": "Для вопроса с одним вариантом ответа можно выбрать только одну опцию (стандартную или свой вариант)."}
                 )
-            if selected_choice_ids:
-                if (
-                    question.min_choices
-                    and len(selected_choice_ids) < question.min_choices
-                ):
-                    raise serializers.ValidationError(
-                        {
-                            "selected_choice_ids": f"Необходимо выбрать минимум {question.min_choices} вариантов."
-                        }
-                    )
-                if (
-                    question.max_choices
-                    and len(selected_choice_ids) > question.max_choices
-                ):
-                    raise serializers.ValidationError(
-                        {
-                            "selected_choice_ids": f"Можно выбрать максимум {question.max_choices} вариантов."
-                        }
-                    )
-            elif question.is_required:
+        
+        elif question.question_type == Question.QuestionType.MULTIPLE_CHOICE:
+            if question.min_choices and total_options_selected < question.min_choices:
                 raise serializers.ValidationError(
-                    {
-                        "selected_choice_ids": "Необходимо выбрать хотя бы один вариант для обязательного вопроса."
-                    }
+                    {"selected_choice_ids": f"Необходимо выбрать минимум {question.min_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}.",
+                     "custom_choice_text": f"Необходимо выбрать минимум {question.min_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}."}
+                )
+            if question.max_choices and total_options_selected > question.max_choices:
+                raise serializers.ValidationError(
+                    {"selected_choice_ids": f"Можно выбрать максимум {question.max_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}.",
+                     "custom_choice_text": f"Можно выбрать максимум {question.max_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}."}
                 )
 
         elif question.question_type == Question.QuestionType.FREE_TEXT:
-            if selected_choice_ids and len(selected_choice_ids) > 0:
-                raise serializers.ValidationError(
-                    {
-                        "selected_choice_ids": "Для вопросов со свободным текстом варианты выбора не ожидаются."
-                    }
-                )
-            if not free_text_answer and question.is_required:
-                raise serializers.ValidationError(
-                    {
-                        "free_text_answer": "Необходимо предоставить текстовый ответ для обязательного вопроса."
-                    }
-                )
+            if selected_choice_ids: 
+                raise serializers.ValidationError({"selected_choice_ids": "Для вопросов со свободным текстом варианты выбора не ожидаются."})
+            if custom_choice_text:
+                raise serializers.ValidationError({"custom_choice_text": "Опция 'Другое' не применима к вопросам типа 'Свободный текстовый ответ'."})
+
+        if question.is_required:
+            answered = False
+            if question.question_type == Question.QuestionType.FREE_TEXT:
+                if free_text_answer: 
+                    answered = True
+            elif question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+                if total_options_selected > 0: 
+                    answered = True
+
+            if not answered:
+                error_message = f"Ответ на обязательный вопрос '{question.text}' не предоставлен."
+                if question.question_type == Question.QuestionType.FREE_TEXT:
+                    raise serializers.ValidationError({"free_text_answer": error_message})
+                elif question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+                    error_fields = {"selected_choice_ids": error_message}
+                    if question.allow_custom_answer:
+                        error_fields["custom_choice_text"] = error_message
+                    raise serializers.ValidationError(error_fields)
+                else:
+                    raise serializers.ValidationError({f"question_{question.id}": error_message})
         return data
 
 
@@ -688,6 +703,7 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
                 submission=submission,
                 question=question_instance,
                 free_text_answer=answer_data.get("free_text_answer"),
+                custom_choice_text=answer_data.get("custom_choice_text")
             )
 
             selected_ids = answer_data.get("selected_choice_ids", [])
@@ -1644,3 +1660,58 @@ class MyProfileSerializer(ProfileSerializer):
             return []
 
         return [group.name for group in obj.groups.all().order_by("name")]
+
+
+class PollGroupSerializer(serializers.ModelSerializer):
+    """Сериализатор для типов опросов"""
+
+    class Meta:
+        model = PollGroup
+        fields = "__all__"
+
+
+class UserInPollAnswersSerializer(serializers.ModelSerializer):
+    """Сериализатор для краткой информации о пользователе."""
+
+    class Meta:
+        model = Employee
+        fields = ('id', 'username')
+
+
+class AnswerDetailForUserSerializer(serializers.ModelSerializer):
+    """Сериализатор для детального ответа пользователя на один вопрос."""
+    question_id = serializers.ReadOnlyField(source='question.id')
+    question_text = serializers.ReadOnlyField(source='question.text')
+    question_type = serializers.ReadOnlyField(source='question.question_type')
+    selected_choices = ChoiceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Answer
+        fields = (
+            'question_id',
+            'question_text',
+            'question_type',
+            'selected_choices',
+            'free_text_answer',
+            'custom_choice_text'
+        )
+
+class PollSubmissionWithAnswersSerializer(serializers.ModelSerializer):
+    """Сериализатор для одного прохождения опроса с ответами пользователя."""
+    user = UserInPollAnswersSerializer(read_only=True) # Может быть null для анонимных
+    answers = AnswerDetailForUserSerializer(many=True, read_only=True)
+    submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
+
+
+    class Meta:
+        model = PollSubmission
+        fields = ('user', 'submitted_at', 'answers')
+
+
+class PollUserAnswersListSerializer(serializers.Serializer):
+    poll_id = serializers.IntegerField()
+    poll_name = serializers.CharField()
+    results = PollSubmissionWithAnswersSerializer(many=True) 
+    count = serializers.IntegerField()
+    next = serializers.URLField(allow_null=True)
+    previous = serializers.URLField(allow_null=True)

@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from employees.models import Competence, Employee, Organization, Rating
-from homepage.models import Answer, News, Poll, PollSubmission, Question
+from homepage.models import Answer, News, Poll, PollGroup, PollSubmission, Question
 
 from .filters import CompetenceFilter
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
@@ -33,8 +33,10 @@ from .serializers import (
     NewsSerializer,
     OrganizationSerializer,
     OrgStructureSerializer,
+    PollGroupSerializer,
     PollSerializer,
     PollSubmissionCreateSerializer,
+    PollSubmissionWithAnswersSerializer,
     ProfileInOrganizationSerializer,
     RatingDELETESerializer,
     RatingPOSTSerializer,
@@ -197,7 +199,7 @@ class PollViewset(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def statistics(self, request, pk=None):
-        """Возвращает статистику по опросу."""
+        """Возвращает статистику по опросу в формате CSV."""
         poll = self.get_object()
 
         can_view_stats = False
@@ -218,12 +220,12 @@ class PollViewset(viewsets.ModelViewSet):
 
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="poll_{poll.id}_statistics.csv"'
-
         writer = csv.writer(response)
 
         writer.writerow(['ID Опроса', poll.id])
-        writer.writerow(['Название Опроса', poll.name])
-        writer.writerow(['Всего прохождений', poll.submissions.count()])
+        writer.writerow(['Название Опроса', poll.name if poll.name else "N/A"])
+        total_submissions_count = poll.submissions.count()
+        writer.writerow(['Всего прохождений', total_submissions_count])
         writer.writerow([])
 
         questions_with_related = poll.questions.prefetch_related('choices', 'answers__selected_choices')
@@ -236,29 +238,42 @@ class PollViewset(viewsets.ModelViewSet):
 
             if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
                 writer.writerow(['Вариант ответа', 'Количество выборов', 'Процент от общего числа прохождений'])
-                total_submissions = poll.submissions.count()
                 
                 annotated_choices = question.choices.annotate(
                     num_answers=Count('chosen_in_answers', filter=Q(chosen_in_answers__submission__poll=poll))
                 )
-
                 for choice in annotated_choices:
                     count = choice.num_answers
-                    percentage = (count / total_submissions * 100) if total_submissions > 0 else 0
+                    percentage = (count / total_submissions_count * 100) if total_submissions_count > 0 else 0
                     writer.writerow([
                         choice.choice_text, 
                         count, 
                         f"{percentage:.2f}%"
                     ])
+                
+                if question.allow_custom_answer:
+                    custom_answers = Answer.objects.filter(
+                        question=question, submission__poll=poll
+                    ).exclude(custom_choice_text__exact='').exclude(custom_choice_text__isnull=True)
+                    
+                    custom_answers_count = custom_answers.count()
+                    custom_percentage = (custom_answers_count / total_submissions_count * 100) if total_submissions_count > 0 else 0
+                    writer.writerow(["Другое (свой вариант)", custom_answers_count, f"{custom_percentage:.2f}%"])
+                    
+                    if custom_answers.exists():
+                        writer.writerow(["Тексты своих вариантов ('Другое'):"])
+                        for c_ans_text in custom_answers.values_list('custom_choice_text', flat=True):
+                            writer.writerow([c_ans_text])
+            
             elif question.question_type == Question.QuestionType.FREE_TEXT:
-                writer.writerow(['Текстовые ответы:'])
                 text_answers = Answer.objects.filter(
                     question=question, 
                     submission__poll=poll
-                ).exclude(free_text_answer__exact='').exclude(free_text_answer__isnull=True).values_list('free_text_answer', flat=True)
+                ).exclude(free_text_answer__exact='').exclude(free_text_answer__isnull=True)
                 
+                writer.writerow(['Текстовые ответы:', text_answers.count()])
                 if text_answers.exists():
-                    for ans_text in text_answers:
+                    for ans_text in text_answers.values_list('free_text_answer', flat=True):
                         writer.writerow([ans_text])
                 else:
                     writer.writerow(['Нет текстовых ответов'])
@@ -266,6 +281,115 @@ class PollViewset(viewsets.ModelViewSet):
             writer.writerow([])
 
         return response
+
+
+    @action(detail=True, methods=['get'], url_path='answers')
+    def user_answers_list(self, request, pk=None):
+        """
+        Возвращает список ответов пользователей для данного опроса.
+        Доступно только для неанонимных опросов.
+        """
+        poll = self.get_object()
+
+        can_view_details = False
+        if request.user.is_staff or request.user.is_superuser:
+            can_view_details = True
+        elif request.user.is_authenticated and (
+            poll.author == request.user
+            or poll.editors.filter(id=request.user.id).exists()
+            or poll.stats_viewers.filter(id=request.user.id).exists()
+        ):
+            can_view_details = True
+        
+        if not can_view_details:
+            return Response(
+                {"detail": "У вас нет прав для просмотра детальных ответов этого опроса."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if poll.is_anonymous:
+            return Response(
+                {"detail": "Просмотр ответов по пользователям недоступен для анонимных опросов."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        submissions = poll.submissions.filter(user__isnull=False).select_related('user').prefetch_related(
+            'answers__question', 
+            'answers__selected_choices'
+        ).order_by('submitted_at')
+
+
+        serializer = PollSubmissionWithAnswersSerializer(submissions, many=True, context={'request': request})
+        return Response({
+            'poll_id': poll.id,
+            'poll_name': poll.name,
+            'results': serializer.data
+        })
+    
+
+    @action(detail=True, methods=['get'], url_path='answers/(?P<user_pk>[^/.]+)') # (?P<user_pk>[^/.]+) - для UUID или int
+    def retrieve_user_answers(self, request, pk=None, user_pk=None):
+        """
+        Возвращает ответы конкретного пользователя на данный опрос.
+        pk - ID опроса
+        user_pk - ID пользователя
+        """
+        poll = self.get_object()
+
+        if poll.is_anonymous:
+            return Response(
+                {"detail": "Просмотр ответов по пользователям недоступен для анонимных опросов."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            target_user = get_object_or_404(Employee, pk=user_pk)
+        except (ValueError, Employee.DoesNotExist):
+             return Response(
+                {"detail": "Пользователь с указанным ID не найден."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        current_user = request.user
+        can_view_target_user_answers = False
+
+        if current_user.is_staff or current_user.is_superuser:
+            can_view_target_user_answers = True
+        elif current_user.is_authenticated:
+            if (poll.author == current_user or
+                poll.editors.filter(id=current_user.id).exists() or
+                poll.stats_viewers.filter(id=current_user.id).exists()):
+                can_view_target_user_answers = True
+            elif current_user == target_user:
+                can_view_target_user_answers = True
+        
+        if not can_view_target_user_answers:
+            return Response(
+                {"detail": "У вас нет прав для просмотра ответов этого пользователя на данный опрос."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            submission = PollSubmission.objects.select_related('user').prefetch_related(
+                'answers__question', 
+                'answers__selected_choices'
+            ).get(poll=poll, user=target_user)
+        except PollSubmission.DoesNotExist:
+            return Response(
+                {"detail": "Указанный пользователь не проходил данный опрос, или ответы не найдены."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = PollSubmissionWithAnswersSerializer(submission, context={'request': request})
+        
+        response_data = {
+            'poll_id': poll.id,
+            'poll_name': poll.name,
+            'submission_details': serializer.data
+        }
+        return Response(response_data)
+    
+    
 
 
 class NewsViewSet(viewsets.ModelViewSet):
@@ -292,7 +416,7 @@ class ColleagueProfileViewset(UserViewSet):
 
     permission_classes = (
         IsAuthenticated,
-        IsUserOrReadOnly,
+        IsAdminUserOrReadOnly,
     )
     queryset = Employee.objects.all()
 
@@ -604,3 +728,23 @@ class CustomTokenCreateView(TokenCreateView):
                 pass
 
         return response
+
+
+class PollGroupListView(generics.ListAPIView):
+    """
+    View for PollGroup
+    """
+
+    serializer_class = PollGroupSerializer
+    permission_classes = (IsAuthenticated,)
+
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+    )
+    filterset_fields = {
+        "name": ["exact", "icontains"],
+    }
+    search_fields = ["name"]
+
+    queryset = PollGroup.objects.all()

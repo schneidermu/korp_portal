@@ -12,6 +12,7 @@ from .views import (
     NewsViewSet,
     OrganizationViewSet,
     OrgStructureViewset,
+    PollGroupListView,
     PollViewset,
     ValidateNextCloudView,
 )
@@ -28,6 +29,7 @@ router_version1.register("hierarchy", HierarchyViewSet, basename="hierarchy")
 urlpatterns = [
     path("", include(router_version1.urls)),
     path("competences/", CompetenceListView.as_view(), name="competence-list"),
+    path("poll_groups/", PollGroupListView.as_view(), name="poll_group-list"),
     path("auth/token/login/", CustomTokenCreateView.as_view(), name="custom_login"),
     path("auth/", include("djoser.urls.authtoken")),
     path("upload-file/", FileUploadAPIView.as_view(), name="upload-file"),
