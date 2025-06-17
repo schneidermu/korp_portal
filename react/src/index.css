@@ -18,8 +18,8 @@ html {
   color: inherit;
 }
 
-.korp-portal-portlet label,
-.korp-portal-portlet table {
+:where(.korp-portal-portlet) label,
+:where(.korp-portal-portlet) table {
   font: inherit;
   color: inherit;
 }
