@@ -1,5 +1,4 @@
 import base64
-import csv
 
 from django.db import transaction
 from django.db.models import CharField, Count, Q, Value
@@ -9,6 +8,9 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import TokenCreateView, UserViewSet
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -197,7 +199,7 @@ class PollViewset(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def statistics(self, request, pk=None):
-        """Возвращает статистику по опросу в формате CSV."""
+        """Возвращает статистику по опросу в формате XLSX."""
         poll = self.get_object()
 
         can_view_stats = False
@@ -216,26 +218,59 @@ class PollViewset(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = f'attachment; filename="poll_{poll.id}_statistics.csv"'
-        writer = csv.writer(response)
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="poll_{poll.id}_statistics.xlsx"'
 
-        writer.writerow(['ID Опроса', poll.id])
-        writer.writerow(['Название Опроса', poll.name if poll.name else "N/A"])
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Статистика по опросу"
+
+        header_font = Font(bold=True, size=12)
+        question_header_font = Font(bold=True, italic=True, size=11)
+        center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        left_alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
+        thin_border = Border(left=Side(style='thin'), 
+                             right=Side(style='thin'), 
+                             top=Side(style='thin'), 
+                             bottom=Side(style='thin'))
+        
+        row_num = 1
+        ws.cell(row=row_num, column=1, value="ID Опроса").font = header_font
+        ws.cell(row=row_num, column=2, value=poll.id)
+        row_num += 1
+        ws.cell(row=row_num, column=1, value="Название Опроса").font = header_font
+        ws.cell(row=row_num, column=2, value=poll.name if poll.name else "N/A")
+        row_num += 1
         total_submissions_count = poll.submissions.count()
-        writer.writerow(['Всего прохождений', total_submissions_count])
-        writer.writerow([])
+        ws.cell(row=row_num, column=1, value="Всего прохождений").font = header_font
+        ws.cell(row=row_num, column=2, value=total_submissions_count)
+        row_num += 2
 
         questions_with_related = poll.questions.prefetch_related('choices', 'answers__selected_choices')
 
         for question in questions_with_related:
-            writer.writerow(['--- Вопрос ---'])
-            writer.writerow(['ID Вопроса', question.id])
-            writer.writerow(['Текст вопроса', question.text])
-            writer.writerow(['Тип вопроса', question.get_question_type_display()])
+            ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=4)
+            q_header_cell = ws.cell(row=row_num, column=1, value=f"--- Вопрос ID: {question.id} ---")
+            q_header_cell.font = question_header_font
+            q_header_cell.alignment = center_alignment
+            row_num += 1
+            
+            ws.cell(row=row_num, column=1, value="Текст вопроса:").font = Font(bold=True)
+            ws.cell(row=row_num, column=2, value=question.text).alignment = left_alignment
+            ws.merge_cells(start_row=row_num, start_column=2, end_row=row_num, end_column=4)
+            row_num += 1
+            
+            ws.cell(row=row_num, column=1, value="Тип вопроса:").font = Font(bold=True)
+            ws.cell(row=row_num, column=2, value=question.get_question_type_display())
+            row_num += 1
 
             if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
-                writer.writerow(['Вариант ответа', 'Количество выборов', 'Процент от общего числа прохождений'])
+                ws.cell(row=row_num, column=1, value="Вариант ответа").font = Font(bold=True)
+                ws.cell(row=row_num, column=2, value="Количество выборов").font = Font(bold=True)
+                ws.cell(row=row_num, column=3, value="Процент").font = Font(bold=True)
+                row_num += 1
                 
                 annotated_choices = question.choices.annotate(
                     num_answers=Count('chosen_in_answers', filter=Q(chosen_in_answers__submission__poll=poll))
@@ -243,11 +278,11 @@ class PollViewset(viewsets.ModelViewSet):
                 for choice in annotated_choices:
                     count = choice.num_answers
                     percentage = (count / total_submissions_count * 100) if total_submissions_count > 0 else 0
-                    writer.writerow([
-                        choice.choice_text, 
-                        count, 
-                        f"{percentage:.2f}%"
-                    ])
+                    ws.cell(row=row_num, column=1, value=choice.choice_text).alignment = left_alignment
+                    ws.cell(row=row_num, column=2, value=count).alignment = center_alignment
+                    ws.cell(row=row_num, column=3, value=f"{percentage:.2f}%").alignment = center_alignment
+                    ws.cell(row=row_num, column=3).number_format = '0.00"%"'
+                    row_num += 1
                 
                 if question.allow_custom_answer:
                     custom_answers = Answer.objects.filter(
@@ -256,28 +291,62 @@ class PollViewset(viewsets.ModelViewSet):
                     
                     custom_answers_count = custom_answers.count()
                     custom_percentage = (custom_answers_count / total_submissions_count * 100) if total_submissions_count > 0 else 0
-                    writer.writerow(["Другое (свой вариант)", custom_answers_count, f"{custom_percentage:.2f}%"])
+                    
+                    ws.cell(row=row_num, column=1, value="Другое (свой вариант)").font = Font(bold=True)
+                    ws.cell(row=row_num, column=2, value=custom_answers_count).alignment = center_alignment
+                    ws.cell(row=row_num, column=3, value=f"{custom_percentage:.2f}%").alignment = center_alignment
+                    ws.cell(row=row_num, column=3).number_format = '0.00"%"'
+                    row_num += 1
                     
                     if custom_answers.exists():
-                        writer.writerow(["Тексты своих вариантов ('Другое'):"])
+                        ws.cell(row=row_num, column=1, value="Тексты своих вариантов ('Другое'):").font = Font(italic=True)
+                        row_num += 1
                         for c_ans_text in custom_answers.values_list('custom_choice_text', flat=True):
-                            writer.writerow([c_ans_text])
+                            ws.cell(row=row_num, column=1, value=c_ans_text).alignment = left_alignment
+                            ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=3)
+                            row_num += 1
             
             elif question.question_type == Question.QuestionType.FREE_TEXT:
-                text_answers = Answer.objects.filter(
+                text_answers_qs = Answer.objects.filter(
                     question=question, 
                     submission__poll=poll
                 ).exclude(free_text_answer__exact='').exclude(free_text_answer__isnull=True)
                 
-                writer.writerow(['Текстовые ответы:', text_answers.count()])
-                if text_answers.exists():
-                    for ans_text in text_answers.values_list('free_text_answer', flat=True):
-                        writer.writerow([ans_text])
+                ws.cell(row=row_num, column=1, value="Текстовые ответы:").font = Font(bold=True)
+                ws.cell(row=row_num, column=2, value=text_answers_qs.count()).alignment = center_alignment
+                row_num += 1
+                
+                if text_answers_qs.exists():
+                    for ans_text in text_answers_qs.values_list('free_text_answer', flat=True):
+                        ws.cell(row=row_num, column=1, value=ans_text).alignment = left_alignment
+                        ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=3)
+                        row_num += 1
                 else:
-                    writer.writerow(['Нет текстовых ответов'])
+                    ws.cell(row=row_num, column=1, value="Нет текстовых ответов")
+                    row_num += 1
             
-            writer.writerow([])
+            row_num += 1
 
+        for col_idx in range(1, 5):
+            column_letter = get_column_letter(col_idx)
+            max_length = 0
+            for row_idx in range(1, row_num):
+                cell_value = ws[f"{column_letter}{row_idx}"].value
+                if cell_value:
+                    if isinstance(cell_value, (int, float)):
+                        cell_len = len(str(cell_value))
+                    else:
+                        cell_len = len(str(cell_value))
+                    
+                    lines = str(cell_value).split('\n')
+                    max_line_len = max(len(line) for line in lines) if lines else 0
+                    
+                    if max_line_len > max_length:
+                        max_length = max_line_len
+            adjusted_width = (max_length + 2) * 1.2
+            ws.column_dimensions[column_letter].width = min(adjusted_width, 70)
+
+        wb.save(response)
         return response
 
 
