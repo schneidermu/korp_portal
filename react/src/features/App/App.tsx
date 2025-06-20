@@ -20,7 +20,6 @@ const UserTreePage = React.lazy(
   async () => import("@/features/UserTree/UserTree"),
 );
 const FeedPage = React.lazy(async () => import("@/features/Feed/Feed"));
-const OrgPage = React.lazy(async () => import("@/features/Org/Org"));
 const PostNewsForm = React.lazy(
   async () => import("@/features/NewsEditor/NewsEditor"),
 );
@@ -35,7 +34,6 @@ export const App = () => {
             <Route path="/tree/:orgId?" element={<UserTreePage />} />
             <Route path="/" element={<ProfilePage />} />
             <Route path="/profile/:userId?" element={<ProfilePage />} />
-            <Route path="/new/org/:orgId?" element={<OrgPage />} />
             <Route path="/list/:orgId?" element={<UserList />} />
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/404" element={<NotFound />} />
