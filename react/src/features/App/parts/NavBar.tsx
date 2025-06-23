@@ -1,5 +1,5 @@
 import { Stack, Text } from "@chakra-ui/react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 import { NEXTCLOUD_PREFIX } from "@/app/const";
 
@@ -31,8 +31,8 @@ export const NavBar = () => {
     <Stack fontSize="2xl" color="blue.2" gap="9" userSelect="none">
       {links.map((link) => (
         <Text
-          color="inherit"
           key={link.link}
+          color="inherit"
           asChild
           fontWeight="semibold"
           textDecoration={{ _hover: "underline" }}
@@ -40,7 +40,7 @@ export const NavBar = () => {
           {link.anchor ? (
             <a href={link.link} target="_blank">{link.name}</a>
           ) : (
-            <Link to={link.link}>{link.name}</Link>
+            <NavLink to={link.link}>{link.name}</NavLink>
           )}
         </Text>
       ))}
