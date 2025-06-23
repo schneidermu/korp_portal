@@ -1,5 +1,6 @@
 from django.core.validators import FileExtensionValidator
 from django.db import models
+from django_prometheus.models import ExportModelOperationsMixin
 
 from employees.models import Employee, Organization
 from .constants import CHARFIELD_LENGTH
@@ -286,7 +287,7 @@ class QuestionDependency(models.Model):
         verbose_name_plural = "Условия отображения вопросов"
 
 
-class PollSubmission(models.Model):
+class PollSubmission(ExportModelOperationsMixin("poll_submission"), models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="submissions")
     user = models.ForeignKey(
         Employee,

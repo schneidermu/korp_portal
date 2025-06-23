@@ -138,6 +138,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "rest_framework",
     "corsheaders",
+    "django_prometheus",
     "django_filters",
     "rest_framework.authtoken",
     "djoser",
@@ -149,6 +150,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -156,7 +158,9 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "homepage.middleware.UserActivityMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = "korp_portal.urls"
@@ -187,7 +191,7 @@ WSGI_APPLICATION = "korp_portal.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
+        "ENGINE": "django_prometheus.db.backends.postgresql",
         "NAME": os.getenv("POSTGRES_DB", "django"),
         "USER": os.getenv("POSTGRES_USER", "django"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
