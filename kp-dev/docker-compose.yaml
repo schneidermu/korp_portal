@@ -1,5 +1,8 @@
 volumes:
   pg_data:
+  prometheus_data: {}
+  zabbix_pg_data: {}
+  zabbix_web_data: {}
 
 services:
   database:
@@ -94,5 +97,79 @@ services:
       - "traefik.http.routers.vite.rule=PathPrefix(`${FRONTEND_PREFIX}/`)"
       - "traefik.http.routers.vite.entrypoints=web"
 
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.instance=kp"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.${HOSTNAME}`)"
+      - "traefik.http.routers.prometheus.entrypoints=web"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+    restart: unless-stopped
+
+  zabbix-db:
+    image: postgres:13-alpine
+    restart: unless-stopped
+    volumes:
+      - zabbix_pg_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "${ZABBIX_DB_NAME}"
+      POSTGRES_USER: "${ZABBIX_DB_USER}"
+      POSTGRES_PASSWORD: "${ZABBIX_DB_PASSWORD}"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${ZABBIX_DB_USER}", "-d", "${ZABBIX_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-7.0-latest
+    restart: unless-stopped
+    depends_on:
+      zabbix-db:
+        condition: service_healthy
+      prometheus:
+        condition: service_started
+    environment:
+      DB_SERVER_HOST: "zabbix-db"
+      POSTGRES_DB: "${ZABBIX_DB_NAME}"
+      POSTGRES_USER: "${ZABBIX_DB_USER}"
+      POSTGRES_PASSWORD: "${ZABBIX_DB_PASSWORD}"
+      ZBX_CACHESIZE: "1G" 
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.0-latest
+    restart: unless-stopped
+    depends_on:
+      zabbix-server:
+        condition: service_started
+    environment:
+      ZBX_SERVER_HOST: "zabbix-server"
+      DB_SERVER_HOST: "zabbix-db"
+      POSTGRES_DB: "${ZABBIX_DB_NAME}"
+      POSTGRES_USER: "${ZABBIX_DB_USER}"
+      POSTGRES_PASSWORD: "${ZABBIX_DB_PASSWORD}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.instance=${TRAEFIK_INSTANCE}"
+      - "traefik.http.routers.zabbix.rule=PathPrefix(`/zabbix/`)"
+      - "traefik.http.routers.zabbix.entrypoints=web"
   whoami:
     image: containous/whoami
