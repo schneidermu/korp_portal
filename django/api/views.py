@@ -198,7 +198,7 @@ class PollViewset(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["get"])
-    def statistics(self, request, pk=None):
+    def export(self, request, pk=None):
         """Возвращает статистику по опросу в формате XLSX."""
         poll = self.get_object()
 
@@ -348,6 +348,93 @@ class PollViewset(viewsets.ModelViewSet):
 
         wb.save(response)
         return response
+    
+    @action(detail=True, methods=['get'])
+    def statistics(self, request, pk=None):
+        """
+        Возвращает агрегированную статистику по ответам на каждый вопрос опроса.
+        """
+        poll = self.get_object()
+
+        can_view_stats = False
+        if request.user.is_staff or request.user.is_superuser:
+            can_view_stats = True
+        elif request.user.is_authenticated and (
+            poll.author == request.user
+            or poll.editors.filter(id=request.user.id).exists()
+            or poll.stats_viewers.filter(id=request.user.id).exists()
+        ):
+            can_view_stats = True
+        
+        if not can_view_stats:
+            return Response(
+                {"detail": "У вас нет прав для просмотра статистики этого опроса."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        total_submissions_count = poll.submissions.count()
+        
+        response_data = {
+            "poll_id": poll.id,
+            "poll_name": poll.name if poll.name else "N/A",
+            "total_submissions": total_submissions_count,
+            "question_statistics": []
+        }
+
+        questions_with_related = poll.questions.prefetch_related('choices', 'answers__selected_choices')
+
+        for question in questions_with_related:
+            q_stat = {
+                "question_id": question.id,
+                "text": question.text,
+                "question_type": question.question_type,
+                "question_type_display": question.get_question_type_display()
+            }
+
+            if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+                q_stat["choices_stats"] = []
+                
+                annotated_choices = question.choices.annotate(
+                    num_answers=Count('chosen_in_answers', filter=Q(chosen_in_answers__submission__poll=poll))
+                )
+
+                for choice in annotated_choices:
+                    count = choice.num_answers
+                    percentage = (count / total_submissions_count * 100) if total_submissions_count > 0 else 0
+                    q_stat["choices_stats"].append({
+                        "choice_id": choice.id,
+                        "choice_text": choice.choice_text,
+                        "count": count,
+                        "percentage": round(percentage, 2)
+                    })
+
+                if question.allow_custom_answer:
+                    custom_answers_qs = Answer.objects.filter(
+                        question=question, submission__poll=poll
+                    ).exclude(custom_choice_text__exact='').exclude(custom_choice_text__isnull=True)
+                    
+                    custom_answers_count = custom_answers_qs.count()
+                    custom_percentage = (custom_answers_count / total_submissions_count * 100) if total_submissions_count > 0 else 0
+                    
+                    q_stat["custom_answers_stats"] = {
+                        "label": "Другое (свой вариант)",
+                        "count": custom_answers_count,
+                        "percentage": round(custom_percentage, 2),
+                        "sample_texts": list(custom_answers_qs.values_list('custom_choice_text', flat=True)[:5])
+                    }
+
+            elif question.question_type == Question.QuestionType.FREE_TEXT:
+                text_answers_qs = Answer.objects.filter(
+                    question=question, 
+                    submission__poll=poll
+                ).exclude(free_text_answer__exact='').exclude(free_text_answer__isnull=True)
+                
+                q_stat["free_text_answers_count"] = text_answers_qs.count()
+                q_stat["sample_free_text_answers"] = list(text_answers_qs.values_list('free_text_answer', flat=True)[:5]) # Первые 5 для примера
+            
+            response_data["question_statistics"].append(q_stat)
+        
+        return Response(response_data)
 
 
     @action(detail=True, methods=['get'], url_path='answers')
