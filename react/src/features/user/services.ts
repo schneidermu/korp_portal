@@ -469,11 +469,11 @@ export const useFetchUser = (userId: O.Option<string>) => {
 };
 
 export const uploadFile = async (token: string, uri: string | null) => {
-  if (!uri?.startsWith("blob:")) {
+  if (!uri?.startsWith("blob:") && !uri?.startsWith("data:")) {
     return uri ?? undefined;
   }
   const ext = fileExtension(uri);
-  if (!ext) {
+  if (uri.startsWith("blob:") && !ext) {
     return;
   }
   uri = trimExtension(uri);
