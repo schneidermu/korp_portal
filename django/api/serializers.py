@@ -146,22 +146,20 @@ class QuestionSerializer(serializers.ModelSerializer):
         min_choices = data.get("min_choices")
         max_choices = data.get("max_choices")
         dependency_rule = data.get("dependency_rule")
+        allow_custom_answer = data.get("allow_custom_answer", getattr(self.instance, "allow_custom_answer", False) if self.instance else False)
 
         if question_type in [
             Question.QuestionType.SINGLE_CHOICE,
             Question.QuestionType.MULTIPLE_CHOICE,
         ]:
-            if not self.instance and not choices:
+            has_choices = choices is not None and len(choices) > 0
+            
+            if self.instance and choices is None:
+                has_choices = self.instance.choices.exists()
+
+            if not has_choices and not allow_custom_answer:
                 raise serializers.ValidationError(
-                    {
-                        "choices": "Для вопросов с выбором вариантов необходимо предоставить варианты ответов."
-                    }
-                )
-            if choices is not None and not choices and self.instance:
-                raise serializers.ValidationError(
-                    {
-                        "choices": "Нельзя удалить все варианты у вопроса с типом 'выбор'. Измените тип вопроса или добавьте варианты."
-                    }
+                    {"choices": "Для вопроса с выбором необходимо предоставить либо варианты ответа, либо разрешить опцию 'Другое' (свой вариант)."}
                 )
 
             if question_type == Question.QuestionType.MULTIPLE_CHOICE:
@@ -179,7 +177,6 @@ class QuestionSerializer(serializers.ModelSerializer):
                     choices
                     and max_choices is not None
                     and len(choices) < max_choices
-                    and max_choices > len(choices)
                 ):
                     pass
                 if choices and min_choices is not None and len(choices) < min_choices:
