@@ -185,6 +185,9 @@ class Question(models.Model):
         SINGLE_CHOICE = "single", "Один вариант ответа"
         MULTIPLE_CHOICE = "multiple", "Несколько вариантов ответа"
         FREE_TEXT = "text", "Свободный текстовый ответ"
+        DATE = "date", "Дата"
+        TELEPHONE = "telephone", "Номер телефона"
+        MAIL = "mail", "Почта"
 
     poll = models.ForeignKey(
         Poll, on_delete=models.CASCADE, related_name="questions", verbose_name="Опрос"

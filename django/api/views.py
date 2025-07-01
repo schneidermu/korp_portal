@@ -306,7 +306,12 @@ class PollViewset(viewsets.ModelViewSet):
                             ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=3)
                             row_num += 1
             
-            elif question.question_type == Question.QuestionType.FREE_TEXT:
+            elif question.question_type in [
+                Question.QuestionType.FREE_TEXT, 
+                Question.QuestionType.DATE, 
+                Question.QuestionType.TELEPHONE, 
+                Question.QuestionType.MAIL
+            ]:
                 text_answers_qs = Answer.objects.filter(
                     question=question, 
                     submission__poll=poll
@@ -423,14 +428,19 @@ class PollViewset(viewsets.ModelViewSet):
                         "sample_texts": list(custom_answers_qs.values_list('custom_choice_text', flat=True)[:5])
                     }
 
-            elif question.question_type == Question.QuestionType.FREE_TEXT:
+            elif question.question_type in [
+                Question.QuestionType.FREE_TEXT, 
+                Question.QuestionType.DATE, 
+                Question.QuestionType.TELEPHONE, 
+                Question.QuestionType.MAIL
+            ]:
                 text_answers_qs = Answer.objects.filter(
                     question=question, 
                     submission__poll=poll
                 ).exclude(free_text_answer__exact='').exclude(free_text_answer__isnull=True)
                 
                 q_stat["free_text_answers_count"] = text_answers_qs.count()
-                q_stat["sample_free_text_answers"] = list(text_answers_qs.values_list('free_text_answer', flat=True)[:5]) # Первые 5 для примера
+                q_stat["sample_free_text_answers"] = list(text_answers_qs.values_list('free_text_answer', flat=True)[:5])
             
             response_data["question_statistics"].append(q_stat)
         
