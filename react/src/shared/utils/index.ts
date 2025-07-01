@@ -93,6 +93,12 @@ export const formatDatePretty = new Intl.DateTimeFormat(LOCALE, {
   day: "numeric",
 }).format;
 
+export const formatDateNumeric = new Intl.DateTimeFormat(LOCALE, {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+}).format;
+
 export const resolveMediaPath = (path: string) => {
   if (path.startsWith("data:")) {
     return path;
@@ -151,3 +157,41 @@ export const toNumberOption = (s: string): O.Option<number> => {
 
 export const toNumber = (s: string): number =>
   O.getOrElse(toNumberOption(s), () => 0);
+
+export const index = <T>(xs: T[], i: number): T => {
+  if (i < 0) i += xs.length;
+  return xs[i];
+};
+
+export const indexSafe = <T>(xs: T[], i: number): T | undefined => index(xs, i);
+
+export const max = (xs: number[]) => xs.reduce((max, x) => (x > max ? x : max));
+
+export const remove = <T>(xs: T[], x0: T) => xs.filter((x) => x !== x0);
+
+export const round = (x: number, n: number = 0) =>
+  Math.round(x * 10 ** n) / 10 ** n;
+
+export const normPercents = (xs: number[], n: number = 0) => {
+  let over = 0;
+  const k = 10 ** n;
+  xs.forEach((x, i) => {
+    const f =
+      Math.abs(over) < k ? Math.round : over > 0 ? Math.floor : Math.ceil;
+    const y = f(x * k) / k;
+    over += y - x;
+    xs[i] = y;
+  });
+  for (let i = 0; i < xs.length; i++) {
+    if (over < k) break;
+    if (xs[i] === 0) continue;
+    if (over > 0) {
+      xs[i] -= k;
+      over -= k;
+    } else {
+      xs[i] += k;
+      over += k;
+    }
+  }
+  return xs;
+};

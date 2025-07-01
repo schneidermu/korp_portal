@@ -11,6 +11,12 @@ const customConfig = defineConfig({
           3: { value: "#8C8C8C" },
           4: { value: "#C1C2C8" },
           5: { value: "#E5F0FF" },
+          6: { value: "#AFAFAF" },
+          7: { value: "#DADADA" },
+          8: { value: "#E0E0E0" },
+          9: { value: "#F8F8F8" },
+          10: { value: "#616161" },
+          11: { value: "#272727" },
         },
         blue: {
           1: { value: "#2F80ED" },
@@ -19,9 +25,14 @@ const customConfig = defineConfig({
           4: { value: "#0E3C7A" },
           5: { value: "#1956A8" },
           6: { value: "#BAD4F6" },
+          7: { value: "#014096" },
         },
         red: {
           1: { value: "#CF2020" },
+          2: { value: "#D10000" },
+        },
+        orange: {
+          1: { value: "#FF7B02" },
         },
       },
       spacing: {

@@ -19,6 +19,7 @@ export const NavBar = () => {
       name: "Орг. структура",
       link: orgId !== null ? `/tree/${orgId}` : "/tree",
     },
+    { name: "Опросы", link: "/polls/dashboard" },
     { name: "Облако", link: "/nextcloud" },
     {
       name: "Облако (полный экран)",

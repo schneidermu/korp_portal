@@ -15,7 +15,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         theme = { background: "transparent" };
         break;
       case "ghost":
-        theme = { borderColor: "transparent" };
+        theme = { borderColor: "transparent", bg: "transparent" };
         break;
     }
 

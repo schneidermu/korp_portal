@@ -24,6 +24,25 @@ const PostNewsForm = React.lazy(
   async () => import("@/features/NewsEditor/NewsEditor"),
 );
 
+const TakePollPage = React.lazy(
+  async () => import("@/features/Poll/take/pages/TakePollPage"),
+);
+const ViewPollPage = React.lazy(
+  async () => import("@/features/Poll/take/pages/ViewPollPage"),
+);
+const CreatePollPage = React.lazy(
+  async () => import("@/features/Poll/edit/pages/CreatePollPage"),
+);
+const EditPollPage = React.lazy(
+  async () => import("@/features/Poll/edit/pages/EditPollPage"),
+);
+const PollsDashboardPage = React.lazy(
+  async () => import("@/features/Poll/list/PollsDashboardPage.tsx"),
+);
+const PollStatsPage = React.lazy(
+  async () => import("@/features/Poll/take/pages/PollStatsPage"),
+);
+
 export const App = () => {
   return (
     <ChakraProvider value={system}>
@@ -34,6 +53,14 @@ export const App = () => {
             <Route path="/tree/:orgId?" element={<UserTreePage />} />
             <Route path="/" element={<ProfilePage />} />
             <Route path="/profile/:userId?" element={<ProfilePage />} />
+            <Route path="polls">
+              <Route path="take/:pollId" element={<TakePollPage />} />
+              <Route path="edit/:pollId" element={<EditPollPage />} />
+              <Route path="view/:pollId" element={<ViewPollPage />} />
+              <Route path="stats/:pollId" element={<PollStatsPage />} />
+              <Route path="create" element={<CreatePollPage />} />
+              <Route path="dashboard" element={<PollsDashboardPage />} />
+            </Route>
             <Route path="/list/:orgId?" element={<UserList />} />
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/404" element={<NotFound />} />
