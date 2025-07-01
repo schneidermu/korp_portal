@@ -593,10 +593,10 @@ print(
         "employees_rating",
         [{"id": i, **r} for i, r in enumerate(ratings, start=1)],
     ),
-    gen_table("homepage_poll", polls),
-    gen_table("homepage_choice", flatten([chs for chs in choices.values()])),
-    gen_table("homepage_poll_organization", poll_orgs),
-    gen_table("homepage_choice_voted", poll_votes),
+    # gen_table("homepage_poll", polls),
+    # gen_table("homepage_choice", flatten([chs for chs in choices.values()])),
+    # gen_table("homepage_poll_organization", poll_orgs),
+    # gen_table("homepage_choice_voted", poll_votes),
     sep="\n",
 )
 
