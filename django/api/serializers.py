@@ -1418,16 +1418,15 @@ class RatingPOSTSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         employee = data.get("employee")
-        user = data.get("user")
-        rate = data.get("rate")
+        user = self.context["request"].user
+
 
         if employee.id == user.id:
             raise serializers.ValidationError(
                 {"error": "Вы не можете оценить самого себя."}
             )
-        if rate < 1 or rate > 5:
-            raise serializers.ValidationError({"error": "Недопустимая оценка."})
-        already_rated = user.rates.filter(employee_id=employee.id).exists()
+
+        already_rated = Rating.objects.filter(user=user, employee=employee).exists()
 
         if already_rated:
             raise serializers.ValidationError(
@@ -1438,44 +1437,73 @@ class RatingPOSTSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        validated_data["user"] = self.context["request"].user
         rating = Rating.objects.create(**validated_data)
         return rating
 
     class Meta:
         model = Rating
-        fields = "__all__"
+        fields = (
+            "id",
+            "employee",
+            "rate",
+            "text",
+            "date",
+            "user",
+        )
+        read_only_fields = (
+            "date",
+            "user",
+        )
 
 
 class RatingPUTSerializer(RatingPOSTSerializer):
     """Сериализатор для оценивания (PUT)."""
 
     def validate(self, data):
+        user = self.context["request"].user
         employee = data.get("employee")
-        user = data.get("user")
-        rate = data.get("rate")
 
         if employee.id == user.id:
             raise serializers.ValidationError(
                 {"error": "Вы не можете оценить самого себя."}
             )
-        if rate < 1 or rate > 5:
+        if "rate" in data and (data["rate"] < 1 or data["rate"] > 5):
             raise serializers.ValidationError({"error": "Недопустимая оценка."})
 
         return data
 
     @transaction.atomic
     def create(self, validated_data):
-        user = validated_data.get("user")
-        employee = validated_data.get("employee")
-        rating = Rating.objects.filter(user=user, employee=employee).first()
 
-        if rating is None:
-            rating = Rating.objects.create(**validated_data)
-        else:
-            rating.rate = validated_data.get("rate")
-            rating.save()
+        user = self.context["request"].user
+        employee = validated_data.get("employee")
+        
+        rating, _ = Rating.objects.update_or_create(
+            user=user,
+            employee=employee,
+            defaults={
+                "rate": validated_data.get("rate"),
+                "text": validated_data.get("text")
+            }
+        )
 
         return rating
+
+    class Meta:
+        model = Rating
+        fields = (
+            "id",
+            "employee",
+            "rate",
+            "text",
+            "date",
+            "user",
+        )
+        read_only_fields = (
+            "date",
+            "user",
+        )
 
 
 class RatingDELETESerializer(serializers.ModelSerializer):
