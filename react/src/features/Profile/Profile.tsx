@@ -42,18 +42,18 @@ const EditControls = ({
   onSave: () => void;
 }) => {
   return (
-    <Stack gap="6">
+    <Stack gap="6" fontSize={{ lg: "sm", xl: "md" }}>
       {editing ? (
         <>
-          <Button variant="outline" onClick={onReset}>
+          <Button variant="outline" onClick={onReset} fontSize="inherit">
             Отменить
           </Button>
-          <Button variant="solid" onClick={onSave}>
+          <Button variant="solid" onClick={onSave} fontSize="inherit">
             Сохранить
           </Button>
         </>
       ) : (
-        <Button variant="solid" onClick={onEdit}>
+        <Button variant="solid" onClick={onEdit} fontSize="inherit">
           Изменить данные
         </Button>
       )}
@@ -229,4 +229,4 @@ export default function ProfilePage() {
       </Stack>
     </Page>
   );
-};
+}

@@ -143,7 +143,6 @@ export default function UserTreePage () {
           />
         </PageHeading>
         <Box
-          w="full"
           h="800px"
           overflow="auto"
           ref={viewRef}

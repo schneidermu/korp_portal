@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-import { Box, Grid, Separator, Show } from "@chakra-ui/react";
+import { Box, HStack, Separator, Show } from "@chakra-ui/react";
 
 import { DPA } from "@/features/dpa/comps/DPA";
 
@@ -14,20 +14,35 @@ export const Page = ({
   sidebar?: ReactNode;
 }) => {
   return (
-    <Box>
-      <Grid pt="6" templateColumns="auto 1fr" gap="8" w="fit" mx="auto">
-        <Box position="relative" w={1440} p="9" pr="16" pb="20" minH="100vh">
-          {children}
-        </Box>
-        <Box height="fit" mt="20" position="sticky" top="20">
-          <NavBar />
+    <HStack maxW="90rem" w="full" mx="auto" px={6} pt="6" gap={16} align="top">
+      <Box
+        // Quick fix, allows to size overflowing UserTree and polls correctly.
+        maxW="80%"
+        minH="90vh"
+        flexGrow={1}
+        position="relative"
+        pt={9}
+        pb={20}
+      >
+        {children}
+      </Box>
+      {/* Box makes sticky work */}
+      <Box>
+        <Box
+          w={{ lg: "9.5rem", xl: "11.5rem" }}
+          flexShrink={0}
+          mt={20}
+          position="sticky"
+          top={20}
+        >
+          <NavBar fontSize={{ lg: "xl", xl: "2xl" }} />
           <Show when={sidebar}>
             <Separator borderWidth={1} my={8} />
             {sidebar}
           </Show>
         </Box>
-      </Grid>
+      </Box>
       <DPA />
-    </Box>
+    </HStack>
   );
 };

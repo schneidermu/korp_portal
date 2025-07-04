@@ -12,7 +12,7 @@ export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
     const { label, editing, children, ...rest } = props;
     return (
       <ChakraField.Root gap={editing ? "2" : "3"} ref={ref} {...rest}>
-        <ChakraField.Label ml={editing ? "3" : undefined}>
+        <ChakraField.Label ml={editing ? "3" : undefined} textWrap="nowrap">
           <Text color="gray.2" fontSize={editing ? "smaller" : "md"}>
             {label}
           </Text>

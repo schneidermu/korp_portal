@@ -41,7 +41,7 @@ export const EducationSubsection = React.memo(
               <Fragment key={row}>
                 <TimelineItem row={row}>
                   <TimelineInput
-                    fontSize="xl"
+                    fontSize={{ lg: "lg", xl: "xl" }}
                     value={year || ""}
                     maxLength={4}
                     onChange={({ target }) =>
@@ -54,7 +54,7 @@ export const EducationSubsection = React.memo(
                 </TimelineItem>
                 <TimelineItem lastCol row={row}>
                   <TimelineInput
-                    fontSize="xl"
+                    fontSize={{ lg: "lg", xl: "xl" }}
                     placeholder="Университет"
                     maxLength={80}
                     value={university}
@@ -67,7 +67,7 @@ export const EducationSubsection = React.memo(
                   />
                   <Show when={editing || major}>
                     <TimelineInput
-                      fontSize="lg"
+                      fontSize={{ lg: "md", xl: "lg" }}
                       maxLength={80}
                       placeholder={
                         editing ? "Факультет или институт" : undefined

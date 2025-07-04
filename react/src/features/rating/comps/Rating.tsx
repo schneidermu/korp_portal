@@ -30,7 +30,8 @@ export const Rating = ({ user }: { user: User }) => {
       alignItems="center"
       count={5}
       colorPalette="yellow"
-      size="lg"
+      size={{ lg: "md", xl: "lg" }}
+      fontSize={{ lg: "sm", xl: "md" }}
       readOnly={user.id === userId}
       value={Math.round(Option.getOrElse(stars, () => 0))}
       onValueChange={({ value }) => {

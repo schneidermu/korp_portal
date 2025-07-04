@@ -3,6 +3,7 @@ import React from "react";
 import { Option as O } from "effect";
 
 import {
+  AspectRatio,
   Box,
   createListCollection,
   Flex,
@@ -208,9 +209,9 @@ export const ProfileCard = React.memo(
         <Section ref={ref} {...rest}>
           <Subsection title={title}>
             <Flex>
-              <Stack gap="6" mt="4" flexShrink="0" w="72">
+              <Stack gap="6" mt="4" flexShrink="0" w={{ lg: 64, xl: 72 }}>
                 <Flex justify="center" mr="16">
-                  <Box w="52" h="52">
+                  <AspectRatio ratio={1} w={{ lg: 44, xl: 52 }}>
                     {editing ? (
                       <AvatarEditable
                         w="full"
@@ -223,7 +224,7 @@ export const ProfileCard = React.memo(
                     ) : (
                       <Avatar user={user} w="full" h="full" />
                     )}
-                  </Box>
+                  </AspectRatio>
                 </Flex>
                 <Box ml="8">
                   <Rating user={user} />

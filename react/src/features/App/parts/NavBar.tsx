@@ -1,11 +1,11 @@
-import { Stack, Text } from "@chakra-ui/react";
+import { Stack, StackProps, Text } from "@chakra-ui/react";
 import { NavLink } from "react-router-dom";
 
 import { NEXTCLOUD_PREFIX } from "@/app/const";
 
 import { useAuth } from "@/features/auth/slice";
 
-export const NavBar = () => {
+export const NavBar = (props: StackProps) => {
   const { orgId, userId } = useAuth();
 
   const links: { name: string; link: string; anchor?: boolean }[] = [
@@ -29,7 +29,7 @@ export const NavBar = () => {
   ];
 
   return (
-    <Stack fontSize="2xl" color="blue.2" gap="9" userSelect="none">
+    <Stack color="blue.2" gap="9" userSelect="none" {...props}>
       {links.map((link) => (
         <Text
           key={link.link}
@@ -39,7 +39,9 @@ export const NavBar = () => {
           textDecoration={{ _hover: "underline" }}
         >
           {link.anchor ? (
-            <a href={link.link} target="_blank">{link.name}</a>
+            <a href={link.link} target="_blank">
+              {link.name}
+            </a>
           ) : (
             <NavLink to={link.link}>{link.name}</NavLink>
           )}

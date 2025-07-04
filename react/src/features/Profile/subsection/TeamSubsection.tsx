@@ -15,14 +15,14 @@ import { Subsection, SubsectionProps } from "../parts/Subsection";
 const UserGrid = React.memo(function UserGrid({ users }: { users: User[] }) {
   return (
     <Grid
-      gapX="16"
-      gapY="8"
-      gridTemplateColumns="repeat(6, 1fr)"
+      gapX={10}
+      gapY={8}
+      gridTemplateColumns="repeat(auto-fill, 10rem)"
       justifyContent="start"
     >
       {users.map((user) => (
-        <Stack key={user.id} gap="9" alignItems="center">
-          <Avatar user={user} />
+        <Stack key={user.id} gridAutoColumns="1fr" gap="9" alignItems="center">
+          <Avatar w={32} h={32} user={user} />
           <Text textWrap="nowrap">
             {user.firstName} {user.lastName}
           </Text>

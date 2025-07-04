@@ -153,9 +153,9 @@ export const ImageGrid = React.memo(function ImageGrid({
 }) {
   return (
     <Grid
-      gapX="16"
-      gapY="8"
-      gridTemplateColumns="repeat(6, 1fr)"
+      gapX={10}
+      gapY={8}
+      gridTemplateColumns="repeat(auto-fill, 10rem)"
       justifyItems="center"
     >
       {imgs.map(({ src, caption }, i) => (

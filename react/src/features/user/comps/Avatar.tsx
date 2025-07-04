@@ -5,6 +5,7 @@ import { Option as O } from "effect";
 import Cropper, { Area } from "react-easy-crop";
 
 import {
+  AspectRatio,
   Box,
   BoxProps,
   Avatar as ChakraAvatar,
@@ -42,7 +43,7 @@ export const Avatar = React.memo(
     const src = O.map(user.photo, resolveMediaPath);
 
     return (
-      <Box w="32" h="32" ref={ref} {...rest}>
+      <AspectRatio w="full" ref={ref} {...rest}>
         <Link
           style={{ display: "block", width: "100%", height: "100%" }}
           to={`/profile/${user.id}`}
@@ -61,7 +62,7 @@ export const Avatar = React.memo(
             />
           </ChakraAvatar.Root>
         </Link>
-      </Box>
+      </AspectRatio>
     );
   }),
 );

@@ -39,7 +39,7 @@ export const AboutSubsection = React.memo(
 
       return (
         <Subsection ref={ref} {...rest}>
-          <Stack fontSize="xl">
+          <Stack fontSize={{ lg: "lg", xl: "xl" }}>
             {about
               .trim()
               .split("\n")

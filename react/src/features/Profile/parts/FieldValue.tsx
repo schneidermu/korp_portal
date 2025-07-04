@@ -31,7 +31,7 @@ export const FieldValue = React.forwardRef<HTMLDivElement, FieldValueProps>(
               fontSize: "smaller",
             }
           : {
-              fontSize: "xl",
+              fontSize: { lg: "md", xl: "xl" },
               borderWidth: 0,
               pl: 0,
               cursor: "auto",
