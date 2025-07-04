@@ -32,7 +32,7 @@ export const Rating = ({ user }: { user: User }) => {
       colorPalette="yellow"
       size="lg"
       readOnly={user.id === userId}
-      value={Option.getOrElse(stars, () => 0)}
+      value={Math.round(Option.getOrElse(stars, () => 0))}
       onValueChange={({ value }) => {
         const s =
           value === Option.getOrNull(stars)
