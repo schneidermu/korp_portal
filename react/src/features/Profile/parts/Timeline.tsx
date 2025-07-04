@@ -144,6 +144,7 @@ export const Timeline = React.memo(
               borderColor="gray.3"
               borderRightWidth={i < cols.length - 1 ? 1 : 0}
               borderBottomWidth={1}
+              textWrap="nowrap"
             >
               {header}
               {editing && i === cols.length - 1 && (
