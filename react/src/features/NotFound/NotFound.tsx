@@ -5,4 +5,4 @@ export default function NotFound() {
       <p>К сожалению, страница не найдена!</p>
     </div>
   );
-};
+}

@@ -26,6 +26,6 @@ export const publishNews = async (
     }),
   });
   if (res.status !== 201) {
-    throw new Error(`error posting news: ${res.status} ${res.statusText}`)
+    throw new Error(`error posting news: ${res.status} ${res.statusText}`);
   }
 };

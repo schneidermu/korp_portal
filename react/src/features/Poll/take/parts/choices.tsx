@@ -14,7 +14,7 @@ import { useAppDispatch } from "@/app/store.ts";
 import { Checkbox } from "@/shared/comps/Checkbox.tsx";
 
 import { Question } from "../../types.ts";
-import {useAnswerSelector, useIsReadOnly} from "../slice.ts";
+import { useAnswerSelector, useIsReadOnly } from "../slice.ts";
 import { slice } from "../slice";
 
 export const ChoiceListMultiple = ({ q }: { q: Question }) => {

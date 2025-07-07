@@ -78,9 +78,9 @@ export const validateQuestion = (
 };
 
 export const questionIsShown = (poll: Poll, qid: number) => {
-  const rule = poll.questions.find(({id}) => id === qid)?.dependencyRule;
+  const rule = poll.questions.find(({ id }) => id === qid)?.dependencyRule;
   if (rule?.choiceId === undefined) return true;
 
   const choices = poll.questions[rule.questionId].choices;
-  return choices.findIndex(({id}) => id === rule.choiceId) >= 0;
-}
+  return choices.findIndex(({ id }) => id === rule.choiceId) >= 0;
+};

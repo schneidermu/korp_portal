@@ -16,4 +16,4 @@ export default function ProtectedPage({ groups }: { groups: string[] }) {
       <PageHeading title="У вас нет доступа к этой странице :(" />
     </Page>
   );
-};
+}

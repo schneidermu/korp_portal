@@ -16,7 +16,7 @@ import {
   trimExtension,
 } from "@/shared/utils";
 import { User, UserStatus } from "./types";
-import {AuthState, useAuth} from "../auth/slice";
+import { AuthState, useAuth } from "../auth/slice";
 
 export const UserNotFoundError = new Error("User not found");
 

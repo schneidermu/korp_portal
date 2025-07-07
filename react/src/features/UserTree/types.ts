@@ -80,12 +80,12 @@ const calcBranchWidth = (
 };
 
 const _placeNodes = (
-    tree: Tree,
-    widths: Map<NodeKey, number>,
-    root: NodeKey = tree.root,
-    cur: { row: number; col: number } = { row: 0, col: 0 },
-    colorInd = 0,
-    placement: Map<NodeKey, Placement> = new Map(),
+  tree: Tree,
+  widths: Map<NodeKey, number>,
+  root: NodeKey = tree.root,
+  cur: { row: number; col: number } = { row: 0, col: 0 },
+  colorInd = 0,
+  placement: Map<NodeKey, Placement> = new Map(),
 ): Map<NodeKey, Placement> => {
   const node = tree.nodes.get(root)!;
 
@@ -118,12 +118,12 @@ const _placeNodes = (
   let col = cur.col;
   node.children.forEach((child, i) => {
     _placeNodes(
-        tree,
-        widths,
-        child,
-        { row: cur.row + 1, col },
-        colorInd + i + 1,
-        placement,
+      tree,
+      widths,
+      child,
+      { row: cur.row + 1, col },
+      colorInd + i + 1,
+      placement,
     );
     col += widths.get(child)!;
   });
@@ -134,7 +134,7 @@ const _placeNodes = (
 export const placeNodes = (tree: Tree) => {
   const widths = calcBranchWidth(tree);
   return _placeNodes(tree, widths);
-}
+};
 
 export const calcLinkChains = (tree: Tree, boxes: Map<NodeKey, NodeBox>) => {
   const chains: { x: number; y: number }[][] = [];

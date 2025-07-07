@@ -93,4 +93,4 @@ export default function AuthLoader() {
 
   if (embed) return;
   return <LoginForm onLogin={(cred) => setData(JSON.stringify(cred))} />;
-};
+}

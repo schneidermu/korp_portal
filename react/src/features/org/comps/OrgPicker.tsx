@@ -43,7 +43,12 @@ export const OrgPicker = React.memo(function OrgPicker({
       <Select.Control>
         <Select.Trigger borderWidth={0}>
           <Heading as="h1" w="full" color="blue.4" fontSize="3xl">
-            {title} {orgId !== null && <>(<Select.ValueText display="inline" />)</>}
+            {title}{" "}
+            {orgId !== null && (
+              <>
+                (<Select.ValueText display="inline" />)
+              </>
+            )}
           </Heading>
         </Select.Trigger>
       </Select.Control>
