@@ -246,6 +246,7 @@ class PollSerializer(serializers.ModelSerializer):
         model = Poll
         fields = (
             "id",
+            "kind",
             "name",
             "description",
             "author",

@@ -185,6 +185,7 @@ class PollAdmin(admin.ModelAdmin):
         "name",
         "author_display",
         "status",
+        "kind",
         "poll_group",
         "is_public",
         "pub_date",
@@ -195,6 +196,7 @@ class PollAdmin(admin.ModelAdmin):
         "status",
         "is_public",
         "is_anonymous",
+        "kind",
         "author",
         "poll_group",
         "organization",
@@ -214,6 +216,7 @@ class PollAdmin(admin.ModelAdmin):
                     "author_display_form",
                     "poll_group",
                     "status",
+                    "kind",
                 )
             },
         ),
