@@ -99,6 +99,10 @@ class Poll(Published):
         PUBLISHED = "published", "Опубликован"
         COMPLETED = "completed", "Завершен"
 
+    class KindChoices(models.TextChoices):
+        PLAIN = "plain", "Опрос"
+        FORM = "form", "Форма"
+
     name = models.CharField(
         max_length=CHARFIELD_LENGTH, verbose_name="Наименование опроса", null=True
     )
@@ -118,6 +122,12 @@ class Poll(Published):
         blank=True,
         verbose_name="Группа опроса",
         related_name="polls",
+    )
+    kind = models.CharField(
+        max_length=10,
+        choices=KindChoices.choices,
+        default=KindChoices.PLAIN,
+        verbose_name="Тип опроса",
     )
     status = models.CharField(
         max_length=10,
