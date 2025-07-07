@@ -13,60 +13,55 @@ export interface CommunitySubsectionProps extends SubsectionProps {
   updateUser: UpdateUserFn;
 }
 
-export const CommunitySubsection = React.memo(
-  React.forwardRef<HTMLDivElement, CommunitySubsectionProps>(
-    function CommunitySubsection(props, ref) {
-      const { communityWork, editing, updateUser, ...rest } = props;
+export const CommunitySubsection = React.memo(function CommunitySubsection({
+  communityWork,
+  editing,
+  updateUser,
+  ...rest
+}: CommunitySubsectionProps) {
+  const onChange = useCallback(
+    (i: number, img: ImgWithCaption) =>
+      updateUser(
+        (user) =>
+          (user.communityWork[i] = {
+            name: img.caption,
+            attachment: img.src,
+          }),
+      ),
+    [updateUser],
+  );
 
-      const onChange = useCallback(
-        (i: number, img: ImgWithCaption) =>
-          updateUser(
-            (user) =>
-              (user.communityWork[i] = {
-                name: img.caption,
-                attachment: img.src,
-              }),
-          ),
-        [updateUser],
-      );
+  const onAdd = useCallback(
+    () =>
+      updateUser((user) =>
+        user.communityWork.push({ name: "", attachment: O.none() }),
+      ),
+    [updateUser],
+  );
 
-      const onAdd = useCallback(
-        () =>
-          updateUser((user) =>
-            user.communityWork.push({ name: "", attachment: O.none() }),
-          ),
-        [updateUser],
-      );
+  const onRemove = useCallback(
+    (i: number) => updateUser((user) => user.communityWork.splice(i, 1)),
+    [updateUser],
+  );
 
-      const onRemove = useCallback(
-        (i: number) => updateUser((user) => user.communityWork.splice(i, 1)),
-        [updateUser],
-      );
+  const imgs = useMemo(
+    () =>
+      communityWork.map(({ name, attachment }) => ({
+        src: attachment,
+        caption: name,
+      })),
+    [communityWork],
+  );
 
-      const imgs = useMemo(
-        () =>
-          communityWork.map(({ name, attachment }) => ({
-            src: attachment,
-            caption: name,
-          })),
-        [communityWork],
-      );
-
-      return (
-        <Subsection
-          show={editing || communityWork.length > 0}
-          ref={ref}
-          {...rest}
-        >
-          <ImageGrid
-            editing={editing}
-            imgs={imgs}
-            onAdd={onAdd}
-            onRemove={onRemove}
-            onChange={onChange}
-          />
-        </Subsection>
-      );
-    },
-  ),
-);
+  return (
+    <Subsection show={editing || communityWork.length > 0} {...rest}>
+      <ImageGrid
+        editing={editing}
+        imgs={imgs}
+        onAdd={onAdd}
+        onRemove={onRemove}
+        onChange={onChange}
+      />
+    </Subsection>
+  );
+});

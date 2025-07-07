@@ -36,59 +36,55 @@ export interface TeamSubsectionProps extends SubsectionProps {
   user: User;
 }
 
-export const TeamSubsection = React.memo(
-  React.forwardRef<HTMLDivElement, TeamSubsectionProps>(
-    function TeamSubsection(props, ref) {
-      const { user, ...rest } = props;
+export const TeamSubsection = React.memo(function TeamSubsection({
+  user,
+  ...rest
+}: TeamSubsectionProps) {
+  const [showBoss, setShowBoss] = useState(false);
 
-      const [showBoss, setShowBoss] = useState(false);
+  const colleagues = useFetchColleagues(user);
+  const { user: boss } = useFetchUser(user.bossId);
 
-      const colleagues = useFetchColleagues(user);
-      const { user: boss } = useFetchUser(user.bossId);
+  useEffect(() => {
+    if (O.isNone(user.bossId)) {
+      setShowBoss(false);
+    }
+  }, [user.bossId]);
 
-      useEffect(() => {
-        if (O.isNone(user.bossId)) {
-          setShowBoss(false);
-        }
-      }, [user.bossId]);
-
-      const users = useMemo(() => {
-        let users: User[] = [];
-        if (showBoss && boss) {
-          users = [boss];
-        } else if (!showBoss) {
-          users = [...(colleagues?.values() || [])].filter(
-            (colleague) =>
-              colleague.id !== user.id &&
-              !O.contains(user.bossId, colleague.id),
-          );
-        }
-        return users;
-      }, [boss, colleagues, showBoss, user.id, user.bossId]);
-
-      return (
-        <Subsection ref={ref} {...rest}>
-          <Stack gap="20">
-            <Grid gap="10" templateColumns="1fr 1fr" w="fit">
-              <Button
-                variant={showBoss ? "outline" : "solid"}
-                onClick={() => setShowBoss(false)}
-              >
-                Коллеги
-              </Button>
-              <Show when={O.isSome(user.bossId)}>
-                <Button
-                  variant={showBoss ? "solid" : "outline"}
-                  onClick={() => setShowBoss(true)}
-                >
-                  Руководитель
-                </Button>
-              </Show>
-            </Grid>
-            <UserGrid users={users} />
-          </Stack>
-        </Subsection>
+  const users = useMemo(() => {
+    let users: User[] = [];
+    if (showBoss && boss) {
+      users = [boss];
+    } else if (!showBoss) {
+      users = [...(colleagues?.values() || [])].filter(
+        (colleague) =>
+          colleague.id !== user.id && !O.contains(user.bossId, colleague.id),
       );
-    },
-  ),
-);
+    }
+    return users;
+  }, [boss, colleagues, showBoss, user.id, user.bossId]);
+
+  return (
+    <Subsection {...rest}>
+      <Stack gap="20">
+        <Grid gap="10" templateColumns="1fr 1fr" w="fit">
+          <Button
+            variant={showBoss ? "outline" : "solid"}
+            onClick={() => setShowBoss(false)}
+          >
+            Коллеги
+          </Button>
+          <Show when={O.isSome(user.bossId)}>
+            <Button
+              variant={showBoss ? "solid" : "outline"}
+              onClick={() => setShowBoss(true)}
+            >
+              Руководитель
+            </Button>
+          </Show>
+        </Grid>
+        <UserGrid users={users} />
+      </Stack>
+    </Subsection>
+  );
+});

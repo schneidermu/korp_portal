@@ -193,57 +193,51 @@ interface ProfileCardProps extends StackProps {
   highlightSkills?: string[];
 }
 
-export const ProfileCard = React.memo(
-  React.forwardRef<HTMLDivElement, ProfileCardProps>(
-    function ProfileCard(props, ref) {
-      const {
-        user,
-        editing = false,
-        updateUser = noop,
-        title,
-        highlightSkills,
-        ...rest
-      } = props;
-
-      return (
-        <Section ref={ref} {...rest}>
-          <Subsection title={title}>
-            <Flex>
-              <Stack gap="6" mt="4" flexShrink="0" w={{ lg: 64, xl: 72 }}>
-                <Flex justify="center" mr="16">
-                  <AspectRatio ratio={1} w={{ lg: 44, xl: 52 }}>
-                    {editing ? (
-                      <AvatarEditable
-                        w="full"
-                        h="full"
-                        user={user}
-                        onUpload={(src) =>
-                          updateUser((user) => (user.photo = O.some(src)))
-                        }
-                      />
-                    ) : (
-                      <Avatar user={user} w="full" h="full" />
-                    )}
-                  </AspectRatio>
-                </Flex>
-                <Box ml="8">
-                  <Rating user={user} />
-                </Box>
-              </Stack>
-
-              <InfoGrid info={user} editing={editing} updateUser={updateUser} />
+export const ProfileCard = React.memo(function ProfileCard({
+  user,
+  editing = false,
+  updateUser = noop,
+  title,
+  highlightSkills,
+  ...rest
+}: ProfileCardProps) {
+  return (
+    <Section {...rest}>
+      <Subsection title={title}>
+        <Flex>
+          <Stack gap="6" mt="4" flexShrink="0" w={{ lg: 64, xl: 72 }}>
+            <Flex justify="center" mr="16">
+              <AspectRatio ratio={1} w={{ lg: 44, xl: 52 }}>
+                {editing ? (
+                  <AvatarEditable
+                    w="full"
+                    h="full"
+                    user={user}
+                    onUpload={(src) =>
+                      updateUser((user) => (user.photo = O.some(src)))
+                    }
+                  />
+                ) : (
+                  <Avatar user={user} w="full" h="full" />
+                )}
+              </AspectRatio>
             </Flex>
-            {(editing || user.skills.length > 0) && (
-              <UserSkills
-                editing={editing}
-                skills={user.skills}
-                updateUser={updateUser}
-                highlightSkills={highlightSkills}
-              />
-            )}
-          </Subsection>
-        </Section>
-      );
-    },
-  ),
-);
+            <Box ml="8">
+              <Rating user={user} />
+            </Box>
+          </Stack>
+
+          <InfoGrid info={user} editing={editing} updateUser={updateUser} />
+        </Flex>
+        {(editing || user.skills.length > 0) && (
+          <UserSkills
+            editing={editing}
+            skills={user.skills}
+            updateUser={updateUser}
+            highlightSkills={highlightSkills}
+          />
+        )}
+      </Subsection>
+    </Section>
+  );
+});

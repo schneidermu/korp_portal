@@ -138,56 +138,47 @@ export interface SkillsProps extends StackProps {
   highlightSkills?: string[];
 }
 
-export const Skills = React.memo(
-  React.forwardRef<HTMLDivElement, SkillsProps>(function Skills(props, ref) {
-    const {
-      editing,
-      placeholder,
-      skills,
-      setSkills,
-      highlightSkills,
-      ...rest
-    } = props;
+export const Skills = React.memo(function Skills(props: SkillsProps) {
+  const { editing, placeholder, skills, setSkills, highlightSkills, ...rest } =
+    props;
 
-    const addSkill = useCallback(
-      (skill: string) => setSkills((skills) => [...skills, skill]),
-      [setSkills],
-    );
+  const addSkill = useCallback(
+    (skill: string) => setSkills((skills) => [...skills, skill]),
+    [setSkills],
+  );
 
-    const removeSkill = useCallback(
-      (skill: string) =>
-        setSkills((skills) => skills.filter((s) => s !== skill)),
-      [setSkills],
-    );
+  const removeSkill = useCallback(
+    (skill: string) => setSkills((skills) => skills.filter((s) => s !== skill)),
+    [setSkills],
+  );
 
-    return (
-      <Stack fontSize="md" gap="4" ref={ref} {...rest}>
-        <Wrap gapX="4" gapY="2">
-          {skills.map((skill) => (
-            <Skill
-              key={skill}
-              skill={skill}
-              editing={editing}
-              removeSkill={removeSkill}
-              highlight={highlightSkills?.some((term) =>
-                skill.toLowerCase().includes(term.toLowerCase()),
-              )}
-            />
-          ))}
-        </Wrap>
-        <Show when={editing}>
-          <Box width="60%">
-            <SkillInput
-              addSkill={addSkill}
-              placeholder={placeholder}
-              excludeSkills={skills}
-            />
-          </Box>
-        </Show>
-      </Stack>
-    );
-  }),
-);
+  return (
+    <Stack fontSize="md" gap="4" {...rest}>
+      <Wrap gapX="4" gapY="2">
+        {skills.map((skill) => (
+          <Skill
+            key={skill}
+            skill={skill}
+            editing={editing}
+            removeSkill={removeSkill}
+            highlight={highlightSkills?.some((term) =>
+              skill.toLowerCase().includes(term.toLowerCase()),
+            )}
+          />
+        ))}
+      </Wrap>
+      <Show when={editing}>
+        <Box width="60%">
+          <SkillInput
+            addSkill={addSkill}
+            placeholder={placeholder}
+            excludeSkills={skills}
+          />
+        </Box>
+      </Show>
+    </Stack>
+  );
+});
 
 export const UserSkills = React.memo(function UserSkills({
   skills,

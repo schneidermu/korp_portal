@@ -3,7 +3,11 @@ import { FormEventHandler, useEffect, useRef, useState } from "react";
 import { Option as O } from "effect";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { Stack, VisuallyHidden } from "@chakra-ui/react";
+import {
+  Stack,
+  VisuallyHidden,
+  Button as ChakraButton,
+} from "@chakra-ui/react";
 
 import { useAuth } from "@/features/auth/slice";
 import { useUserState } from "@/features/user/hooks";
@@ -140,7 +144,7 @@ export default function ProfilePage() {
         <VisuallyHidden>
           {/* Dummy submit button to trigger input submits with Enter.
               Also used to submit via the ref. */}
-          <Button type="submit" ref={submitBtnRef} />
+          <ChakraButton type="submit" ref={submitBtnRef} />
         </VisuallyHidden>
 
         <Stack gap="4">

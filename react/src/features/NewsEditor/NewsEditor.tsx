@@ -28,44 +28,34 @@ import { publishNews } from "./services";
 import { useAuth } from "@/features/auth/slice.ts";
 import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
 
-const NewsInputWrapper = React.memo(
-  React.forwardRef<HTMLDivElement, BoxProps>(
-    function NewsInputWrapper(props, ref) {
-      return (
-        <Box
-          asChild
-          outlineColor="blue.4"
-          borderColor="blue.6"
-          borderRadius="2"
-          px="2"
-          py="1"
-          ref={ref}
-          {...props}
-        />
-      );
-    },
-  ),
-);
+const NewsInputWrapper = (props: BoxProps) => {
+  return (
+    <Box
+      asChild
+      outlineColor="blue.4"
+      borderColor="blue.6"
+      borderRadius="2"
+      px="2"
+      py="1"
+      {...props}
+    />
+  );
+};
 
-interface NewsFieldProps extends Field.RootProps {
-  label: string;
-}
-
-const NewsField = React.memo(
-  React.forwardRef<HTMLDivElement, NewsFieldProps>(
-    function NewsField(props, ref) {
-      const { label, children, ...rest } = props;
-      return (
-        <Field.Root w="full" fontSize="sm" color="blue.4" ref={ref} {...rest}>
-          <Field.Label px="2" py="1">
-            {label} <Field.RequiredIndicator />
-          </Field.Label>
-          {children}
-        </Field.Root>
-      );
-    },
-  ),
-);
+const NewsField = React.memo(function NewsField({
+  label,
+  children,
+  ...rest
+}: { label: string } & Field.RootProps) {
+  return (
+    <Field.Root w="full" fontSize="sm" color="blue.4" {...rest}>
+      <Field.Label px="2" py="1">
+        {label} <Field.RequiredIndicator />
+      </Field.Label>
+      {children}
+    </Field.Root>
+  );
+});
 
 const formatISODatetime = (date: Date) => {
   const y = date.getFullYear().toString().padStart(4, "0");
@@ -269,4 +259,4 @@ export default function PostNewsForm() {
       </form>
     </Page>
   );
-};
+}

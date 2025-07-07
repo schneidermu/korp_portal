@@ -92,93 +92,92 @@ export interface ImgGridProps extends GridProps {
   onRemove?: (i: number) => void;
 }
 
-export const ImgGrid = React.memo(
-  React.forwardRef<HTMLDivElement, ImgGridProps>(function ImgGrid(props, ref) {
-    const { imgs, onRemove, ...rest } = props;
+export const ImgGrid = React.memo(function ImgGrid({
+  imgs,
+  onRemove,
+  ...rest
+}: ImgGridProps) {
+  const [windowInd, setWindowIndex] = useState(0);
+  const [overlayImg, setOverlayImg] = useState<number | null>(null);
 
-    const [windowInd, setWindowIndex] = useState(0);
-    const [overlayImg, setOverlayImg] = useState<number | null>(null);
+  const windowSize = 4;
+  const step = 2;
 
-    const windowSize = 4;
-    const step = 2;
+  // 0 1 4 6 ...
+  // 2 3 5 7 ...
+  const windowImgs = useMemo(() => {
+    if (windowInd === 0) {
+      return imgs.slice(0, windowSize);
+    }
+    if (windowInd === 1) {
+      return [imgs[1], ...imgs.slice(3, 6)];
+    }
+    return imgs.slice(step * windowInd, step * windowInd + windowSize);
+  }, [imgs, windowInd]);
 
-    // 0 1 4 6 ...
-    // 2 3 5 7 ...
-    const windowImgs = useMemo(() => {
-      if (windowInd === 0) {
-        return imgs.slice(0, windowSize);
+  return (
+    <Grid
+      autoFlow={windowInd === 0 ? "row" : "column"}
+      templateColumns="1fr 1fr"
+      templateRows={
+        imgs.length === 0
+          ? undefined
+          : imgs.length <= 2
+            ? "24rem"
+            : "24rem 24rem"
       }
-      if (windowInd === 1) {
-        return [imgs[1], ...imgs.slice(3, 6)];
-      }
-      return imgs.slice(step * windowInd, step * windowInd + windowSize);
-    }, [imgs, windowInd]);
-
-    return (
-      <Grid
-        autoFlow={windowInd === 0 ? "row" : "column"}
-        templateColumns="1fr 1fr"
-        templateRows={
-          imgs.length === 0
-            ? undefined
-            : imgs.length <= 2
-              ? "24rem"
-              : "24rem 24rem"
-        }
-        gapX="6"
-        gapY="5"
-        position="relative"
-        ref={ref}
-        {...rest}
-      >
-        <Show when={windowInd > 0}>
-          <SlideButtonLeft onClick={() => setWindowIndex(windowInd - 1)} />
-        </Show>
-        <Show when={windowInd * step + windowSize < imgs.length}>
-          <SlideButtonRight onClick={() => setWindowIndex(windowInd + 1)} />
-        </Show>
-        {windowImgs.map((src, i) => (
-          <Box position="relative" key={i}>
-            <Image
-              role="button"
-              w="full"
+      gapX="6"
+      gapY="5"
+      position="relative"
+      {...rest}
+    >
+      <Show when={windowInd > 0}>
+        <SlideButtonLeft onClick={() => setWindowIndex(windowInd - 1)} />
+      </Show>
+      <Show when={windowInd * step + windowSize < imgs.length}>
+        <SlideButtonRight onClick={() => setWindowIndex(windowInd + 1)} />
+      </Show>
+      {windowImgs.map((src, i) => (
+        <Box position="relative" key={i}>
+          <Image
+            role="button"
+            w="full"
+            h="full"
+            userSelect="none"
+            src={resolveMediaPath(src)}
+            onClick={() => setOverlayImg(i)}
+          />
+          {onRemove && (
+            <IconButton
+              inset="0"
               h="full"
-              userSelect="none"
-              src={resolveMediaPath(src)}
-              onClick={() => setOverlayImg(i)}
-            />
-            {onRemove && (
-              <IconButton
-                inset="0"
-                h="full"
-                position="absolute"
-                bg="transparent"
-                color="transparent"
-                _hover={{ bg: "gray.1", color: "black" }}
-                opacity="0.8"
-                onClick={() => {
-                  // Visible before the removal.
-                  const numVisible = imgs.length - step * windowInd;
-                  const isLastWindow =
-                    step * windowInd + windowSize >= imgs.length;
-                  if (windowInd > 0 && isLastWindow && numVisible < 4) {
-                    setWindowIndex(windowInd - 1);
-                  }
-                  onRemove(i);
-                }}
-              >
-                <LuX />
-              </IconButton>
-            )}
-          </Box>
-        ))}
+              position="absolute"
+              bg="transparent"
+              color="transparent"
+              _hover={{ bg: "gray.1", color: "black" }}
+              opacity="0.8"
+              onClick={() => {
+                // Visible before the removal.
+                const numVisible = imgs.length - step * windowInd;
+                const isLastWindow =
+                  step * windowInd + windowSize >= imgs.length;
+                if (windowInd > 0 && isLastWindow && numVisible < 4) {
+                  setWindowIndex(windowInd - 1);
+                }
+                onRemove(i);
+              }}
+            >
+              <LuX />
+            </IconButton>
+          )}
+        </Box>
+      ))}
 
-        <OverlayImg
-          imgs={imgs}
-          index={overlayImg}
-          onClose={() => setOverlayImg(null)}
-        />
-      </Grid>
-    );
-  }),
-);
+      <OverlayImg
+        imgs={imgs}
+        index={overlayImg}
+        onClose={() => setOverlayImg(null)}
+      />
+    </Grid>
+  );
+});

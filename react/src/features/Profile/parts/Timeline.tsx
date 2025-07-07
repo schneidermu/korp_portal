@@ -19,38 +19,32 @@ export interface TimelineProps extends GridProps {
   removeRow: (i: number) => void;
 }
 
-interface RowButtonProps extends IconButtonProps {
-  kind: "plus" | "minus";
-}
-
-const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
-  function RowButton(props, ref) {
-    const { kind, ...rest } = props;
-
-    return (
-      <IconButton
-        backgroundColor="white"
-        borderRadius="full"
-        borderWidth={3}
-        minW="0"
-        height="fit"
-        position="absolute"
-        right="0"
-        bottom="0"
-        transform={
-          kind === "plus" ? "translate(50%, 50%)" : "translate(-110%, 50%)"
-        }
-        zIndex={1}
-        color={kind === "plus" ? "blue.2" : "red.1"}
-        borderColor={kind === "plus" ? "blue.2" : "red.1"}
-        ref={ref}
-        {...rest}
-      >
-        {kind === "plus" ? <LuPlus /> : <LuMinus />}
-      </IconButton>
-    );
-  },
-);
+const RowButton = ({
+  kind,
+  ...rest
+}: { kind: "plus" | "minus" } & IconButtonProps) => {
+  return (
+    <IconButton
+      backgroundColor="white"
+      borderRadius="full"
+      borderWidth={3}
+      minW="0"
+      height="fit"
+      position="absolute"
+      right="0"
+      bottom="0"
+      transform={
+        kind === "plus" ? "translate(50%, 50%)" : "translate(-110%, 50%)"
+      }
+      zIndex={1}
+      color={kind === "plus" ? "blue.2" : "red.1"}
+      borderColor={kind === "plus" ? "blue.2" : "red.1"}
+      {...rest}
+    >
+      {kind === "plus" ? <LuPlus /> : <LuMinus />}
+    </IconButton>
+  );
+};
 
 const TimelineContext = createContext<{
   cols: string[];
@@ -59,103 +53,99 @@ const TimelineContext = createContext<{
   removeRow: (i: number) => void;
 } | null>(null);
 
-export const TimelineInput = React.memo(
-  React.forwardRef<HTMLInputElement, InputProps>(
-    function TimelineInput(props, ref) {
-      const ctx = useContext(TimelineContext);
-      if (!ctx) return;
+export const TimelineInput = React.memo(function TimelineInput(
+  props: InputProps,
+) {
+  const ctx = useContext(TimelineContext);
+  if (!ctx) return;
 
-      const { editing } = ctx;
+  const { editing } = ctx;
 
-      return (
-        <Input
-          required
-          disabled={!editing}
-          opacity="1"
-          outline="none"
-          borderWidth={0}
-          cursor="auto"
-          ref={ref}
-          {...props}
-        />
-      );
-    },
-  ),
-);
+  return (
+    <Input
+      required
+      disabled={!editing}
+      opacity="1"
+      outline="none"
+      borderWidth={0}
+      cursor="auto"
+      {...props}
+    />
+  );
+});
 
 export interface TimelineItemProps extends BoxProps {
   row: number;
   lastCol?: boolean;
 }
 
-export const TimelineItem = React.memo(
-  React.forwardRef<HTMLDivElement, TimelineItemProps>(
-    function TimelineItem(props, ref) {
-      const ctx = useContext(TimelineContext);
-      if (!ctx) return;
+export const TimelineItem = React.memo(function TimelineItem({
+  row,
+  lastCol,
+  children,
+  ...rest
+}: { row: number; lastCol?: boolean } & BoxProps) {
+  const ctx = useContext(TimelineContext);
+  if (!ctx) return;
 
-      const { editing, insertRow, removeRow } = ctx;
-      const { row, lastCol, children, ...rest } = props;
+  const { editing, insertRow, removeRow } = ctx;
 
-      return (
-        <Box
-          px="6"
-          py="4"
-          borderColor="gray.3"
-          borderRightWidth={lastCol ? 0 : 1}
-          borderBottomWidth={1}
-          fontSize="xl"
-          position="relative"
-          ref={ref}
-          {...rest}
-        >
-          {children}
-          {editing && lastCol && (
-            <RowButton kind="plus" onClick={() => insertRow(row + 1)} />
-          )}
-          {editing && lastCol && (
-            <RowButton kind="minus" onClick={() => removeRow(row)} />
-          )}
-        </Box>
-      );
-    },
-  ),
-);
+  return (
+    <Box
+      px="6"
+      py="4"
+      borderColor="gray.3"
+      borderRightWidth={lastCol ? 0 : 1}
+      borderBottomWidth={1}
+      fontSize="xl"
+      position="relative"
+      {...rest}
+    >
+      {children}
+      {editing && lastCol && (
+        <RowButton kind="plus" onClick={() => insertRow(row + 1)} />
+      )}
+      {editing && lastCol && (
+        <RowButton kind="minus" onClick={() => removeRow(row)} />
+      )}
+    </Box>
+  );
+});
 
-export const Timeline = React.memo(
-  React.forwardRef(function Timeline(
-    props: TimelineProps,
-    ref: React.RefAttributes<HTMLDivElement>["ref"],
-  ) {
-    const { cols, editing, insertRow, removeRow, children, ...rest } = props;
+export const Timeline = React.memo(function Timeline({
+  cols,
+  editing,
+  insertRow,
+  removeRow,
+  children,
+  ...rest
+}: TimelineProps) {
+  return (
+    <TimelineContext value={{ cols, editing, insertRow, removeRow }}>
+      <Grid {...rest}>
+        {cols.map((header, i) => (
+          <Box
+            position="relative"
+            px="6"
+            pb="4"
+            key={header}
+            fontWeight="light"
+            color="gray.2"
+            fontSize="smaller"
+            borderColor="gray.3"
+            borderRightWidth={i < cols.length - 1 ? 1 : 0}
+            borderBottomWidth={1}
+            textWrap="nowrap"
+          >
+            {header}
+            {editing && i === cols.length - 1 && (
+              <RowButton kind="plus" onClick={() => insertRow(0)} />
+            )}
+          </Box>
+        ))}
 
-    return (
-      <TimelineContext.Provider value={{ cols, editing, insertRow, removeRow }}>
-        <Grid ref={ref} {...rest}>
-          {cols.map((header, i) => (
-            <Box
-              position="relative"
-              px="6"
-              pb="4"
-              key={header}
-              fontWeight="light"
-              color="gray.2"
-              fontSize="smaller"
-              borderColor="gray.3"
-              borderRightWidth={i < cols.length - 1 ? 1 : 0}
-              borderBottomWidth={1}
-              textWrap="nowrap"
-            >
-              {header}
-              {editing && i === cols.length - 1 && (
-                <RowButton kind="plus" onClick={() => insertRow(0)} />
-              )}
-            </Box>
-          ))}
-
-          {children}
-        </Grid>
-      </TimelineContext.Provider>
-    );
-  }),
-);
+        {children}
+      </Grid>
+    </TimelineContext>
+  );
+});

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { Box, Center, Flex, FlexProps, HStack, Link } from "@chakra-ui/react";
 import { LuCheck } from "react-icons/lu";
@@ -7,38 +7,33 @@ import { DPA_TERMS_URL } from "@/app/const";
 
 import { useAgreeDPA } from "../services";
 
-interface OneshotCheckboxProps extends FlexProps {
-  onCheck: () => void;
-}
+const OneshotCheckbox = ({
+  onCheck,
+  ...rest
+}: { onCheck: () => void } & FlexProps) => {
+  const [checked, setChecked] = useState(false);
 
-const OneshotCheckbox = React.forwardRef<HTMLDivElement, OneshotCheckboxProps>(
-  function OneshotCheckbox(props, ref) {
-    const { onCheck, ...rest } = props;
+  const check = () => {
+    setChecked(true);
+    onCheck();
+  };
 
-    const [checked, setChecked] = useState(false);
-
-    const check = () => {
-      setChecked(true);
-      onCheck();
-    };
-
-    return (
-      <Flex position="relative" ref={ref} {...rest}>
-        <Center
-          w="4"
-          h="4"
-          borderWidth={1}
-          borderRadius="small"
-          borderColor="blue.5"
-          onClick={check}
-          p="1px"
-        >
-          {checked && <LuCheck />}
-        </Center>
-      </Flex>
-    );
-  },
-);
+  return (
+    <Flex position="relative" {...rest}>
+      <Center
+        w="4"
+        h="4"
+        borderWidth={1}
+        borderRadius="small"
+        borderColor="blue.5"
+        onClick={check}
+        p="1px"
+      >
+        {checked && <LuCheck />}
+      </Center>
+    </Flex>
+  );
+};
 
 /** Data Processing Agreement (DPA) Component
  *

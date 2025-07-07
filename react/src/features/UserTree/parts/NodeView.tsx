@@ -1,40 +1,35 @@
-import React from "react";
-
-import { Link } from "react-router-dom";
 import { HStack, Icon, Stack, StackProps, Text } from "@chakra-ui/react";
+import { Link } from "react-router-dom";
 
 import { TreeNode, UnitNode, UserNode } from "@/features/UserTree/types";
 import { LuUser } from "@/shared/icons/LuUser";
 
 import { Tree } from "../types";
 
-interface UserLinkProps extends StackProps {
+const UserLink = ({
+  userId,
+  fullname,
+  ...rest
+}: {
   userId: string;
   fullname: string;
-}
-
-const UserLink = React.forwardRef<HTMLDivElement, UserLinkProps>(
-  function UserLink(props, ref) {
-    const { userId, fullname, ...rest } = props;
-
-    return (
-      <HStack
-        cursor="pointer"
-        asChild
-        _hover={{ textDecoration: "underline" }}
-        ref={ref}
-        {...rest}
-      >
-        <Link to={`/profile/${userId}`}>
-          <Icon>
-            <LuUser />
-          </Icon>
-          <Text color="blue.5">{fullname}</Text>
-        </Link>
-      </HStack>
-    );
-  },
-);
+} & StackProps) => {
+  return (
+    <HStack
+      cursor="pointer"
+      asChild
+      _hover={{ textDecoration: "underline" }}
+      {...rest}
+    >
+      <Link to={`/profile/${userId}`}>
+        <Icon>
+          <LuUser />
+        </Icon>
+        <Text color="blue.5">{fullname}</Text>
+      </Link>
+    </HStack>
+  );
+};
 
 const UserNodeView = ({ user }: { user: UserNode }) => {
   return (
