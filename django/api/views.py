@@ -165,7 +165,7 @@ class PollViewset(viewsets.ModelViewSet):
         return Response(PollSerializer(poll, context={"request": request}).data)
 
     @action(
-        detail=True, methods=["post"], serializer_class=PollSubmissionCreateSerializer
+        detail=True, methods=["post"], serializer_class=PollSubmissionCreateSerializer, permission_classes=(IsAuthenticated,),
     )
     def submit_answers(self, request, pk=None):
         """Принимает ответы пользователя на опрос."""
