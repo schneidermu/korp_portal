@@ -249,7 +249,7 @@ class PollViewset(viewsets.ModelViewSet):
             thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
 
             questions = poll.questions.order_by('order')
-            headers = ["№", "Ф.И.О. участника", "Должность", "Наименование организации"]
+            headers = ["№"]
             question_headers = [q.text for q in questions]
             headers.extend(question_headers)
 
@@ -259,10 +259,10 @@ class PollViewset(viewsets.ModelViewSet):
                 cell.alignment = header_alignment
                 cell.fill = header_fill
                 cell.border = thin_border
+            
+            ws.row_dimensions[1].height = 30
 
-            submissions = poll.submissions.select_related(
-                'user__structural_division__organization'
-            ).prefetch_related(
+            submissions = poll.submissions.prefetch_related(
                 'answers__question',
                 'answers__selected_choices'
             ).order_by('submitted_at')
@@ -270,28 +270,6 @@ class PollViewset(viewsets.ModelViewSet):
             for row_idx, submission in enumerate(submissions, 2):
                 col_idx = 1
                 ws.cell(row=row_idx, column=col_idx, value=row_idx - 1).border = thin_border
-                col_idx += 1
-
-                user = submission.user
-                if user and not poll.is_anonymous:
-                    full_name = str(user)
-                    job_title = user.job_title or ""
-                    org_name = ""
-                    try:
-                        if user.organization:
-                            org_name = user.organization.name
-                    except AttributeError:
-                        org_name = ""
-                else:
-                    full_name = "Анонимный участник"
-                    job_title = ""
-                    org_name = ""
-
-                ws.cell(row=row_idx, column=col_idx, value=full_name).border = thin_border
-                col_idx += 1
-                ws.cell(row=row_idx, column=col_idx, value=job_title).border = thin_border
-                col_idx += 1
-                ws.cell(row=row_idx, column=col_idx, value=org_name).border = thin_border
                 col_idx += 1
 
                 submission_answers = {ans.question_id: ans for ans in submission.answers.all()}
