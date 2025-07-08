@@ -14,7 +14,7 @@ import { useAppDispatch } from "@/app/store.ts";
 import { Checkbox } from "@/shared/comps/Checkbox.tsx";
 
 import { Question } from "../../types.ts";
-import { useAnswerSelector, useIsReadOnly } from "../slice.ts";
+import { useAnswerSelector, useIsReadOnly, usePollSelector } from "../slice.ts";
 import { slice } from "../slice";
 
 export const ChoiceListMultiple = ({ q }: { q: Question }) => {
@@ -95,19 +95,27 @@ export const ChoiceListSingle = ({ q }: { q: Question }) => {
 export const FreeChoice = ({ q }: { q: Question }) => {
   const dispatch = useAppDispatch();
   const readOnly = useIsReadOnly();
+  const n =
+    usePollSelector(
+      (poll) => poll.questions.find(({ id }) => id === q.id)?.choices.length,
+    ) ?? 0;
   const freeChoice = useAnswerSelector(q.id, (q) => q.freeChoice) ?? "";
 
   return (
     <Field.Root required={q.isRequired && q.choices.length === 0}>
       <Input
+        required={q.isRequired}
+        w={q.kind === "email" ? 80 : q.kind !== "text" ? 40 : undefined}
+        type={q.kind}
         outline="none"
         borderWidth={0}
         borderBottomWidth={1}
         borderRadius={0}
         borderColor="gray.1"
         px={0}
-        placeholder="Свой вариант"
+        placeholder={n > 0 ? "Свой вариант" : "Ответ"}
         _placeholder={{ color: "gray.7" }}
+        _disabled={{ opacity: 1 }}
         disabled={readOnly}
         value={freeChoice}
         onChange={({ target }) =>

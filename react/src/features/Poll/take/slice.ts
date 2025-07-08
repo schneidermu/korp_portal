@@ -74,11 +74,27 @@ export const slice = createSlice({
     submitted() {
       return { mode: "submitted" };
     },
-    taken(state) {
+    taken(
+      state,
+      action: PayloadAction<{
+        email: string;
+        phone: string;
+        organization: string;
+        fullname: string;
+        position: string;
+      }>,
+    ) {
       if (state.mode !== "opened") return;
       const poll = state.poll;
       const answers = Object.fromEntries(
-        poll.questions.map((q) => [q.id, { choices: [], freeChoice: "" }]),
+        poll.questions.map((q) => [
+          q.id,
+          {
+            choices: [],
+            freeChoice:
+              q.initialValue === null ? "" : action.payload[q.initialValue],
+          },
+        ]),
       );
       return {
         mode: "take",

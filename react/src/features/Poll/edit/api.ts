@@ -42,6 +42,7 @@ export const savePoll = async ({
     description: poll.description,
     poll_group: poll.groupId,
     status: "draft",
+    kind: "plain",
     organization: orgId !== null ? [orgId] : [],
     is_public: poll.isPublic,
     is_anonymous: poll.isAnonymous,

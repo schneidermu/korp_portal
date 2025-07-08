@@ -8,7 +8,8 @@ import { Answers, Poll } from "../types";
 
 export interface RawAnswer {
   question_id: number;
-  custom_choice_text: string;
+  custom_choice_text: string | null;
+  free_text_answer: string | null;
   selected_choices: { id: number }[];
 }
 
@@ -33,7 +34,7 @@ export interface UserAnswers {
 export const toUserAnswers = (raw: RawUserAnswers): UserAnswers => {
   const answers = raw.answers.map((answer) => ({
     qid: answer.question_id,
-    freeChoice: answer.custom_choice_text,
+    freeChoice: (answer.custom_choice_text || answer.free_text_answer) ?? "",
     choices: answer.selected_choices.map(({ id }) => id),
   }));
 
@@ -55,11 +56,26 @@ export const submitPoll = async ({
 }) => {
   const payload = {
     poll: poll.id,
-    answers: Object.entries(answers).map(([questionId, ans]) => ({
-      question_id: questionId,
-      selected_choice_ids: ans.choices,
-      custom_choice_text: ans.freeChoice,
-    })),
+    answers: Object.entries(answers).map(([questionId, ans]) => {
+      const q = poll.questions.find((q) => q.id.toString() === questionId);
+
+      const a: {
+        question_id: number;
+        selected_choice_ids: number[];
+        custom_choice_text?: string;
+        free_text_answer?: string;
+      } = {
+        question_id: Number(questionId),
+        selected_choice_ids: ans.choices,
+      };
+
+      if (ans.freeChoice) {
+        if (q?.kind === "text") a.custom_choice_text = ans.freeChoice;
+        else a.free_text_answer = ans.freeChoice;
+      }
+
+      return a;
+    }),
   };
 
   const res = await tokenFetch(token, `/polls/${poll.id}/submit_answers/`, {

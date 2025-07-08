@@ -4,7 +4,17 @@ export type PollStatus = "draft" | "published" | "completed";
 
 /* Raw (API) types */
 
-type QuestionTypeRaw = "single" | "multiple" | "text";
+type QuestionTypeRaw =
+  | "single"
+  | "multiple"
+  | "text"
+  | "date"
+  | "telephone"
+  | "mail";
+
+type QuestionKind = "date" | "phone" | "email" | "text";
+
+type InitialValue = "fullname" | "position" | "phone" | "email";
 
 export interface PollRaw {
   id: number;
@@ -12,6 +22,7 @@ export interface PollRaw {
   description: string;
   author: string; // email
   poll_group: number | null;
+  kind: "plain" | "form";
   status: PollStatus;
   organization: number[]; // set
   is_public: boolean;
@@ -28,6 +39,7 @@ interface QuestionRaw {
   id: number;
   text: string;
   question_type: QuestionTypeRaw;
+  initial_value: InitialValue | "None";
   order: number;
   is_required: boolean;
   min_choices?: number;
@@ -85,6 +97,7 @@ export interface Poll {
   author: string; // email
   status: PollStatus;
   groupId?: number;
+  kind: "plain" | "form";
   publishedAt?: string;
   isPublic: boolean;
   isAnonymous: boolean;
@@ -96,6 +109,8 @@ export interface Poll {
 export interface Question {
   id: number;
   text: string;
+  kind: QuestionKind;
+  initialValue: InitialValue | null;
   isMultipleChoice: boolean;
   isRequired: boolean;
   minChoices?: number;
@@ -120,12 +135,15 @@ export interface DependencyRule {
 
 export type NewPoll = Omit<
   Poll,
-  "id" | "author" | "questions" | "takenCount"
+  "id" | "author" | "questions" | "takenCount" | "kind"
 > & {
   questions: { [key: number]: NewQuestion };
 };
 
-export type NewQuestion = Omit<Question, "id" | "choices"> & {
+export type NewQuestion = Omit<
+  Question,
+  "id" | "choices" | "initialValue" | "kind"
+> & {
   specifyMinMax?: boolean;
   choices: { [key: number]: string };
   cids: number[];
@@ -151,6 +169,7 @@ export const toPoll = (p: PollRaw): Poll => ({
   description: p.description,
   status: p.status,
   groupId: p.poll_group ?? undefined,
+  kind: p.kind,
   publishedAt: p.pub_date,
   isPublic: p.is_public,
   isAnonymous: p.is_anonymous,
@@ -164,12 +183,20 @@ export const toPoll = (p: PollRaw): Poll => ({
 export const toQuestion = (q: QuestionRaw): Question => ({
   id: q.id,
   text: q.text,
+  kind:
+    q.question_type === "date"
+      ? "date"
+      : q.question_type === "mail"
+        ? "email"
+        : q.question_type === "telephone"
+          ? "phone"
+          : "text",
+  initialValue: q.initial_value === "None" ? null : q.initial_value,
   isMultipleChoice: q.question_type === "multiple",
   isRequired: q.is_required,
   minChoices: q.min_choices,
   maxChoices: q.max_choices,
   acceptFreeChoice: q.allow_custom_answer,
-  freeChoice: "",
   dependencyRule: toDependencyRule(q.dependency_rule),
   choices: q.choices
     .sort(({ order: x }, { order: y }) => x - y)

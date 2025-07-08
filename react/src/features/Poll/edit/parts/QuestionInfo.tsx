@@ -14,7 +14,7 @@ import {
   Wrap,
 } from "@chakra-ui/react";
 import { useFormStatus } from "react-dom";
-import { LuShuffle, LuTrash2 } from "react-icons/lu";
+import { LuTrash2 } from "react-icons/lu";
 import {
   actions,
   useIsReadOnly,
@@ -197,7 +197,7 @@ const QuestionControls = ({ qid }: { qid: number }) => {
   const dispatch = useAppDispatch();
   const numQuestions =
     useSliceSelector((state) => state.mode && state.qids.length) ?? 0;
-  const dependencyRule = useQuestionSelector(qid, (q) => q?.dependencyRule);
+  // const dependencyRule = useQuestionSelector(qid, (q) => q?.dependencyRule);
   const { pending } = useFormStatus();
   const readOnly = useIsReadOnly();
 
@@ -218,26 +218,26 @@ const QuestionControls = ({ qid }: { qid: number }) => {
           Удалить вопрос
         </Button>
       </Show>
-      <Button
-        variant="ghost"
-        px={2}
-        disabled={pending}
-        onClick={() => {
-          if (dependencyRule) {
-            dispatch(
-              actions.questionUpdated({
-                qid,
-                update: { dependencyRule: { id: 0, questionId: 0 } },
-              }),
-            );
-          }
-        }}
-      >
-        <Icon>
-          <LuShuffle />
-        </Icon>
-        {dependencyRule ? "Удалить связь" : "Добавить связь"}
-      </Button>
+      {/* <Button */}
+      {/*   variant="ghost" */}
+      {/*   px={2} */}
+      {/*   disabled={pending} */}
+      {/*   onClick={() => { */}
+      {/*     if (dependencyRule) { */}
+      {/*       dispatch( */}
+      {/*         actions.questionUpdated({ */}
+      {/*           qid, */}
+      {/*           update: { dependencyRule: { id: 0, questionId: 0 } }, */}
+      {/*         }), */}
+      {/*       ); */}
+      {/*     } */}
+      {/*   }} */}
+      {/* > */}
+      {/*   <Icon> */}
+      {/*     <LuShuffle /> */}
+      {/*   </Icon> */}
+      {/*   {dependencyRule ? "Удалить связь" : "Добавить связь"} */}
+      {/* </Button> */}
     </HStack>
   );
 };

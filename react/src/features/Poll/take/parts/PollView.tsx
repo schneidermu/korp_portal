@@ -1,5 +1,7 @@
 import { ReactNode, useEffect } from "react";
 
+import { Option as O } from "effect";
+
 import { useNavigate } from "react-router-dom";
 
 import { Grid, Heading, Show, Stack, Text } from "@chakra-ui/react";
@@ -21,9 +23,12 @@ import { submitPoll, useSliceSelector } from "../slice.ts";
 
 import { slice } from "../slice";
 
-import { QuestionView } from "./QuestionView.tsx";
-import { mutate } from "swr";
 import { useFormStatus } from "react-dom";
+import { mutate } from "swr";
+import { QuestionView } from "./QuestionView.tsx";
+import { Poll } from "../../types.ts";
+import { useFetchUser } from "@/features/user/services.ts";
+import { fullNameLong } from "@/shared/utils/index.ts";
 
 export const PollView = ({
   action,
@@ -44,6 +49,7 @@ export const PollView = ({
   );
   const mode = useSliceSelector((state) => state.mode);
   const auth = useAuth();
+  const { user } = useFetchUser(O.some(auth.userId));
 
   userId ??= auth.userId;
 
@@ -57,7 +63,7 @@ export const PollView = ({
         dispatch(slice.actions.opened(poll));
       }
     } else if (action === "view") {
-      if (!answers.submittedAt) {
+      if (!answers.submittedAt && userId === auth.userId && !embed) {
         navigate(`/polls/take/${poll.id}`, { replace: true });
       }
       if (!answers.submittedAt || mode === "view") return;
@@ -69,9 +75,19 @@ export const PollView = ({
         }),
       );
     }
-  }, [dispatch, navigate, mode, poll, answers, action, userId]);
+  }, [
+    dispatch,
+    navigate,
+    mode,
+    poll,
+    answers,
+    action,
+    userId,
+    embed,
+    auth.userId,
+  ]);
 
-  if (!poll || !answers || !mode) return;
+  if (!poll || !answers || !mode || !user) return;
 
   if (error) {
     console.error(error);
@@ -84,19 +100,41 @@ export const PollView = ({
   }
 
   if (mode === "opened") {
+    const initial = {
+      email: user.email,
+      phone: user.phoneNumber,
+      organization: O.getOrNull(user.organization)?.name ?? "",
+      fullname: fullNameLong(user),
+      position: user.position,
+    };
+
     return (
       <PollPreview
+        kind={poll.kind}
         title={poll.name}
         desc={poll.description}
         icon={<PollOpenedIcon />}
-        btnText="Начать опрос"
-        onClick={() => dispatch(slice.actions.taken())}
+        btnText={poll.kind === "plain" ? "Начать опрос" : "Заполнить форму"}
+        onClick={() => dispatch(slice.actions.taken(initial))}
       />
     );
   }
 
   if (mode === "submitted") {
-    return <PollPreviewSubmitted pollId={poll.id} />;
+    return (
+      <PollPreviewSubmitted
+        kind={poll.kind}
+        title={
+          poll.kind === "plain" ? "Вы завершили опрос!" : "Вы заполнили форму"
+        }
+        desc={
+          poll.kind === "plain"
+            ? "Благодарим за выделенное время и обратную связь."
+            : "Благодарим за выделенное время"
+        }
+        pollId={poll.id}
+      />
+    );
   }
 
   return (
@@ -107,11 +145,17 @@ export const PollView = ({
       }}
     >
       {embed ? undefined : action === "view" ? (
-        <PageHeading title="Просмотр опроса" />
+        <PageHeading
+          title={poll.kind === "plain" ? "Просмотр опроса" : "Просмотр формы"}
+        />
       ) : (
         action === "take" && (
-          <PageHeading title="Прохождение опроса">
-            <SubmitButton />
+          <PageHeading
+            title={
+              poll.kind === "plain" ? "Прохождение опроса" : "Заполнение формы"
+            }
+          >
+            <SubmitButton poll={poll} />
           </PageHeading>
         )
       )}
@@ -132,17 +176,18 @@ export const PollView = ({
   );
 };
 
-const SubmitButton = () => {
+const SubmitButton = ({ poll }: { poll: Poll }) => {
   const { pending } = useFormStatus();
 
   return (
     <Button type="submit" variant="solid" disabled={pending}>
-      Завершить опрос
+      {poll.kind === "plain" ? "Завершить опрос" : "Отправить форму"}
     </Button>
   );
 };
 
 const PollPreview = ({
+  kind,
   title,
   desc,
   btnText,
@@ -150,6 +195,7 @@ const PollPreview = ({
   onClick,
   icon,
 }: {
+  kind: Poll["kind"];
   title: string;
   desc: string;
   btnText: string;
@@ -159,7 +205,9 @@ const PollPreview = ({
 }) => {
   return (
     <>
-      <PageHeading title="Прохождение опроса" />
+      <PageHeading
+        title={kind === "plain" ? "Прохождение опроса" : "Заполнение формы"}
+      />
       <Grid
         h="full"
         templateColumns="1fr 3fr 1fr 2fr"
@@ -187,14 +235,25 @@ const PollPreview = ({
   );
 };
 
-const PollPreviewSubmitted = ({ pollId }: { pollId: number }) => {
+const PollPreviewSubmitted = ({
+  kind,
+  title,
+  desc,
+  pollId,
+}: {
+  kind: Poll["kind"];
+  title: string;
+  desc: string;
+  pollId: number;
+}) => {
   const navigate = useNavigate();
   const { pending } = useFormStatus();
 
   return (
     <PollPreview
-      title="Вы завершили опрос!"
-      desc="Благодарим за выделенное время и обратную связь."
+      kind={kind}
+      title={title}
+      desc={desc}
       icon={<PollSubmittedIcon />}
       btnText="Посмотреть свои ответы"
       disabled={pending}

@@ -55,8 +55,12 @@ export const validateQuestion = (
   freeChoice: string,
 ): string => {
   if (!q.isMultipleChoice) {
-    if (freeChoice.length === 0 && choices.length === 0) {
-      return "Не выбран ни один вариант ответа";
+    if (freeChoice.length === 0 && choices.length === 0 && q.isRequired) {
+      if (q.choices.length === 0) {
+        return "Не вписан ответ";
+      } else {
+        return "Не выбран ни один вариант ответа";
+      }
     }
     return "";
   }

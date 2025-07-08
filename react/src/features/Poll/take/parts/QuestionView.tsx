@@ -1,4 +1,4 @@
-import { Box, Heading, HStack, Show, Stack } from "@chakra-ui/react";
+import { Box, Heading, Text, HStack, Show, Stack } from "@chakra-ui/react";
 
 import { Question } from "../../types.ts";
 import { useIsShown } from "../slice.ts";
@@ -28,6 +28,11 @@ export const QuestionView = ({ q, num }: { q: Question; num: number }) => {
         <Box>
           <Heading as="h3" fontSize="larger">
             {num}. {q.text}
+            <Show when={q.isRequired}>
+              <Text as="span" color="red">
+                {" *"}
+              </Text>
+            </Show>
           </Heading>
           <ChoiceCountNotice q={q} />
         </Box>

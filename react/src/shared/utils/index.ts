@@ -195,3 +195,12 @@ export const normPercents = (xs: number[], n: number = 0) => {
   }
   return xs;
 };
+
+export const downloadResponse = async (res: Response, name: string) => {
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+};

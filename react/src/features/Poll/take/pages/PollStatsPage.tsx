@@ -16,6 +16,7 @@ import {
   HStack,
   IconButton,
   Input,
+  Show,
   Stack,
   StackProps,
   Text,
@@ -48,7 +49,11 @@ export default function PollStatsPage() {
 
   return (
     <Page>
-      <PageHeading title="Результаты опроса" />
+      <PageHeading
+        title={
+          poll.kind === "plain" ? "Результаты опроса" : "Заполнение заявки"
+        }
+      />
       <Stack gap={10}>
         <Stack gap={3}>
           <Box>
@@ -57,20 +62,22 @@ export default function PollStatsPage() {
             </Heading>
             <Text>{poll.description}</Text>
           </Box>
-          <Center pt={7} bg="gray.9">
-            <Tabs
-              tabs={tabs}
-              lazyMount
-              unmountOnExit
-              value={tab}
-              onValueChange={(e) => setTab(e.value)}
-            />
-          </Center>
+          <Show when={poll.kind === "plain"}>
+            <Center pt={7} bg="gray.9">
+              <Tabs
+                tabs={tabs}
+                lazyMount
+                unmountOnExit
+                value={tab}
+                onValueChange={(e) => setTab(e.value)}
+              />
+            </Center>
+          </Show>
         </Stack>
-        {tab === "total" ? (
-          <TotalTab poll={poll} />
-        ) : tab === "users" ? (
+        {tab === "users" || poll.kind === "form" ? (
           <UsersTab poll={poll} />
+        ) : tab === "total" ? (
+          <TotalTab poll={poll} />
         ) : undefined}
       </Stack>
     </Page>
@@ -81,6 +88,10 @@ const TotalTab = ({ poll }: { poll: Poll }) => {
   const { data: stats } = useFetchStats(poll.id);
 
   if (!stats) return;
+
+  if (stats.submissionsCount === 0) {
+    return "Пока нет результатов";
+  }
 
   return (
     <Grid templateColumns="1fr 1fr">
@@ -174,6 +185,10 @@ const UsersTab = ({ poll, ...rest }: { poll: Poll } & StackProps) => {
   const [page, setPage] = useState(0);
 
   if (!uids) return;
+
+  if (uids.length === 0) {
+    return "Пока нет результатов";
+  }
 
   const uid = uids[page];
 
