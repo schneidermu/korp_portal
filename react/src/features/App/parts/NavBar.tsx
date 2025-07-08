@@ -20,6 +20,7 @@ export const NavBar = (props: StackProps) => {
       link: orgId !== null ? `/tree/${orgId}` : "/tree",
     },
     { name: "Опросы", link: "/polls/dashboard" },
+    { name: "Заявки", link: "/forms/dashboard" },
     { name: "Облако", link: "/nextcloud" },
     {
       name: "Облако (полный экран)",

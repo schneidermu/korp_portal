@@ -1,7 +1,7 @@
 import { ReactNode, useState } from "react";
 
 import { Option as O } from "effect";
-import { Link as RRLink, useNavigate } from "react-router-dom";
+import { useNavigate, Link as RRLink } from "react-router-dom";
 
 import {
   Box,
@@ -25,6 +25,7 @@ import {
   LuChevronRight,
   LuClipboardCheck,
   LuCloudDownload,
+  LuFilter,
   LuFingerprint,
   LuLink,
   LuSquarePen,
@@ -36,14 +37,9 @@ import { useTokenFetcher } from "@/features/auth/hooks";
 import { useAuth } from "@/features/auth/slice";
 import { useFetchUser } from "@/features/user/services";
 import { Dialog } from "@/shared/comps/Dialog";
-import {
-  downloadResponse,
-  formatDateNumeric,
-  fullNameShort,
-} from "@/shared/utils";
+import { formatDateNumeric, fullNameShort } from "@/shared/utils";
 import { removePoll, useFetchGroups } from "../../api";
 import { Poll } from "../../types";
-import { useTab } from "../slice";
 
 export const PollsTable = ({
   polls,
@@ -114,12 +110,12 @@ export const Pages = (props: Pagination.RootProps) => {
 export const TableHeader = () => {
   return (
     <>
-      <Column ml={7}>Статус</Column>
-      <Column>Наименование опроса</Column>
-      <Column>Группа опроса</Column>
-      <Column>Автор опроса</Column>
+      <FilterColumn ml={7}>Статус</FilterColumn>
+      <FilterColumn>Название</FilterColumn>
+      <FilterColumn>Группа опроса</FilterColumn>
+      <FilterColumn>Автор опроса</FilterColumn>
       <Column>Статистика</Column>
-      <Column>Дата публикации</Column>
+      <FilterColumn>Дата публикации</FilterColumn>
     </>
   );
 };
@@ -128,29 +124,25 @@ const Column = (props: BoxProps) => {
   return <Box pl={2} pr={4} color="gray.10" gap="2" {...props}></Box>;
 };
 
-// const FilterColumn = ({ children, ...rest }: BoxProps) => {
-//   return (
-//     <Column asChild {...rest}>
-//       <HStack>
-//         <Icon>
-//           <LuFilter />
-//         </Icon>
-//         {children}
-//       </HStack>
-//     </Column>
-//   );
-// };
+const FilterColumn = ({ children, ...rest }: BoxProps) => {
+  return (
+    <Column asChild {...rest}>
+      <HStack>
+        <Icon>
+          <LuFilter />
+        </Icon>
+        {children}
+      </HStack>
+    </Column>
+  );
+};
 
 const PollRow = ({ poll, ...rest }: { poll: Poll } & GridProps) => {
-  const tab = useTab();
   const { user } = useFetchUser(O.some(poll.author));
-
-  const link =
-    tab === "own" ? `/polls/edit/${poll.id}` : `/polls/take/${poll.id}`;
 
   const cells: ReactNode[] = [
     <PollStatus status={poll.status} />,
-    <RRLink to={link}>{poll.name}</RRLink>,
+    <RRLink to={`/polls/edit/${poll.id}`}>{poll.name}</RRLink>,
     poll.groupId === undefined ? undefined : (
       <GroupName groupId={poll.groupId} />
     ),
@@ -250,7 +242,12 @@ const PollRowControls = ({ poll, ...rest }: { poll: Poll } & StackProps) => {
       icon: LuCloudDownload,
       onClick: async () => {
         const res = await tokenFetch(`/polls/${poll.id}/export/`);
-        downloadResponse(res, `Отчет по опросу ${poll.name}.xlsx`);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `Отчет по опросу ${poll.name}.xlsx`;
+        link.click();
       },
     },
   ];

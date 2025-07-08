@@ -42,6 +42,9 @@ const PollsDashboardPage = React.lazy(
 const PollStatsPage = React.lazy(
   async () => import("@/features/Poll/take/pages/PollStatsPage"),
 );
+const FormDashboardPage = React.lazy(
+  async () => import("@/features/Poll/form/FormDashboardPage"),
+);
 
 export const App = () => {
   return (
@@ -53,13 +56,19 @@ export const App = () => {
             <Route path="/tree/:orgId?" element={<UserTreePage />} />
             <Route path="/" element={<ProfilePage />} />
             <Route path="/profile/:userId?" element={<ProfilePage />} />
+            <Route path="forms">
+              <Route path="dashboard" element={<FormDashboardPage />} />
+              <Route path="fill/:pollId" element={<TakePollPage />} />
+            </Route>
             <Route path="polls">
-              <Route path="take/:pollId" element={<TakePollPage />} />
-              <Route path="edit/:pollId" element={<EditPollPage />} />
-              <Route path="view/:pollId" element={<ViewPollPage />} />
-              <Route path="stats/:pollId" element={<PollStatsPage />} />
-              <Route path="create" element={<CreatePollPage />} />
               <Route path="dashboard" element={<PollsDashboardPage />} />
+              <Route path="take/:pollId" element={<TakePollPage />} />
+              <Route path="view/:pollId" element={<ViewPollPage />} />
+              <Route element={<ProtectedPage groups={["create-poll"]} />}>
+                <Route path="stats/:pollId" element={<PollStatsPage />} />
+                <Route path="edit/:pollId" element={<EditPollPage />} />
+                <Route path="create" element={<CreatePollPage />} />
+              </Route>
             </Route>
             <Route path="/list/:orgId?" element={<UserList />} />
             <Route path="/feed" element={<FeedPage />} />

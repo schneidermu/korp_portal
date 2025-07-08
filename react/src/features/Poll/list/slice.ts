@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { useAppSelector } from "@/app/store";
+import { useAuth } from "@/features/auth/slice";
 
 export type State = {
   tab: "own" | "available";
@@ -25,6 +26,15 @@ export const slice = createSlice({
 
 export const useSliceSelector = <T>(select: (state: State) => T): T =>
   useAppSelector((state) => select(state[NAME]));
+
+export const useTab = (): State["tab"] => {
+  const { groups } = useAuth();
+  const tab = useSliceSelector(({ tab }) => tab);
+  if (!groups.includes("create-poll")) {
+    return "available";
+  }
+  return tab;
+};
 
 export default slice;
 

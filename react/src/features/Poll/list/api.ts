@@ -6,11 +6,10 @@ import { APIError } from "@/shared/utils/error.ts";
 import { Poll, toPoll } from "../types.ts";
 import { RawUserAnswers } from "../take/api.ts";
 
-export const useFetchPolls = () => {
+export const useFetchPolls = (kind = "plain") => {
   const fetcher = useTokenFetcher();
 
-  return useSWR<Poll[]>("/polls/", (key: string) =>
-  return useSWR<Poll[]>(`/polls/?${kind}`, (key: string) =>
+  return useSWR<Poll[]>(`/polls/?kind=${kind}`, (key: string) =>
     fetcher(key)
       .then((res) => {
         if (res.status !== 200) {
