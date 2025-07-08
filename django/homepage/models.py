@@ -199,6 +199,14 @@ class Question(models.Model):
         TELEPHONE = "telephone", "Номер телефона"
         MAIL = "mail", "Почта"
 
+    class InitialValueType(models.TextChoices):
+        NULL = None, "null"
+        FULLNAME = "fullname", "Несколько вариантов ответа"
+        POSITION = "position", "Свободный текстовый ответ"
+        ORGANIZATION = "organization", "Дата"
+        PHONE = "phone", "Номер телефона"
+        EMAIL = "email", "Почта"
+
     poll = models.ForeignKey(
         Poll, on_delete=models.CASCADE, related_name="questions", verbose_name="Опрос"
     )
@@ -208,6 +216,12 @@ class Question(models.Model):
         choices=QuestionType.choices,
         default=QuestionType.SINGLE_CHOICE,
         verbose_name="Тип вопроса",
+    )
+    initial_value = models.CharField(
+        max_length=15,
+        choices=InitialValueType.choices,
+        default=InitialValueType.NULL,
+        verbose_name="Предзаполнение",
     )
     order = models.PositiveIntegerField(default=0, verbose_name="Порядок вопроса")
     is_required = models.BooleanField(default=True, verbose_name="Обязательный вопрос")

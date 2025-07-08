@@ -168,6 +168,7 @@ class QuestionInline(admin.StackedInline):
         "text",
         "question_type",
         "order",
+        "initial_value",
         "is_required",
         "min_choices",
         "max_choices",
