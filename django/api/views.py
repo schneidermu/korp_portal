@@ -135,7 +135,7 @@ class PollViewset(viewsets.ModelViewSet):
         if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
             choice_texts = [c.choice_text for c in answer.selected_choices.all()]
             if question.allow_custom_answer and answer.custom_choice_text:
-                choice_texts.append(f"Свой вариант: {answer.custom_choice_text}")
+                choice_texts.append(answer.custom_choice_text)
             return ", ".join(choice_texts)
 
         return answer.free_text_answer or ""
