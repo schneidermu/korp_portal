@@ -201,8 +201,8 @@ class Question(models.Model):
 
     class InitialValueType(models.TextChoices):
         NULL = None, "null"
-        FULLNAME = "fullname", "Несколько вариантов ответа"
-        POSITION = "position", "Свободный текстовый ответ"
+        FULLNAME = "fullname", "ФИО"
+        POSITION = "position", "Должность"
         ORGANIZATION = "organization", "Дата"
         PHONE = "phone", "Номер телефона"
         EMAIL = "email", "Почта"
