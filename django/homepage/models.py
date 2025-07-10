@@ -200,7 +200,6 @@ class Question(models.Model):
         MAIL = "mail", "Почта"
 
     class InitialValueType(models.TextChoices):
-        NULL = None, "null"
         FULLNAME = "fullname", "ФИО"
         POSITION = "position", "Должность"
         ORGANIZATION = "organization", "Организация"
@@ -220,7 +219,9 @@ class Question(models.Model):
     initial_value = models.CharField(
         max_length=15,
         choices=InitialValueType.choices,
-        default=InitialValueType.NULL,
+        blank=True,
+        null=True,
+        default=None,
         verbose_name="Предзаполнение",
     )
     order = models.PositiveIntegerField(default=0, verbose_name="Порядок вопроса")
