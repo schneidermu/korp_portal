@@ -203,7 +203,7 @@ class Question(models.Model):
         NULL = None, "null"
         FULLNAME = "fullname", "ФИО"
         POSITION = "position", "Должность"
-        ORGANIZATION = "organization", "Дата"
+        ORGANIZATION = "organization", "Организация"
         PHONE = "phone", "Номер телефона"
         EMAIL = "email", "Почта"
 
