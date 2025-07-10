@@ -240,6 +240,16 @@ class AbstractWithPhotoNameModel(models.Model):
 class Rating(models.Model):
     """Модель рейтинга."""
 
+    text = models.TextField(
+        verbose_name="Комментарий",
+        help_text="Текст, поясняющий оценку (необязательно)",
+        blank=True,
+        null=True
+    )
+    date = models.DateTimeField(
+        verbose_name="Дата оценки",
+        auto_now_add=True
+    )
     rate = models.PositiveSmallIntegerField(
         choices=((1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")),
     )

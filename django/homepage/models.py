@@ -99,6 +99,10 @@ class Poll(Published):
         PUBLISHED = "published", "Опубликован"
         COMPLETED = "completed", "Завершен"
 
+    class KindChoices(models.TextChoices):
+        PLAIN = "plain", "Опрос"
+        FORM = "form", "Форма"
+
     name = models.CharField(
         max_length=CHARFIELD_LENGTH, verbose_name="Наименование опроса", null=True
     )
@@ -118,6 +122,12 @@ class Poll(Published):
         blank=True,
         verbose_name="Группа опроса",
         related_name="polls",
+    )
+    kind = models.CharField(
+        max_length=10,
+        choices=KindChoices.choices,
+        default=KindChoices.PLAIN,
+        verbose_name="Тип опроса",
     )
     status = models.CharField(
         max_length=10,
@@ -185,6 +195,16 @@ class Question(models.Model):
         SINGLE_CHOICE = "single", "Один вариант ответа"
         MULTIPLE_CHOICE = "multiple", "Несколько вариантов ответа"
         FREE_TEXT = "text", "Свободный текстовый ответ"
+        DATE = "date", "Дата"
+        TELEPHONE = "telephone", "Номер телефона"
+        MAIL = "mail", "Почта"
+
+    class InitialValueType(models.TextChoices):
+        FULLNAME = "fullname", "ФИО"
+        POSITION = "position", "Должность"
+        ORGANIZATION = "organization", "Организация"
+        PHONE = "phone", "Номер телефона"
+        EMAIL = "email", "Почта"
 
     poll = models.ForeignKey(
         Poll, on_delete=models.CASCADE, related_name="questions", verbose_name="Опрос"
@@ -195,6 +215,14 @@ class Question(models.Model):
         choices=QuestionType.choices,
         default=QuestionType.SINGLE_CHOICE,
         verbose_name="Тип вопроса",
+    )
+    initial_value = models.CharField(
+        max_length=15,
+        choices=InitialValueType.choices,
+        blank=True,
+        null=True,
+        default=None,
+        verbose_name="Предзаполнение",
     )
     order = models.PositiveIntegerField(default=0, verbose_name="Порядок вопроса")
     is_required = models.BooleanField(default=True, verbose_name="Обязательный вопрос")
@@ -354,3 +382,156 @@ class Answer(models.Model):
     class Meta:
         verbose_name = "Ответ на вопрос"
         verbose_name_plural = "Ответы на вопросы"
+
+
+class Video(Published):
+    """Модель для обучающего видео."""
+
+    name = models.CharField(max_length=CHARFIELD_LENGTH, verbose_name="Название видео")
+    description = models.TextField(verbose_name="Описание", blank=True)
+    author = models.ForeignKey(
+        Employee,
+        verbose_name="Автор",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="authored_videos",
+    )
+    media = models.FileField(
+        verbose_name="Видеофайл",
+        upload_to="educational_videos/",
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["MOV", "avi", "mp4", "webm", "mkv"]
+            )
+        ],
+    )
+    pub_date = models.DateTimeField(verbose_name="Дата публикации")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Видео"
+        verbose_name_plural = "Видео"
+        ordering = ["-pub_date"]
+
+
+class Course(Published):
+    """Модель для обучающего курса, состоящего из видео."""
+
+    name = models.CharField(max_length=CHARFIELD_LENGTH, verbose_name="Название курса")
+    description = models.TextField(verbose_name="Описание", blank=True)
+    author = models.ForeignKey(
+        Employee,
+        verbose_name="Автор",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="authored_courses",
+    )
+    videos = models.ManyToManyField(
+        Video,
+        through="CourseVideo",
+        verbose_name="Видео в курсе",
+        related_name="courses",
+    )
+    pub_date = models.DateTimeField(verbose_name="Дата публикации")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Курс"
+        verbose_name_plural = "Курсы"
+        ordering = ["-pub_date"]
+
+
+class CourseVideo(models.Model):
+    """Промежуточная модель для связи Курса и Видео с указанием порядка."""
+
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, verbose_name="Видео")
+    order = models.PositiveIntegerField(
+        default=0, verbose_name="Порядок в курсе"
+    )
+
+    class Meta:
+        verbose_name = "Видео в курсе"
+        verbose_name_plural = "Видео в курсах"
+        ordering = ["order"]
+        unique_together = ("course", "video")
+
+
+class Comment(models.Model):
+    """Модель для комментария к видео."""
+
+    video = models.ForeignKey(
+        Video,
+        on_delete=models.CASCADE,
+        related_name="comments",
+        verbose_name="Видео",
+    )
+    user = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="video_comments",
+        verbose_name="Пользователь",
+    )
+    text = models.TextField(verbose_name="Текст комментария")
+    pub_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата публикации")
+
+    def __str__(self):
+        return f"Комментарий от {self.user} к видео '{self.video.name}'"
+
+    class Meta:
+        verbose_name = "Комментарий к видео"
+        verbose_name_plural = "Комментарии к видео"
+        ordering = ["-pub_date"]
+
+
+class VideoView(models.Model):
+    """Модель для отслеживания просмотров видео."""
+
+    video = models.ForeignKey(
+        Video, on_delete=models.CASCADE, related_name="views", verbose_name="Видео"
+    )
+    user = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="video_views",
+        verbose_name="Пользователь",
+    )
+    viewed_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Дата и время просмотра"
+    )
+
+    def __str__(self):
+        return f"Просмотр видео '{self.video.name}' пользователем {self.user}"
+
+    class Meta:
+        verbose_name = "Просмотр видео"
+        verbose_name_plural = "Просмотры видео"
+        ordering = ["-viewed_at"]
+
+
+class Like(models.Model):
+    """Модель для отслеживания лайков к видео."""
+
+    video = models.ForeignKey(
+        Video, on_delete=models.CASCADE, related_name="likes", verbose_name="Видео"
+    )
+    user = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="video_likes",
+        verbose_name="Пользователь",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата лайка")
+
+    def __str__(self):
+        return f"Лайк от {self.user} к видео '{self.video.name}'"
+
+    class Meta:
+        verbose_name = "Лайк"
+        verbose_name_plural = "Лайки"
+        ordering = ["-created_at"]
+        unique_together = ("video", "user")

@@ -10,6 +10,12 @@ from .models import (
     PollSubmission,
     Question,
     QuestionDependency,
+    Course,
+    CourseVideo,
+    Video,
+    Comment,
+    VideoView,
+    Like,
 )
 
 
@@ -162,6 +168,7 @@ class QuestionInline(admin.StackedInline):
         "text",
         "question_type",
         "order",
+        "initial_value",
         "is_required",
         "min_choices",
         "max_choices",
@@ -179,6 +186,7 @@ class PollAdmin(admin.ModelAdmin):
         "name",
         "author_display",
         "status",
+        "kind",
         "poll_group",
         "is_public",
         "pub_date",
@@ -189,6 +197,7 @@ class PollAdmin(admin.ModelAdmin):
         "status",
         "is_public",
         "is_anonymous",
+        "kind",
         "author",
         "poll_group",
         "organization",
@@ -208,6 +217,7 @@ class PollAdmin(admin.ModelAdmin):
                     "author_display_form",
                     "poll_group",
                     "status",
+                    "kind",
                 )
             },
         ),
@@ -306,6 +316,89 @@ class PollSubmissionAdmin(admin.ModelAdmin):
 
     user_display.short_description = "Пользователь"
     user_display.admin_order_field = "user"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Video)
+class VideoAdmin(admin.ModelAdmin):
+    """Admin interface for Video model."""
+
+    list_display = ("name", "author", "pub_date", "is_published")
+    list_filter = ("is_published", "author", "pub_date")
+    search_fields = ("name", "description", "author__username")
+    autocomplete_fields = ("author",)
+
+
+class CourseVideoInline(admin.TabularInline):
+    """Inline for managing videos within a course."""
+
+    model = CourseVideo
+    extra = 1
+    autocomplete_fields = ("video",)
+    ordering = ("order",)
+
+
+@admin.register(Course)
+class CourseAdmin(admin.ModelAdmin):
+    """Admin interface for Course model."""
+
+    list_display = ("name", "author", "pub_date", "is_published")
+    list_filter = ("is_published", "author", "pub_date")
+    search_fields = ("name", "description", "author__username")
+    inlines = (CourseVideoInline,)
+    autocomplete_fields = ("author",)
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    """Admin interface for video comments. Read-only."""
+
+    list_display = ("video", "user", "pub_date", "short_text")
+    list_filter = (("video", admin.RelatedOnlyFieldListFilter), "pub_date")
+    search_fields = ("text", "user__username", "video__name")
+    readonly_fields = ("video", "user", "text", "pub_date")
+
+    def short_text(self, obj):
+        return obj.text[:75] + "..." if len(obj.text) > 75 else obj.text
+
+    short_text.short_description = "Текст комментария"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(VideoView)
+class VideoViewAdmin(admin.ModelAdmin):
+    """Admin interface for video views. Read-only log."""
+
+    list_display = ("video", "user", "viewed_at")
+    list_filter = (("video", admin.RelatedOnlyFieldListFilter), "viewed_at")
+    search_fields = ("user__username", "video__name")
+    readonly_fields = ("video", "user", "viewed_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Like)
+class LikeAdmin(admin.ModelAdmin):
+    """Admin interface for video likes. Read-only log."""
+
+    list_display = ("video", "user", "created_at")
+    list_filter = (("video", admin.RelatedOnlyFieldListFilter), "created_at")
+    search_fields = ("user__username", "video__name")
+    readonly_fields = ("video", "user", "created_at")
 
     def has_add_permission(self, request):
         return False
