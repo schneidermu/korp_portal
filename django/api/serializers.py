@@ -824,6 +824,12 @@ class NewsSerializer(serializers.ModelSerializer):
     """Сериализатор для новостей"""
 
     attachments = AttachmentSerializer(many=True, required=False)
+    organization = serializers.PrimaryKeyRelatedField(
+        queryset=Organization.objects.all(), 
+        many=True, 
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = News
