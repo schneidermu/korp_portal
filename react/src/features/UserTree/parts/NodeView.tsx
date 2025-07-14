@@ -45,7 +45,7 @@ const UserNodeView = ({ user }: { user: UserNode }) => {
 };
 
 const UnitNodeView = ({ tree, unit }: { tree: Tree; unit: UnitNode }) => {
-  const head = unit.head !== null && tree.nodes.get(unit.head);
+  const head = unit.head !== null && tree.nodes[unit.head];
   return (
     <Stack onMouseDown={(event) => event.stopPropagation()} textAlign="center">
       <Text fontSize="xl">{unit.name}</Text>

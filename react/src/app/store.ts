@@ -5,6 +5,7 @@ import { authSlice } from "@/features/auth/slice";
 import * as pollTake from "@/features/Poll/take/slice";
 import * as pollEdit from "@/features/Poll/edit/slice";
 import * as pollList from "@/features/Poll/list/slice";
+import * as userTree from "@/features/UserTree/slice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     [pollTake.NAME]: pollTake.slice.reducer,
     [pollEdit.NAME]: pollEdit.slice.reducer,
     [pollList.NAME]: pollList.slice.reducer,
+    [userTree.NAME]: userTree.slice.reducer,
   },
 });
 

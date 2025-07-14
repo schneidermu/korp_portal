@@ -16,7 +16,6 @@ import { Canvas } from "@/shared/comps/Canvas";
 import { drawRoundedChain } from "@/features/UserTree/utils";
 import {
   calcLinkChains,
-  NodeKey,
   NodeBox,
   placeNodes,
   Tree,
@@ -29,6 +28,8 @@ import { useAuth } from "@/features/auth/slice.ts";
 import { useIntParam } from "@/shared/hooks/useIntParam.ts";
 import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
 import { OrgPicker } from "@/features/org/comps/OrgPicker.tsx";
+import { useAppDispatch } from "@/app/store";
+import { actions, useSliceSelector } from "./slice";
 
 interface UserTreeView extends GridProps {
   tree: Tree;
@@ -40,17 +41,19 @@ const UserTreeView = React.memo(function HierarchyView({
 }: { tree: Tree } & GridProps) {
   const placement = placeNodes(tree);
 
-  const [boxes, setBoxes] = useState<Map<NodeKey, NodeBox>>(new Map());
+  const [boxes, setBoxes] = useState<{ [key: string]: NodeBox }>({});
 
   const measuredRef = useCallback((elem: HTMLDivElement) => {
     if (!elem) return;
-    const keyRaw = elem.getAttribute("data-key")!;
-    const [keyType, keyVal] = keyRaw.split("/");
-    const key = keyType === "number" ? Number(keyVal) : keyVal;
+    const key = elem.getAttribute("data-key")!;
     const p = elem.parentElement!.getBoundingClientRect();
     const c = elem.getBoundingClientRect();
     const box = { x: c.x - p.x, y: c.y - p.y, w: c.width, h: c.height };
-    setBoxes((boxes) => produce(boxes, (b) => b.set(key, box)));
+    setBoxes((boxes) =>
+      produce(boxes, (b) => {
+        b[key] = box;
+      }),
+    );
   }, []);
 
   const chains = useMemo(() => calcLinkChains(tree, boxes), [tree, boxes]);
@@ -78,12 +81,12 @@ const UserTreeView = React.memo(function HierarchyView({
       {...rest}
     >
       <Canvas position="absolute" w="full" h="full" render={render} />
-      {[...placement.entries()].map(
+      {Object.entries(placement).map(
         ([key, { row, col, width, node, colorInd }]) => (
           <Box
             ref={measuredRef}
             key={key}
-            data-key={`${typeof key}/${key}`}
+            data-key={key}
             cursor="default"
             onMouseDown={(event) => event.stopPropagation()}
             gridRowStart={row + 1}
@@ -109,6 +112,7 @@ const UserTreeView = React.memo(function HierarchyView({
 });
 
 export default function UserTreePage() {
+  const dispatch = useAppDispatch();
   const viewRef = useRef<HTMLDivElement | null>(null);
   // @ts-expect-error: The types are too restrictive.
   const { onMouseDown } = useDraggableScroll(viewRef);
@@ -120,10 +124,22 @@ export default function UserTreePage() {
   const { data: tree, error } = useFetchHierarchy(orgId);
 
   useEffect(() => {
+    if (tree) {
+      dispatch(actions.view(tree));
+    }
+  }, [dispatch, tree]);
+
+  const treeState = useSliceSelector(({ tree }) => tree);
+
+  useEffect(() => {
     const elem = viewRef?.current;
     if (!elem) return;
     elem.scrollTo((elem.scrollWidth - elem.offsetWidth) / 2, 0);
-  }, [tree]);
+  }, [treeState]);
+
+  if (error) {
+    console.error(error);
+  }
 
   return (
     <Page>
@@ -145,7 +161,7 @@ export default function UserTreePage() {
           borderRadius="2"
         >
           <Flex minW="full" w="fit" h="fit" p="10" justify="center">
-            {error === undefined && tree && <UserTreeView tree={tree} />}
+            {treeState && <UserTreeView tree={treeState} />}
           </Flex>
         </Box>
       </Stack>
