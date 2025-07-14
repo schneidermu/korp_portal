@@ -43,32 +43,35 @@ export const useFetchHierarchy = (orgId: number | null) => {
         const units: UnitNode[] = data.structural_subdivisions.map((u) => ({
           kind: "unit",
           children: [],
-          id: u.id,
+          id: u.id.toString(),
           name: u.name,
           head: u.chief,
           supervisor: u.supervisor ?? null,
-          parent: u.parent_structural_subdivision ?? null,
+          parent: u.parent_structural_subdivision
+            ? u.parent_structural_subdivision.toString()
+            : null,
         }));
         const users: UserNode[] = data.positions.map((u) => ({
           kind: "user",
           children: [],
           id: u.id,
-          unit: u.structural_division,
+          unit: u.structural_division.toString(),
           boss: u.chief,
           lastName: u.surname,
           firstName: u.name,
           patronym: u.patronym,
           position: u.job_title,
         }));
-        const nodes: Tree["nodes"] = new Map(
+        const nodes: Tree["nodes"] = Object.fromEntries(
           [...units, ...users].map((node) => [node.id, node]),
         );
         const head = data.head;
         if (head === null) throw new Error("Organization head not set");
         // FIXME
-        const root = (nodes.get(head) as UserNode).unit!;
+        const root = (nodes[head] as UserNode).unit.toString();
         const tree: Tree = {
           name: data.name,
+          orgId: orgId!,
           address: data.address,
           nodes,
           root,
@@ -76,17 +79,17 @@ export const useFetchHierarchy = (orgId: number | null) => {
 
         for (const unit of units) {
           if (unit.supervisor && unit.parent) {
-            const p = nodes.get(unit.supervisor);
+            const p = nodes[unit.supervisor];
             if (!p || p.kind !== "user") continue;
-            const p2 = nodes.get(p.unit);
+            const p2 = nodes[p.unit];
             if (!p || !p2) continue;
-            p.children!.push(unit.id);
+            p.children!.push(unit.id.toString());
             if (p2.children.findIndex((id) => id === unit.supervisor) < 0) {
               p2.children.push(unit.supervisor);
             }
           } else if (unit.parent) {
-            const p = nodes.get(unit.parent);
-            if (p) p.children!.push(unit.id);
+            const p = nodes[unit.parent];
+            if (p) p.children!.push(unit.id.toString());
           }
         }
 

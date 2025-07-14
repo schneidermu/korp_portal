@@ -1,20 +1,25 @@
-export type NodeKey = string | number;
+import { Option as O } from "effect";
+
+import { User } from "@/features/user/types";
 
 export interface UnitNode {
   kind: "unit";
-  children: NodeKey[];
-  id: number;
+  children: string[];
+  id: string;
   head: string | null;
-  parent: number | null;
+  parent: string | null;
   supervisor: string | null;
   name: string;
 }
 
+// UnitNode: id, name, head, parent, supervisor
+// UserNode:
+
 export interface UserNode {
   kind: "user";
-  children: NodeKey[];
+  children: string[];
   id: string;
-  unit: number;
+  unit: string;
   boss: string | null;
   firstName: string;
   lastName: string;
@@ -27,8 +32,9 @@ export type TreeNode = UnitNode | UserNode;
 export interface Tree {
   name: string;
   address: string;
-  root: number;
-  nodes: Map<NodeKey, TreeNode>;
+  orgId: number;
+  root: string;
+  nodes: { [key: string]: TreeNode };
 }
 
 export interface NodeBox {
@@ -48,32 +54,46 @@ export interface Placement {
 
 const nodeIsPreTerminal = (tree: Tree, node: TreeNode) => {
   return node.children.every(
-    (child) => tree.nodes.get(child)!.children.length === 0,
+    (child) => tree.nodes[child].children.length === 0,
+  );
+};
+
+export const isBoss = (tree: Tree, user: User) =>
+  O.map(
+    user.unit,
+    ({ id }) =>
+      tree.nodes[id].kind === "unit" && tree.nodes[id].head === user.id,
+  ).pipe(O.getOrElse(() => false));
+
+export const isDescendantOf = (tree: Tree, child: string, parent: string): boolean => {
+  if (child === parent) return true;
+  return tree.nodes[parent].children.some((node) =>
+    isDescendantOf(tree, child, node),
   );
 };
 
 const calcBranchWidth = (
   tree: Tree,
-  root: NodeKey = tree.root,
-  widths: Map<NodeKey, number> = new Map(),
-): Map<NodeKey, number> => {
-  const node = tree.nodes.get(root)!;
+  root = tree.root,
+  widths: { [key: string]: number } = {},
+): { [key: string]: number } => {
+  const node = tree.nodes[root];
 
   if (!node.children) {
-    widths.set(root, 1);
+    widths[root] = 1;
     return widths;
   }
 
   if (nodeIsPreTerminal(tree, node)) {
     const w = node.children.length >= 2 ? 2 : 1;
-    widths.set(root, w);
+    widths[root] = w;
     return widths;
   }
 
-  widths.set(root, 0);
+  widths[root] = 0;
   for (const child of node.children) {
     const m = calcBranchWidth(tree, child, widths);
-    widths.set(root, widths.get(root)! + m.get(child)!);
+    widths[root] += m[child];
   }
 
   return widths;
@@ -81,20 +101,20 @@ const calcBranchWidth = (
 
 const _placeNodes = (
   tree: Tree,
-  widths: Map<NodeKey, number>,
-  root: NodeKey = tree.root,
+  widths: { [key: string]: number },
+  root: string = tree.root,
   cur: { row: number; col: number } = { row: 0, col: 0 },
   colorInd = 0,
-  placement: Map<NodeKey, Placement> = new Map(),
-): Map<NodeKey, Placement> => {
-  const node = tree.nodes.get(root)!;
+  placement: { [key: string]: Placement } = {},
+): { [key: string]: Placement } => {
+  const node = tree.nodes[root];
 
-  placement.set(root, {
+  placement[root] = {
     ...cur,
-    width: widths.get(root)!,
+    width: widths[root],
     node,
     colorInd,
-  });
+  };
 
   if (node.children.length === 0) return placement;
 
@@ -103,13 +123,13 @@ const _placeNodes = (
     node.children.forEach((child, i) => {
       const row = cur.row + 1 + Math.floor(i / 2);
       const col = cur.col + (i % 2);
-      placement.set(child, {
+      placement[child] = {
         row,
         col,
         width: 1,
-        node: tree.nodes.get(child)!,
+        node: tree.nodes[child],
         colorInd,
-      });
+      };
     });
 
     return placement;
@@ -125,7 +145,7 @@ const _placeNodes = (
       colorInd + i + 1,
       placement,
     );
-    col += widths.get(child)!;
+    col += widths[child];
   });
 
   return placement;
@@ -136,13 +156,16 @@ export const placeNodes = (tree: Tree) => {
   return _placeNodes(tree, widths);
 };
 
-export const calcLinkChains = (tree: Tree, boxes: Map<NodeKey, NodeBox>) => {
+export const calcLinkChains = (
+  tree: Tree,
+  boxes: { [key: string]: NodeBox },
+) => {
   const chains: { x: number; y: number }[][] = [];
-  for (const [key, box] of boxes) {
-    const node = tree.nodes.get(key);
+  for (const [key, box] of Object.entries(boxes)) {
+    const node = tree.nodes[key];
     if (!node) continue;
     for (const child of node.children) {
-      const childBox = boxes.get(child);
+      const childBox = boxes[child];
       if (!childBox) continue;
 
       if (nodeIsPreTerminal(tree, node)) {
@@ -182,4 +205,26 @@ export const calcLinkChains = (tree: Tree, boxes: Map<NodeKey, NodeBox>) => {
     }
   }
   return chains;
+};
+
+export const recomputeChildren = (tree: Tree) => {
+  for (const node of Object.values(tree.nodes)) {
+    node.children = [];
+  }
+  for (const node of Object.values(tree.nodes)) {
+    if (node.kind !== "unit") continue;
+
+    const supervisor = node.supervisor
+      ? tree.nodes[node.supervisor]
+      : undefined;
+    if (supervisor && supervisor.kind === "user") {
+      supervisor.children.push(node.id);
+      const supervisorUnit = tree.nodes[supervisor.unit];
+      if (!supervisorUnit.children.includes(supervisor.id)) {
+        supervisorUnit.children.push(supervisor.id);
+      }
+    } else if (node.parent !== null) {
+      tree.nodes[node.parent].children.push(node.id);
+    }
+  }
 };
