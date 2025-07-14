@@ -71,6 +71,7 @@ export const useFetchHierarchy = (orgId: number | null) => {
         const root = (nodes[head] as UserNode).unit.toString();
         const tree: Tree = {
           name: data.name,
+          orgId: orgId!,
           address: data.address,
           nodes,
           root,

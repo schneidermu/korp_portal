@@ -8,6 +8,9 @@ export interface UnitNode {
   name: string;
 }
 
+// UnitNode: id, name, head, parent, supervisor
+// UserNode:
+
 export interface UserNode {
   kind: "user";
   children: string[];
@@ -25,6 +28,7 @@ export type TreeNode = UnitNode | UserNode;
 export interface Tree {
   name: string;
   address: string;
+  orgId: number;
   root: string;
   nodes: { [key: string]: TreeNode };
 }
@@ -183,4 +187,8 @@ export const calcLinkChains = (
     }
   }
   return chains;
+};
+
+const computeChildren = (tree: Tree) => {
+  Object.values(tree.nodes).forEach((node) => (node.children = []));
 };
