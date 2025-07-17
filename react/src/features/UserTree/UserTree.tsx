@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { produce } from "immer";
 import { useNavigate } from "react-router-dom";
@@ -34,45 +28,42 @@ import { actions, useSliceSelector } from "./slice";
 
 import { Button } from "@/shared/comps/Button";
 
-interface UserTreeView extends GridProps {
-  tree: Tree;
-}
-
-const UserTreeView = React.memo(function HierarchyView({
+const UserTreeView = function HierarchyView({
   tree,
   ...rest
 }: { tree: Tree } & GridProps) {
   const placement = placeNodes(tree);
 
-  console.log(tree, placement);
-
   const [boxes, setBoxes] = useState<{ [key: string]: NodeBox }>({});
 
-  const measuredRef = useCallback((elem: HTMLDivElement) => {
-    if (!elem) return;
-    const key = elem.getAttribute("data-key")!;
-    const p = elem.parentElement!.getBoundingClientRect();
-    const c = elem.getBoundingClientRect();
-    const box = { x: c.x - p.x, y: c.y - p.y, w: c.width, h: c.height };
-    setBoxes((boxes) =>
-      produce(boxes, (b) => {
-        b[key] = box;
-      }),
-    );
-  }, []);
-
-  const chains = useMemo(() => calcLinkChains(tree, boxes), [tree, boxes]);
+  const measuredRef = useCallback(
+    (elem: HTMLDivElement) => {
+      if (!elem) return;
+      const key = elem.getAttribute("data-key")!;
+      const p = elem.parentElement!.getBoundingClientRect();
+      const c = elem.getBoundingClientRect();
+      const box = { x: c.x - p.x, y: c.y - p.y, w: c.width, h: c.height };
+      setBoxes((boxes) =>
+        produce(boxes, (b) => {
+          b[key] = box;
+        }),
+      );
+      // Pass new ref on `tree` updates (dummy usage to pacify the linter).
+      ((x) => x)(tree);
+    },
+    [tree],
+  );
 
   const render = useCallback(
     (ctx: CanvasRenderingContext2D) => {
-      console.log("re-render");
       const r = 15;
       ctx.lineWidth = 2;
       ctx.strokeStyle = "#999";
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      const chains = calcLinkChains(tree, boxes);
       chains.forEach((arc) => drawRoundedChain(ctx, r, arc));
     },
-    [chains],
+    [tree, boxes],
   );
 
   return (
@@ -86,7 +77,6 @@ const UserTreeView = React.memo(function HierarchyView({
       gap="8"
       {...rest}
     >
-      <Canvas position="absolute" w="full" h="full" render={render} />
       {Object.entries(placement).map(([key, placement]) => (
         <NodeWrapper
           // @ts-expect-error React v19 ref
@@ -97,9 +87,10 @@ const UserTreeView = React.memo(function HierarchyView({
           placement={placement}
         />
       ))}
+      <Canvas position="absolute" w="full" h="full" render={render} />
     </Grid>
   );
-});
+};
 
 const NodeWrapper = ({
   tree,

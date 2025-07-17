@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { useAppSelector } from "@/app/store";
-import { Tree, UnitNode, UserNode } from "./types";
+import { recomputeChildren, Tree, UnitNode, UserNode } from "./types";
 
 export const NAME = "userTree";
 
@@ -39,46 +39,15 @@ export const slice = createSlice({
       const node = state.node;
       const oldNode = state.tree.nodes[state.node.id];
 
-      if (node.kind === "unit" && oldNode.kind === "unit") {
-        // Remove old supervisor.
-        if (
-          node.supervisor !== oldNode.supervisor &&
-          oldNode.supervisor !== null
-        ) {
-          if (node.parent) {
-            const parentNode = state.tree.nodes[oldNode.supervisor];
-            parentNode.children = parentNode.children.filter(
-              (child) => child !== node.id,
-            );
-            node.parent = null;
-          }
-        }
-
-        // Add new supervisor.
-        if (
-          node.supervisor !== oldNode.supervisor &&
-          node.supervisor !== null
-        ) {
-          node.parent = node.supervisor;
-          const superNode = state.tree.nodes[node.supervisor];
-          const parentNode = state.tree.nodes[oldNode.parent!];
-
-          parentNode.children = parentNode.children.filter(
-            (id) => id !== node.id,
-          );
-          parentNode.children.push(node.supervisor);
-          superNode.children.push(node.id);
-        }
-      }
-
       Object.assign(oldNode, node);
       state.node = undefined;
+      recomputeChildren(state.tree);
       return state;
     },
-    unitEdited(state, { payload }: PayloadAction<Partial<UnitNode>>) {
+    unitEdited(state, { payload: update }: PayloadAction<Partial<UnitNode>>) {
       if (!state.node || state.node.kind !== "unit") return;
 
-      Object.assign(state.node, payload);
+      Object.assign(state.node, update);
 
       return state;
     },

@@ -1,3 +1,7 @@
+import { Option as O } from "effect";
+
+import { User } from "@/features/user/types";
+
 export interface UnitNode {
   kind: "unit";
   children: string[];
@@ -51,6 +55,20 @@ export interface Placement {
 const nodeIsPreTerminal = (tree: Tree, node: TreeNode) => {
   return node.children.every(
     (child) => tree.nodes[child].children.length === 0,
+  );
+};
+
+export const isBoss = (tree: Tree, user: User) =>
+  O.map(
+    user.unit,
+    ({ id }) =>
+      tree.nodes[id].kind === "unit" && tree.nodes[id].head === user.id,
+  ).pipe(O.getOrElse(() => false));
+
+export const isDescendantOf = (tree: Tree, child: string, parent: string): boolean => {
+  if (child === parent) return true;
+  return tree.nodes[parent].children.some((node) =>
+    isDescendantOf(tree, child, node),
   );
 };
 
@@ -189,6 +207,24 @@ export const calcLinkChains = (
   return chains;
 };
 
-const computeChildren = (tree: Tree) => {
-  Object.values(tree.nodes).forEach((node) => (node.children = []));
+export const recomputeChildren = (tree: Tree) => {
+  for (const node of Object.values(tree.nodes)) {
+    node.children = [];
+  }
+  for (const node of Object.values(tree.nodes)) {
+    if (node.kind !== "unit") continue;
+
+    const supervisor = node.supervisor
+      ? tree.nodes[node.supervisor]
+      : undefined;
+    if (supervisor && supervisor.kind === "user") {
+      supervisor.children.push(node.id);
+      const supervisorUnit = tree.nodes[supervisor.unit];
+      if (!supervisorUnit.children.includes(supervisor.id)) {
+        supervisorUnit.children.push(supervisor.id);
+      }
+    } else if (node.parent !== null) {
+      tree.nodes[node.parent].children.push(node.id);
+    }
+  }
 };

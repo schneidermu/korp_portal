@@ -15,20 +15,21 @@ import {
   useFilter,
   useListCollection,
 } from "@chakra-ui/react";
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
 
-import { Option as O } from "effect";
+import {Option as O} from "effect";
 
-import { TreeNode, UnitNode, UserNode } from "@/features/UserTree/types";
-import { LuUser } from "@/shared/icons/LuUser";
+import {isBoss, isDescendantOf, TreeNode, UnitNode, UserNode,} from "@/features/UserTree/types";
+import {LuUser} from "@/shared/icons/LuUser";
 
-import { useAppDispatch } from "@/app/store";
-import { useFetchUser, useFetchUsers } from "@/features/user/services";
-import { User } from "@/features/user/types";
-import { fullNameLong } from "@/shared/utils";
-import { actions, useSliceSelector } from "../slice";
-import { Tree } from "../types";
-import { useMemo, useEffect } from "react";
+import {useAppDispatch} from "@/app/store";
+import {useFetchUser, useFetchUsers} from "@/features/user/services";
+import {User} from "@/features/user/types";
+import {fullNameLong} from "@/shared/utils";
+import {actions, useSliceSelector} from "../slice";
+import {Tree} from "../types";
+import {useEffect, useMemo} from "react";
+import {useFetchOrg} from "@/features/org/services.ts";
 
 const UserLink = ({
   userId,
@@ -118,111 +119,173 @@ export const NodeCard = () => {
     >
       <Portal>
         <Dialog.Backdrop />
-        <Dialog.Positioner>
-          <Dialog.Content>
-            <Dialog.Header>
-              <Dialog.Title>Редактирование</Dialog.Title>
-            </Dialog.Header>
-            <Dialog.Body>
-              <form onSubmit={() => dispatch(actions.nodeSaved())}>
-                <Body />
-              </form>
-            </Dialog.Body>
-            <Dialog.Footer>
-              <Dialog.ActionTrigger asChild>
-                <Button variant="outline">Отменить</Button>
-              </Dialog.ActionTrigger>
-              <Button onClick={() => dispatch(actions.nodeSaved())}>
-                Сохранить
-              </Button>
-            </Dialog.Footer>
-            <Dialog.CloseTrigger asChild>
-              <CloseButton size="sm" />
-            </Dialog.CloseTrigger>
-          </Dialog.Content>
+        <Dialog.Positioner asChild>
+          <form
+            action={async () => {
+              dispatch(actions.nodeSaved());
+            }}
+          >
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Редактирование</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                <NodeEditor />
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Dialog.ActionTrigger asChild>
+                  <Button variant="outline">Отменить</Button>
+                </Dialog.ActionTrigger>
+                <Button type="submit">Сохранить</Button>
+              </Dialog.Footer>
+              <Dialog.CloseTrigger asChild>
+                <CloseButton size="sm" />
+              </Dialog.CloseTrigger>
+            </Dialog.Content>
+          </form>
         </Dialog.Positioner>
       </Portal>
     </Dialog.Root>
   );
 };
 
-const Body = () => {
-  const dispatch = useAppDispatch();
+const NodeEditor = (props: StackProps) => {
   const node = useSliceSelector(({ node }) => node);
 
   if (!node) return;
 
   return (
-    <Stack>
-      {node.kind === "unit" && (
-        <>
-          <Field.Root>
-            <Field.Label>Наименование структурного подразделения</Field.Label>
-            <Input
-              value={node.name}
-              onChange={(e) =>
-                dispatch(actions.unitEdited({ name: e.target.value }))
-              }
-            />
-          </Field.Root>
-          <UserSelect
-            label="Начальник или руководитель"
-            placeholder="Выберите сотрудника"
-            value={node.head ? [node.head] : []}
-            onValueChange={(e) =>
-              dispatch(actions.unitEdited({ head: e.value[0] }))
-            }
-          />
-          <UserSelect
-            label="Супервизор"
-            placeholder="Выберите сотрудника"
-            value={node.supervisor ? [node.supervisor] : []}
-            onValueChange={(e) =>
-              dispatch(actions.unitEdited({ supervisor: e.value[0] }))
-            }
-          />
-        </>
-      )}
+    <Stack gap={4} {...props}>
+      {node.kind === "unit" && <UnitNodeEditor unit={node} />}
     </Stack>
+  );
+};
+
+const UnitNodeEditor = ({ unit }: { unit: UnitNode }) => {
+  const tree = useSliceSelector(({ tree }) => tree);
+  const dispatch = useAppDispatch();
+
+  if (!tree) return;
+
+  const descendantUnits = Object.values(tree.nodes)
+    .filter(
+      (node) => node.kind === "unit" && isDescendantOf(tree, node.id, unit.id),
+    )
+    .map(({ id }) => id);
+
+  return (
+    <>
+      <Field.Root>
+        <Field.Label>Наименование структурного подразделения</Field.Label>
+        <Input
+          value={unit.name}
+          onChange={(e) =>
+            dispatch(actions.unitEdited({ name: e.target.value }))
+          }
+        />
+      </Field.Root>
+      <UserSelect
+        label="Начальник или руководитель подразделения"
+        placeholder="Выберите сотрудника"
+        hint="Из числа сотрудников подразделения"
+        value={unit.head ? [unit.head] : []}
+        filter={(user) =>
+          unit.head !== user.id &&
+          O.getOrNull(user.unit)?.id.toString() === unit.id
+        }
+        onValueChange={(e) =>
+          dispatch(actions.unitEdited({ head: e.value[0] }))
+        }
+      />
+      <UnitSelect
+        label="Родительское структурное подразделение"
+        placeholder="Выберите подразделение"
+        hint={
+          unit.supervisor !== null
+            ? "Не используется при указании супервизора"
+            : undefined
+        }
+        disabled={unit.supervisor !== null}
+        value={unit.parent ? [unit.parent] : []}
+        filter={(id) => !isDescendantOf(tree, id, unit.id)}
+        onValueChange={(e) =>
+          dispatch(actions.unitEdited({ parent: e.value[0] ?? null }))
+        }
+      />
+      <UserSelect
+        label="Супервизор"
+        placeholder="Выберите сотрудника"
+        value={unit.supervisor ? [unit.supervisor] : []}
+        filter={(user) => {
+          console.log(
+            "boss",
+            isBoss(tree, user),
+            O.map(
+              user.unit,
+              ({ id }) => !descendantUnits.includes(id.toString()),
+            ).pipe(O.getOrElse(() => false)),
+            fullNameLong(user),
+          );
+          return (
+            !isBoss(tree, user) &&
+            O.map(
+              user.unit,
+              ({ id }) => !descendantUnits.includes(id.toString()),
+            ).pipe(O.getOrElse(() => false))
+          );
+        }}
+        onValueChange={(e) =>
+          dispatch(actions.unitEdited({ supervisor: e.value[0] ?? null }))
+        }
+      />
+    </>
   );
 };
 
 const UserSelect = ({
   value,
+  filter,
   ...rest
-}: { label?: string; placeholder: string } & Omit<
-  Combobox.RootProps,
-  "collection" | "defaultValue"
->) => {
+}: {
+  filter?: (user: User) => boolean;
+  label?: string;
+  hint?: string;
+  placeholder: string;
+} & Omit<Combobox.RootProps, "collection" | "defaultValue">) => {
   const orgId = useSliceSelector(({ tree }) => tree?.orgId) ?? null;
   const { user } = useFetchUser(
     value && value[0] ? O.some(value[0]) : O.none(),
   );
   const { data } = useFetchUsers({ orgId });
 
+  const users = new Map(
+    [...data.users.entries()].filter(([, user]) => !filter || filter(user)),
+  );
+
   if (!value || !value[0]) {
-    return <UserSelectLoaded users={data.users} value={value} {...rest} />;
+    return <UserSelectLoaded users={users} value={value} {...rest} />;
   }
 
   if (!user) return;
 
-  const users = new Map([[user.id, user], ...data.users.entries()]);
-
-  return <UserSelectLoaded users={users} value={value} {...rest} />;
+  return (
+    <UserSelectLoaded
+      users={new Map([[user.id, user], ...users.entries()])}
+      value={value}
+      {...rest}
+    />
+  );
 };
 
 const UserSelectLoaded = ({
   users,
-  label,
-  placeholder,
-  value,
   ...rest
-}: { users: Map<string, User>; label?: string; placeholder: string } & Omit<
-  Combobox.RootProps,
-  "collection"
->) => {
-  const { contains } = useFilter({ sensitivity: "base" });
-
+}: {
+  users: Map<string, User>;
+  label?: string;
+  hint?: string;
+  placeholder: string;
+} & Omit<Combobox.RootProps, "collection">) => {
   const items = useMemo(
     () =>
       [...users.values()].map((user) => ({
@@ -231,6 +294,52 @@ const UserSelectLoaded = ({
       })),
     [users],
   );
+
+  return <Select items={items} {...rest} />;
+};
+
+const UnitSelect = ({
+  filter,
+  value,
+  ...rest
+}: {
+  filter?: (unit: string) => boolean;
+  label?: string;
+  hint?: string;
+  placeholder: string;
+} & Omit<Combobox.RootProps, "collection" | "defaultValue">) => {
+  const orgId = useSliceSelector(({ tree }) => tree?.orgId) ?? null;
+  const { data: org } = useFetchOrg(orgId);
+  const items = useMemo(
+    () =>
+      org?.units
+        .filter((unit) => !filter || filter(unit.id.toString()))
+        .map((unit) => ({
+          value: unit.id.toString(),
+          label: unit.name,
+        })),
+    [filter, org],
+  );
+
+  if (!items) return;
+
+  return <Select items={items} value={value} {...rest} />;
+};
+
+const Select = ({
+  items,
+  label,
+  placeholder,
+  value,
+  hint,
+  ...rest
+}: {
+  items: { value: string; label: string }[];
+  label?: string;
+  hint?: string;
+  placeholder: string;
+} & Omit<Combobox.RootProps, "collection">) => {
+  const { contains } = useFilter({ sensitivity: "base" });
 
   const { collection, filter, set } = useListCollection({
     initialItems: items,
@@ -256,19 +365,25 @@ const UserSelectLoaded = ({
           <Combobox.Trigger />
         </Combobox.IndicatorGroup>
       </Combobox.Control>
+      <Text fontSize="xs" color="fg.muted">
+        {hint}
+      </Text>
       <Combobox.Positioner>
         <Combobox.Content>
-          {collection.items.map((item) => (
-            <Combobox.Item item={item} key={item.value}>
-              <Box>
-                <Icon>
-                  <LuUser />
-                </Icon>{" "}
-                {item.label}
-              </Box>
-              <Combobox.ItemIndicator />
-            </Combobox.Item>
-          ))}
+          <Combobox.ItemGroup>
+            <Combobox.ItemGroupLabel>TODO</Combobox.ItemGroupLabel>
+            {collection.items.map((item) => (
+              <Combobox.Item item={item} key={item.value}>
+                <Box>
+                  <Icon>
+                    <LuUser />
+                  </Icon>{" "}
+                  {item.label}
+                </Box>
+                <Combobox.ItemIndicator />
+              </Combobox.Item>
+            ))}
+          </Combobox.ItemGroup>
         </Combobox.Content>
       </Combobox.Positioner>
     </Combobox.Root>
