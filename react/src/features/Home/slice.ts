@@ -22,11 +22,13 @@ export const slice = createSlice({
       const now = new Date();
       state.year = now.getFullYear();
       state.month = now.getMonth();
+      return state;
     },
     monthChanged(state, { payload: diff }: PayloadAction<number>) {
       const m = state.month + diff;
       state.year += Math.floor(m / 12);
       state.month = ((m % 12) + 12) % 12;
+      return state
     },
   },
 });

@@ -41,6 +41,9 @@ export const Calendar = () => {
 
   const firstWeekday = new Date(year, month, 1).getDay();
 
+  const now = new Date();
+  const monthIsNow = year === now.getFullYear() && month === now.getMonth();
+
   const days = Array(daysInMonth(year, month))
     .fill(0)
     .map((_, i) => i + 1);
@@ -93,8 +96,8 @@ export const Calendar = () => {
         templateRows="repeat(7, 1fr)"
         fontSize="sm"
         textAlign="right"
-        gapX={5}
-        gapY={3}
+        gapX={2}
+        gapY={1}
         cursor="default"
       >
         {WEEKDAYS.map((weekday) => (
@@ -108,7 +111,15 @@ export const Calendar = () => {
             <Box key={`skip/${i}`} />
           ))}
         {days.map((day) => (
-          <Box key={day}>{day}</Box>
+          <Box
+            key={day}
+            p={2}
+            bg={monthIsNow && day === now.getDate() ? "yellow" : undefined}
+            color={monthIsNow && day === now.getDate() ? "black" : undefined}
+            borderRadius="full"
+          >
+            {day}
+          </Box>
         ))}
       </Grid>
     </Stack>
