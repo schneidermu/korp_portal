@@ -8,6 +8,8 @@ import {
   createListCollection,
   Flex,
   Grid,
+  HStack,
+  Icon,
   Stack,
   StackProps,
   Text,
@@ -36,6 +38,8 @@ import { Input } from "../parts/Input";
 import { Section } from "../parts/Section";
 import { Select } from "../parts/Select";
 import { Subsection } from "../parts/Subsection";
+import { Link } from "react-router-dom";
+import { LuDownload } from "react-icons/lu";
 
 const INFO_FIELDS = [
   "lastName",
@@ -202,7 +206,24 @@ export const ProfileCard = React.memo(function ProfileCard({
   ...rest
 }: ProfileCardProps) {
   return (
-    <Section {...rest}>
+    <Section {...rest} position="relative">
+      <HStack
+        position="absolute"
+        top="4%"
+        right="3%"
+        gap={1}
+        cursor="pointer"
+        color="blue.1"
+        _hover={{ textDecoration: "underline" }}
+        zIndex={1}
+      >
+        <Link to={`/bc/${user.id}`} target="_blank">
+          Визитка
+        </Link>
+        <Icon>
+          <LuDownload />
+        </Icon>
+      </HStack>
       <Subsection title={title}>
         <Flex>
           <Stack gap="6" mt="4" flexShrink="0" w={{ lg: 64, xl: 72 }}>

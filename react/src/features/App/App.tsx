@@ -45,6 +45,9 @@ const PollStatsPage = React.lazy(
 const FormDashboardPage = React.lazy(
   async () => import("@/features/Poll/form/FormDashboardPage"),
 );
+const BusinessCardPage = React.lazy(
+  async () => import("@/features/BusinessCard/BusinessCardPage"),
+);
 
 export const App = () => {
   return (
@@ -52,6 +55,7 @@ export const App = () => {
       <HashRouter>
         <Routes>
           <Route element={<AuthLoader />}>
+            <Route path="/bc/:userId?" element={<BusinessCardPage />} />
             <Route path="/nextcloud" element={<NextcloudPage />} />
             <Route path="/tree/:orgId?" element={<UserTreePage />} />
             <Route path="/" element={<ProfilePage />} />
