@@ -1,6 +1,6 @@
 import os.path
 
-from django.core.validators import EmailValidator, RegexValidator
+from django.core.validators import EmailValidator, RegexValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -1426,10 +1426,10 @@ class RatingPOSTSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         employee = data.get("employee")
-        user = self.context["request"].user
+        user = data.get("user")
 
 
-        if employee.id == user.id:
+        if employee == user:
             raise serializers.ValidationError(
                 {"error": "Вы не можете оценить самого себя."}
             )
@@ -1465,54 +1465,23 @@ class RatingPOSTSerializer(serializers.ModelSerializer):
         )
 
 
-class RatingPUTSerializer(RatingPOSTSerializer):
-    """Сериализатор для оценивания (PUT)."""
-
-    def validate(self, data):
-        user = self.context["request"].user
-        employee = data.get("employee")
-
-        if employee.id == user.id:
-            raise serializers.ValidationError(
-                {"error": "Вы не можете оценить самого себя."}
-            )
-        if "rate" in data and (data["rate"] < 1 or data["rate"] > 5):
-            raise serializers.ValidationError({"error": "Недопустимая оценка."})
-
-        return data
-
-    @transaction.atomic
-    def create(self, validated_data):
-
-        user = self.context["request"].user
-        employee = validated_data.get("employee")
-        
-        rating, _ = Rating.objects.update_or_create(
-            user=user,
-            employee=employee,
-            defaults={
-                "rate": validated_data.get("rate"),
-                "text": validated_data.get("text")
-            }
-        )
-
-        return rating
-
+class RatingPUTSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для создания/обновления оценки.
+    Валидирует только поля 'rate' и 'text', которые присылает клиент.
+    """
     class Meta:
         model = Rating
-        fields = (
-            "id",
-            "employee",
-            "rate",
-            "text",
-            "date",
-            "user",
-        )
-        read_only_fields = (
-            "date",
-            "user",
-        )
-
+        fields = ('rate', 'text')
+        extra_kwargs = {
+            'rate': {
+                'required': True,
+                'validators': [
+                    MinValueValidator(1, message="Оценка не может быть меньше 1."),
+                    MaxValueValidator(5, message="Оценка не может быть больше 5.")
+                ]
+            }
+        }
 
 class RatingDELETESerializer(serializers.ModelSerializer):
     """Сериализатор для удаления оценки."""

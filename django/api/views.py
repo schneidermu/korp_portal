@@ -14,6 +14,7 @@ from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -775,16 +776,43 @@ class ColleagueProfileViewset(UserViewSet):
 
     @transaction.atomic
     @rate.mapping.put
-    def change_or_rate(self, request, id):
-        serializer = self.validate_rating(RatingPUTSerializer, request, id)
-        employee = serializer.validated_data.get("employee")
-        serializer.save()
+    def change_or_rate(self, request, id=None): # Use pk for convention
+        """
+        Updates an existing rating or creates a new one for the employee.
+        """
+        # 1. GET THE SERVER-SIDE OBJECTS
+        # The view is responsible for this.
+        employee_to_rate = self.get_object() # Gets Employee from URL's pk
+        user = request.user
+
+        # 2. PERFORM BUSINESS LOGIC CHECKS
+        # The view is responsible for this.
+        if employee_to_rate == user:
+            raise ValidationError("Вы не можете оценить самого себя.")
+
+        # 3. VALIDATE THE CLIENT-SENT DATA
+        # The serializer is responsible for this.
+        serializer = RatingPUTSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # 4. PERFORM THE DATABASE ACTION
+        # The view is responsible for this. It uses the validated data.
+        # This single line handles both create and update.
+        rating, created = Rating.objects.update_or_create(
+            user=user,
+            employee=employee_to_rate,
+            defaults=serializer.validated_data  # Pass the validated rate and text
+        )
+
+        # 5. PREPARE AND RETURN THE RESPONSE
+        employee_to_rate.refresh_from_db() # Get updated average rating
+        message = "Вы успешно обновили оценку." if not created else "Вы успешно создали оценку."
 
         return Response(
             {
-                "message": "Вы успешно оценили сотрудника.",
-                "average_rating": employee.average_rating,
-                "num_rates": employee.rated.count(),
+                "message": message,
+                "average_rating": employee_to_rate.average_rating,
+                "num_rates": employee_to_rate.rated.count(),
             },
             status=status.HTTP_200_OK,
         )
