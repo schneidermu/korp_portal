@@ -589,3 +589,29 @@ class StructuralSubdivision(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.organization})"
+
+
+class Idea(models.Model):
+    """
+    Модель для хранения идеи. Содержит текст, автора и дату создания.
+    """
+    author = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name='ideas',
+        verbose_name="Автор",
+        editable=False
+    )
+    text = models.TextField(verbose_name="Текст идеи")
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания"
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Идея"
+        verbose_name_plural = "Идеи"
+
+    def __str__(self):
+        return f'Идея от {self.author} ({self.created_at.strftime("%Y-%m-%d")})'
