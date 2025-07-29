@@ -1507,6 +1507,16 @@ class RatingDELETESerializer(serializers.ModelSerializer):
         exclude = ("rate",)
 
 
+class RatingListSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для листинга рейтинга.
+    """
+
+    class Meta:
+        model = Rating
+        fields = ('id', 'user', 'rate', 'text', 'date')
+
+
 class ProfileInStrucureSerializer(serializers.ModelSerializer):
     """Сериализатор для профиля в Орг. структуре"""
 

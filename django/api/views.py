@@ -40,6 +40,7 @@ from .serializers import (
     PollSubmissionWithAnswersSerializer,
     ProfileInOrganizationSerializer,
     RatingDELETESerializer,
+    RatingListSerializer,
     RatingPOSTSerializer,
     RatingPUTSerializer,
 )
@@ -635,8 +636,6 @@ class PollViewset(viewsets.ModelViewSet):
             'submission_details': serializer.data
         }
         return Response(response_data)
-    
-    
 
 
 class NewsViewSet(viewsets.ModelViewSet):
@@ -715,6 +714,8 @@ class ColleagueProfileViewset(UserViewSet):
             and self.kwargs.get("username") != self.request.user.username
         ):
             return ProfileInOrganizationSerializer
+        if self.action == "ratings":
+            return RatingListSerializer
 
         return super().get_serializer_class()
 
@@ -776,36 +777,26 @@ class ColleagueProfileViewset(UserViewSet):
 
     @transaction.atomic
     @rate.mapping.put
-    def change_or_rate(self, request, id=None): # Use pk for convention
+    def change_or_rate(self, request, id=None):
         """
         Updates an existing rating or creates a new one for the employee.
         """
-        # 1. GET THE SERVER-SIDE OBJECTS
-        # The view is responsible for this.
-        employee_to_rate = self.get_object() # Gets Employee from URL's pk
+        employee_to_rate = self.get_object()
         user = request.user
 
-        # 2. PERFORM BUSINESS LOGIC CHECKS
-        # The view is responsible for this.
         if employee_to_rate == user:
             raise ValidationError("Вы не можете оценить самого себя.")
 
-        # 3. VALIDATE THE CLIENT-SENT DATA
-        # The serializer is responsible for this.
         serializer = RatingPUTSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # 4. PERFORM THE DATABASE ACTION
-        # The view is responsible for this. It uses the validated data.
-        # This single line handles both create and update.
         rating, created = Rating.objects.update_or_create(
             user=user,
             employee=employee_to_rate,
-            defaults=serializer.validated_data  # Pass the validated rate and text
+            defaults=serializer.validated_data
         )
 
-        # 5. PREPARE AND RETURN THE RESPONSE
-        employee_to_rate.refresh_from_db() # Get updated average rating
+        employee_to_rate.refresh_from_db()
         message = "Вы успешно обновили оценку." if not created else "Вы успешно создали оценку."
 
         return Response(
@@ -816,6 +807,23 @@ class ColleagueProfileViewset(UserViewSet):
             },
             status=status.HTTP_200_OK,
         )
+    
+    @action(detail=True, methods=['get'], url_path='ratings')
+    def ratings(self, request, id=None):
+        """
+        Returns a paginated list of all ratings for a specific employee.
+        """
+        employee = self.get_object()
+
+        queryset = employee.rated.all().order_by('-date')
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class OrgStructureViewset(ListModelMixin, RetrieveModelMixin, viewsets.GenericViewSet):
