@@ -19,6 +19,7 @@ from employees.models import (
     Diploma,
     Employee,
     Hobby,
+    Idea,
     Organization,
     Performance,
     Rating,
@@ -1756,3 +1757,16 @@ class PollUserAnswersListSerializer(serializers.Serializer):
     count = serializers.IntegerField()
     next = serializers.URLField(allow_null=True)
     previous = serializers.URLField(allow_null=True)
+
+
+class IdeaSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели Idea.
+    """
+    author_name = serializers.StringRelatedField(source='author', read_only=True)
+
+    class Meta:
+        model = Idea
+        fields = ['id', 'text', 'created_at', 'author', 'author_name']
+
+        read_only_fields = ['author', 'created_at', 'author_name']

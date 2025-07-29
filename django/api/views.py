@@ -15,16 +15,17 @@ from rest_framework import filters, generics, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.filters import OrderingFilter
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from employees.models import Competence, Employee, Organization, Rating
+from employees.models import Competence, Employee, Idea, Organization, Rating
 from homepage.models import Answer, News, Poll, PollGroup, PollSubmission, Question
 
-from .filters import CompetenceFilter
+from .filters import CompetenceFilter, IdeaFilter
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 from .serializers import (
     CompetenceSerializer,
@@ -32,6 +33,7 @@ from .serializers import (
     HierarchySerializer,
     MyProfileSerializer,
     NewsSerializer,
+    IdeaSerializer,
     OrganizationSerializer,
     OrgStructureSerializer,
     PollGroupSerializer,
@@ -1024,3 +1026,25 @@ class PollGroupListView(generics.ListAPIView):
     search_fields = ["name"]
 
     queryset = PollGroup.objects.all()
+
+
+class IdeaViewSet(viewsets.ModelViewSet):
+    """
+    API эндпоинт для идей.
+    """
+    queryset = Idea.objects.select_related('author').all()
+    serializer_class = IdeaSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'head', 'options']
+
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+
+    filterset_class = IdeaFilter
+
+    ordering_fields = ['created_at', 'author']
+
+    def perform_create(self, serializer):
+        """
+        При создании идеи автор подставляется из текущего запроса.
+        """
+        serializer.save(author=self.request.user)
