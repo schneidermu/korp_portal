@@ -1,14 +1,21 @@
-import { Stack, StackProps, Text } from "@chakra-ui/react";
+import { HStack, Icon, Show, Stack, StackProps, Text } from "@chakra-ui/react";
 import { NavLink } from "react-router-dom";
 
 import { NEXTCLOUD_PREFIX } from "@/app/const";
 
 import { useAuth } from "@/features/auth/slice";
+import { LuChevronsRight } from "react-icons/lu";
+import { ReactNode } from "react";
 
 export const NavBar = (props: StackProps) => {
   const { orgId, userId } = useAuth();
 
-  const links: { name: string; link: string; anchor?: boolean }[] = [
+  const links: {
+    name: ReactNode;
+    link: string;
+    anchor?: boolean;
+    icon?: ReactNode;
+  }[] = [
     { name: "Наша жизнь", link: "/feed" },
     { name: "Мой профиль", link: userId ? `/profile/${userId}` : "/" },
     {
@@ -23,7 +30,14 @@ export const NavBar = (props: StackProps) => {
     { name: "Заявки", link: "/forms/dashboard" },
     { name: "Облако", link: "/nextcloud" },
     {
-      name: "Облако (полный экран)",
+      name: (
+        <>
+          Облако
+          <br />
+          (полный экран)
+        </>
+      ),
+      icon: <LuChevronsRight />,
       link: NEXTCLOUD_PREFIX + "/",
       anchor: true,
     },
@@ -32,21 +46,28 @@ export const NavBar = (props: StackProps) => {
   return (
     <Stack color="blue.2" gap="9" userSelect="none" {...props}>
       {links.map((link) => (
-        <Text
-          key={link.link}
-          color="inherit"
-          asChild
-          fontWeight="semibold"
-          textDecoration={{ _hover: "underline" }}
-        >
-          {link.anchor ? (
-            <a href={link.link} target="_blank">
-              {link.name}
-            </a>
-          ) : (
-            <NavLink to={link.link}>{link.name}</NavLink>
-          )}
-        </Text>
+        <HStack gap={1}>
+          <Show when={link.icon}>
+            <Icon w={9} h={9}>
+              {link.icon}
+            </Icon>
+          </Show>
+          <Text
+            key={link.link}
+            color="inherit"
+            asChild
+            fontWeight="semibold"
+            textDecoration={{ _hover: "underline" }}
+          >
+            {link.anchor ? (
+              <a href={link.link} target="_blank">
+                {link.name}
+              </a>
+            ) : (
+              <NavLink to={link.link}>{link.name}</NavLink>
+            )}
+          </Text>
+        </HStack>
       ))}
     </Stack>
   );

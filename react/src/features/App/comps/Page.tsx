@@ -29,7 +29,7 @@ export const Page = ({
       {/* Box makes sticky work */}
       <Box>
         <Box
-          w={{ lg: "9.5rem", xl: "11.5rem" }}
+          w={{ lg: "12rem", xl: "14rem" }}
           flexShrink={0}
           mt={20}
           position="sticky"
