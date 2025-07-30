@@ -13,40 +13,12 @@ import {
 import { useAppDispatch } from "@/app/store";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { actions, useSliceSelector } from "../slice";
-
-const MONTHS = [
-  "Январь",
-  "Февраль",
-  "Март",
-  "Апрель",
-  "Май",
-  "Июнь",
-  "Июль",
-  "Август",
-  "Сентябрь",
-  "Октябрь",
-  "Ноябрь",
-  "Декабрь",
-];
-
-const WEEKDAYS = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"];
-
-const daysInMonth = (year: number, month: number) =>
-  new Date(year, month + 1, 0).getDate();
+import { monthDays, MONTHS, WEEKDAYS } from "@/shared/utils/calendar.ts";
 
 export const Calendar = () => {
   const dispatch = useAppDispatch();
   const year = useSliceSelector(({ year }) => year);
   const month = useSliceSelector(({ month }) => month);
-
-  const firstWeekday = new Date(year, month, 1).getDay();
-
-  const now = new Date();
-  const monthIsNow = year === now.getFullYear() && month === now.getMonth();
-
-  const days = Array(daysInMonth(year, month))
-    .fill(0)
-    .map((_, i) => i + 1);
 
   useEffect(() => {
     dispatch(actions.dateReset());
@@ -105,17 +77,12 @@ export const Calendar = () => {
             {weekday}
           </Text>
         ))}
-        {Array((firstWeekday - 1 + 7) % 7)
-          .fill(0)
-          .map((_, i) => (
-            <Box key={`skip/${i}`} />
-          ))}
-        {days.map((day) => (
+        {monthDays(year, month).map(({ day, isNow }, i) => (
           <Box
-            key={day}
+            key={i}
             p={2}
-            bg={monthIsNow && day === now.getDate() ? "yellow" : undefined}
-            color={monthIsNow && day === now.getDate() ? "black" : undefined}
+            bg={isNow ? "yellow" : undefined}
+            color={isNow ? "black" : undefined}
             borderRadius="full"
           >
             {day}

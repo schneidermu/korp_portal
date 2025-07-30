@@ -46,6 +46,7 @@ const FormDashboardPage = React.lazy(
   async () => import("@/features/Poll/form/FormDashboardPage"),
 );
 const HomePage = React.lazy(async () => import("@/features/Home/HomePage"));
+const CalendarPage = React.lazy(async () => import("@/features/Calendar/CalendarPage"));
 
 export const App = () => {
   return (
@@ -54,6 +55,7 @@ export const App = () => {
         <Routes>
           <Route element={<AuthLoader />}>
             <Route path="/home" element={<HomePage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/nextcloud" element={<NextcloudPage />} />
             <Route path="/tree/:orgId?" element={<UserTreePage />} />
             <Route path="/" element={<ProfilePage />} />
