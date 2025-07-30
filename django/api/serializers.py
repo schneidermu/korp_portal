@@ -1425,52 +1425,6 @@ class ProfileCreateSerializer(UserCreateSerializer):
 class RatingPOSTSerializer(serializers.ModelSerializer):
     """Сериализатор для оценивания."""
 
-    def validate(self, data):
-        employee = data.get("employee")
-        user = data.get("user")
-
-
-        if employee == user:
-            raise serializers.ValidationError(
-                {"error": "Вы не можете оценить самого себя."}
-            )
-
-        already_rated = Rating.objects.filter(user=user, employee=employee).exists()
-
-        if already_rated:
-            raise serializers.ValidationError(
-                {"error": "Нельзя оценивать одного сотрудника дважды."}
-            )
-
-        return data
-
-    @transaction.atomic
-    def create(self, validated_data):
-        validated_data["user"] = self.context["request"].user
-        rating = Rating.objects.create(**validated_data)
-        return rating
-
-    class Meta:
-        model = Rating
-        fields = (
-            "id",
-            "employee",
-            "rate",
-            "text",
-            "date",
-            "user",
-        )
-        read_only_fields = (
-            "date",
-            "user",
-        )
-
-
-class RatingPUTSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для создания/обновления оценки.
-    Валидирует только поля 'rate' и 'text', которые присылает клиент.
-    """
     class Meta:
         model = Rating
         fields = ('rate', 'text')
@@ -1483,6 +1437,15 @@ class RatingPUTSerializer(serializers.ModelSerializer):
                 ]
             }
         }
+
+
+class RatingPUTSerializer(RatingPOSTSerializer):
+    """
+    Сериализатор для создания/обновления оценки.
+    Валидирует только поля 'rate' и 'text', которые присылает клиент.
+    """
+    pass
+
 
 class RatingDELETESerializer(serializers.ModelSerializer):
     """Сериализатор для удаления оценки."""

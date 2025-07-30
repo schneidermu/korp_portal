@@ -14,7 +14,7 @@ from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.filters import OrderingFilter
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -46,6 +46,10 @@ from .serializers import (
     RatingPOSTSerializer,
     RatingPUTSerializer,
 )
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FileUploadAPIView(APIView):
@@ -745,18 +749,33 @@ class ColleagueProfileViewset(UserViewSet):
         permission_classes=(IsAuthenticated,),
         serializer_class=RatingPOSTSerializer,
     )
-    def rate(self, request, id):
-        serializer = self.validate_rating(RatingPOSTSerializer, request, id)
-        employee = serializer.validated_data.get("employee")
-        serializer.save()
+    def rate(self, request, id=None):
+        """
+        Создает новую оценку для сотрудника.
+        Завершается ошибкой, если оценка уже существует.
+        """
+        employee_to_rate = self.get_object()
+        user = request.user
 
+        if employee_to_rate == user:
+            raise ValidationError("Вы не можете оценить самого себя.")
+
+        if Rating.objects.filter(user=user, employee=employee_to_rate).exists():
+            raise ValidationError("Нельзя оценивать одного сотрудника дважды.")
+
+        serializer = RatingPOSTSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(user=user, employee=employee_to_rate)
+
+        employee_to_rate.refresh_from_db()
         return Response(
             {
                 "message": "Вы успешно оценили сотрудника.",
-                "average_rating": employee.average_rating,
-                "num_rates": employee.rated.count(),
+                "average_rating": employee_to_rate.average_rating,
+                "num_rates": employee_to_rate.rated.count(),
             },
-            status=status.HTTP_200_OK,
+            status=status.HTTP_201_CREATED,
         )
 
     @transaction.atomic
@@ -781,29 +800,34 @@ class ColleagueProfileViewset(UserViewSet):
     @rate.mapping.put
     def change_or_rate(self, request, id=None):
         """
-        Updates an existing rating or creates a new one for the employee.
+        Обновляет существующую оценку.
+        Возвращает 404, если оценка для обновления не найдена.
         """
         employee_to_rate = self.get_object()
         user = request.user
 
-        if employee_to_rate == user:
-            raise ValidationError("Вы не можете оценить самого себя.")
+        try:
+            rating_to_update = Rating.objects.get(
+                user=user, 
+                employee=employee_to_rate
+            )
+        except Rating.DoesNotExist:
+            raise NotFound("Вы еще не ставили оценку этому сотруднику, поэтому не можете ее обновить.")
 
-        serializer = RatingPUTSerializer(data=request.data)
+        serializer = RatingPUTSerializer(
+            instance=rating_to_update, 
+            data=request.data,
+            partial=True
+        )
         serializer.is_valid(raise_exception=True)
 
-        rating, created = Rating.objects.update_or_create(
-            user=user,
-            employee=employee_to_rate,
-            defaults=serializer.validated_data
-        )
+        serializer.save()
 
         employee_to_rate.refresh_from_db()
-        message = "Вы успешно обновили оценку." if not created else "Вы успешно создали оценку."
 
         return Response(
             {
-                "message": message,
+                "message": "Вы успешно обновили оценку.",
                 "average_rating": employee_to_rate.average_rating,
                 "num_rates": employee_to_rate.rated.count(),
             },
@@ -956,11 +980,6 @@ class CompetenceListView(generics.ListAPIView):
         ).order_by("name")
 
         return queryset.order_by("name")
-
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class CustomTokenCreateView(TokenCreateView):
