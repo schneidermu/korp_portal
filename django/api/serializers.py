@@ -1543,7 +1543,7 @@ class ProfileInHierarchySerializer(serializers.ModelSerializer):
         )
 
 
-class StructuralSubdivisionSerializer(serializers.ModelSerializer):
+class StructuralSubdivisionInOrgSerializer(serializers.ModelSerializer):
     """Сериализатор структурного подразделения"""
 
     positions = ProfileInStrucureSerializer(many=True)
@@ -1575,11 +1575,11 @@ class StructuralSubdivisionInHierarchySerializer(serializers.ModelSerializer):
 class OrganizationSerializer(serializers.ModelSerializer):
     """Сериализатор организаций для страницы Орг. структуры"""
 
-    structural_subdivisions = StructuralSubdivisionSerializer(many=True)
+    structural_subdivisions = StructuralSubdivisionInOrgSerializer(many=True)
 
     class Meta:
         model = Organization
-        fields = ("id", "name", "address", "structural_subdivisions")
+        fields = ("id", "name", "head", "address", "structural_subdivisions")
 
 
 class ProfileInOrganizationSerializer(UserSerializer):
@@ -1733,3 +1733,44 @@ class IdeaSerializer(serializers.ModelSerializer):
         fields = ['id', 'text', 'created_at', 'author', 'author_name']
 
         read_only_fields = ['author', 'created_at', 'author_name']
+
+
+class StructuralSubdivisionWriteSerializer(serializers.ModelSerializer):
+    """
+    Serializer for WRITE operations (POST, PUT, PATCH).
+    Accepts primary keys for foreign key relationships.
+    """
+
+    organization = serializers.PrimaryKeyRelatedField(queryset=Organization.objects.all())
+    chief = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all(), allow_null=True, required=False)
+    supervisor = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all(), allow_null=True, required=False)
+    parent_structural_subdivision = serializers.PrimaryKeyRelatedField(queryset=StructuralSubdivision.objects.all(), allow_null=True, required=False)
+
+    class Meta:
+        model = StructuralSubdivision
+        fields = (
+            'id',
+            'name',
+            'organization',
+            'chief',
+            'supervisor',
+            'parent_structural_subdivision'
+        )
+
+
+class StructuralSubdivisionReadSerializer(serializers.ModelSerializer):
+    """
+    Serializer for READ operations (GET list/detail).
+    Provides nested, readable data for related objects.
+    """
+
+    class Meta:
+        model = StructuralSubdivision
+        fields = (
+            'id',
+            'name',
+            'organization',
+            'chief',
+            'supervisor',
+            'parent_structural_subdivision',
+        )

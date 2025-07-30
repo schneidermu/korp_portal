@@ -22,7 +22,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from employees.models import Competence, Employee, Idea, Organization, Rating
+from employees.models import Competence, Employee, Idea, Organization, Rating, StructuralSubdivision
 from homepage.models import Answer, News, Poll, PollGroup, PollSubmission, Question
 
 from .filters import CompetenceFilter, IdeaFilter
@@ -45,6 +45,8 @@ from .serializers import (
     RatingListSerializer,
     RatingPOSTSerializer,
     RatingPUTSerializer,
+    StructuralSubdivisionReadSerializer,
+    StructuralSubdivisionWriteSerializer
 )
 
 import logging
@@ -1067,3 +1069,30 @@ class IdeaViewSet(viewsets.ModelViewSet):
         При создании идеи автор подставляется из текущего запроса.
         """
         serializer.save(author=self.request.user)
+
+
+class StructuralSubdivisionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows structural subdivisions to be viewed or edited.
+    """
+
+    queryset = StructuralSubdivision.objects.select_related(
+        'organization', 'chief', 'supervisor', 'parent_structural_subdivision'
+    ).prefetch_related('controlled_structural_subdivision').all()
+
+    permission_classes = [IsAuthenticated]
+
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
+    filterset_fields = ('organization', 'chief', 'supervisor', 'parent_structural_subdivision')
+    search_fields = ('name',)
+    ordering_fields = ('name', 'organization__name')
+
+    def get_serializer_class(self):
+        """
+        Determine which serializer to use based on the action.
+        - Use ReadSerializer for safe methods (GET).
+        - Use WriteSerializer for unsafe methods (POST, PUT, PATCH).
+        """
+        if self.action in ('list', 'retrieve'):
+            return StructuralSubdivisionReadSerializer
+        return StructuralSubdivisionWriteSerializer
