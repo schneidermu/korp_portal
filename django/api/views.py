@@ -1080,7 +1080,7 @@ class StructuralSubdivisionViewSet(viewsets.ModelViewSet):
         'organization', 'chief', 'supervisor', 'parent_structural_subdivision'
     ).prefetch_related('controlled_structural_subdivision').all()
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
 
     filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
     filterset_fields = ('organization', 'chief', 'supervisor', 'parent_structural_subdivision')

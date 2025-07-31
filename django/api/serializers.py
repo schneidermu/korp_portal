@@ -1737,25 +1737,69 @@ class IdeaSerializer(serializers.ModelSerializer):
 
 class StructuralSubdivisionWriteSerializer(serializers.ModelSerializer):
     """
-    Serializer for WRITE operations (POST, PUT, PATCH).
-    Accepts primary keys for foreign key relationships.
+    Универсальный сериализатор для создания (POST) и обновления (PUT/PATCH)
+    структурных подразделений. Управляет всеми изменяемыми полями,
+    включая вложенный список сотрудников (positions).
     """
 
-    organization = serializers.PrimaryKeyRelatedField(queryset=Organization.objects.all())
-    chief = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all(), allow_null=True, required=False)
-    supervisor = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all(), allow_null=True, required=False)
-    parent_structural_subdivision = serializers.PrimaryKeyRelatedField(queryset=StructuralSubdivision.objects.all(), allow_null=True, required=False)
+    positions = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        many=True,
+        required=False,
+        write_only=True
+    )
 
     class Meta:
         model = StructuralSubdivision
+
         fields = (
             'id',
             'name',
             'organization',
             'chief',
             'supervisor',
-            'parent_structural_subdivision'
+            'parent_structural_subdivision',
+            'positions'
         )
+        read_only_fields = ('id',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance:
+            self.fields['organization'].read_only = True
+
+    @transaction.atomic
+    def create(self, validated_data):
+        """
+        Переопределяем метод создания.
+        """
+
+        positions_data = validated_data.pop('positions', [])
+
+        subdivision = StructuralSubdivision.objects.create(**validated_data)
+
+        if positions_data:
+            subdivision.positions.set(positions_data)
+
+        return subdivision
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+
+        positions_data = validated_data.pop('positions', None)
+
+        updated_instance = super().update(instance, validated_data)
+
+        if positions_data is not None:
+            updated_instance.positions.set(positions_data)
+
+        return updated_instance
+
+    def to_representation(self, instance):
+
+        read_serializer = StructuralSubdivisionReadSerializer(instance, context=self.context)
+        return read_serializer.data
 
 
 class StructuralSubdivisionReadSerializer(serializers.ModelSerializer):
@@ -1773,4 +1817,5 @@ class StructuralSubdivisionReadSerializer(serializers.ModelSerializer):
             'chief',
             'supervisor',
             'parent_structural_subdivision',
+            'positions',
         )
