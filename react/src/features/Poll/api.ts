@@ -20,6 +20,42 @@ export const useFetchPoll = (id: number | null) => {
   );
 };
 
+export const useFetchPolls = ({
+  kind = "plain",
+  status,
+  orgId,
+  limit,
+}: {
+  kind?: Poll["kind"];
+  status?: Poll["status"];
+  orgId?: number;
+  limit?: number;
+} = {}) => {
+  const fetcher = useTokenFetcher();
+
+  let key = `/polls/?kind=${kind}`;
+  if (status !== undefined) {
+    key += `&status=${status}`;
+  }
+  if (orgId !== undefined) {
+    key += `&organization__id=${orgId}`;
+  }
+  if (limit !== undefined) {
+    key += `&limit=${limit}`;
+  }
+
+  return useSWR<Poll[]>(key, (key: string) =>
+    fetcher(key)
+      .then((res) => {
+        if (res.status !== 200) {
+          throw new APIError("fetching polls", res);
+        }
+        return res.json();
+      })
+      .then((raw) => raw.map(toPoll)),
+  );
+};
+
 export const removePoll = async (token: string, id: number) => {
   const res = await tokenFetch(token, `/polls/${id}/`, { method: "DELETE" });
   if (res.status !== 204) {

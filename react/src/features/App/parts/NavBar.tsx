@@ -16,6 +16,7 @@ export const NavBar = (props: StackProps) => {
     anchor?: boolean;
     icon?: ReactNode;
   }[] = [
+    { name: "Главная", link: "/home" },
     { name: "Наша жизнь", link: "/feed" },
     { name: "Мой профиль", link: userId ? `/profile/${userId}` : "/" },
     {

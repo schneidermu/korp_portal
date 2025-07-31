@@ -10,7 +10,7 @@ import { Page } from "@/features/App/comps/Page.tsx";
 import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
 import { Button } from "@/shared/comps/Button.tsx";
 
-import { useFetchPolls } from "./api.ts";
+import { useFetchPolls } from "../api.ts";
 import { useTab } from "./slice.ts";
 
 import { GlobalStats } from "./parts/GlobalStats.tsx";

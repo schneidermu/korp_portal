@@ -48,6 +48,10 @@ const FormDashboardPage = React.lazy(
 const BusinessCardPage = React.lazy(
   async () => import("@/features/BusinessCard/BusinessCardPage"),
 );
+const HomePage = React.lazy(async () => import("@/features/Home/HomePage"));
+const CalendarPage = React.lazy(
+  async () => import("@/features/Calendar/pages/CalendarPage"),
+);
 
 export const App = () => {
   return (
@@ -56,9 +60,11 @@ export const App = () => {
         <Routes>
           <Route element={<AuthLoader />}>
             <Route path="/bc/:userId?" element={<BusinessCardPage />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/nextcloud" element={<NextcloudPage />} />
             <Route path="/tree/:orgId?" element={<UserTreePage />} />
-            <Route path="/" element={<ProfilePage />} />
             <Route path="/profile/:userId?" element={<ProfilePage />} />
             <Route path="forms">
               <Route path="dashboard" element={<FormDashboardPage />} />

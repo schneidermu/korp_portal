@@ -8,6 +8,7 @@ import {
   fullNameShort,
   stripPhoneNumber,
 } from "@/shared/utils";
+import { Temporal } from "temporal-polyfill";
 
 export const USER_STATUS = [
   "В командировке",
@@ -123,6 +124,18 @@ const matchDate = (term: string, date: Date): boolean => {
   ];
 
   return ds.some((f) => matchString(term, f(date)));
+};
+
+export const userAge = (user: User): number | undefined => {
+  if (O.isNone(user.dateOfBirth)) {
+    return;
+  }
+
+  const now = Temporal.Now.plainDateISO();
+  const date = Temporal.PlainDate.from(user.dateOfBirth.value);
+
+  return now.since(date).round({ smallestUnit: "years", relativeTo: now })
+    .years;
 };
 
 type FilterFields = Set<keyof User>;

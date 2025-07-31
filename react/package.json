@@ -27,6 +27,7 @@
     "react-router-dom": "^7.6.0",
     "recharts": "^3.0.0",
     "swr": "2.3.3",
+    "temporal-polyfill": "^0.3.0",
     "use-draggable-scroll": "^0.1.0"
   },
   "devDependencies": {

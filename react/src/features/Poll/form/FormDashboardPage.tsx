@@ -15,12 +15,12 @@ import {
 } from "@chakra-ui/react";
 import { LuChartPie, LuCircle, LuCloudDownload, LuLink } from "react-icons/lu";
 import { Link, useNavigate } from "react-router-dom";
-import { useFetchPolls } from "../list/api";
+import { useFetchPolls } from "../api";
 import { Poll } from "../types";
 import { Tooltip } from "@/shared/comps/Tooltip";
 
 export default function FormDashboardPage() {
-  const { data: forms } = useFetchPolls("form");
+  const { data: forms } = useFetchPolls({ kind: "form" });
 
   if (!forms) return;
 
