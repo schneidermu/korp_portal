@@ -9,11 +9,13 @@ from .views import (
     CustomTokenCreateView,
     FileUploadAPIView,
     HierarchyViewSet,
+    IdeaViewSet,
     NewsViewSet,
     OrganizationViewSet,
     OrgStructureViewset,
     PollGroupListView,
     PollViewset,
+    StructuralSubdivisionViewSet,
     ValidateNextCloudView,
 )
 
@@ -24,6 +26,8 @@ router_version1.register("colleagues", ColleagueProfileViewset, basename="collea
 router_version1.register("org-structure", OrgStructureViewset, basename="org-structure")
 router_version1.register("organization", OrganizationViewSet, basename="organization")
 router_version1.register("hierarchy", HierarchyViewSet, basename="hierarchy")
+router_version1.register("ideas", IdeaViewSet, basename="idea")
+router_version1.register("subdivisions", StructuralSubdivisionViewSet, basename='subdivision')
 
 
 urlpatterns = [

@@ -1,6 +1,6 @@
 import os.path
 
-from django.core.validators import EmailValidator, RegexValidator
+from django.core.validators import EmailValidator, RegexValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -19,6 +19,7 @@ from employees.models import (
     Diploma,
     Employee,
     Hobby,
+    Idea,
     Organization,
     Performance,
     Rating,
@@ -824,6 +825,12 @@ class NewsSerializer(serializers.ModelSerializer):
     """Сериализатор для новостей"""
 
     attachments = AttachmentSerializer(many=True, required=False)
+    organization = serializers.PrimaryKeyRelatedField(
+        queryset=Organization.objects.all(), 
+        many=True, 
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = News
@@ -1418,94 +1425,26 @@ class ProfileCreateSerializer(UserCreateSerializer):
 class RatingPOSTSerializer(serializers.ModelSerializer):
     """Сериализатор для оценивания."""
 
-    def validate(self, data):
-        employee = data.get("employee")
-        user = self.context["request"].user
-
-
-        if employee.id == user.id:
-            raise serializers.ValidationError(
-                {"error": "Вы не можете оценить самого себя."}
-            )
-
-        already_rated = Rating.objects.filter(user=user, employee=employee).exists()
-
-        if already_rated:
-            raise serializers.ValidationError(
-                {"error": "Нельзя оценивать одного сотрудника дважды."}
-            )
-
-        return data
-
-    @transaction.atomic
-    def create(self, validated_data):
-        validated_data["user"] = self.context["request"].user
-        rating = Rating.objects.create(**validated_data)
-        return rating
-
     class Meta:
         model = Rating
-        fields = (
-            "id",
-            "employee",
-            "rate",
-            "text",
-            "date",
-            "user",
-        )
-        read_only_fields = (
-            "date",
-            "user",
-        )
+        fields = ('rate', 'text')
+        extra_kwargs = {
+            'rate': {
+                'required': True,
+                'validators': [
+                    MinValueValidator(1, message="Оценка не может быть меньше 1."),
+                    MaxValueValidator(5, message="Оценка не может быть больше 5.")
+                ]
+            }
+        }
 
 
 class RatingPUTSerializer(RatingPOSTSerializer):
-    """Сериализатор для оценивания (PUT)."""
-
-    def validate(self, data):
-        user = self.context["request"].user
-        employee = data.get("employee")
-
-        if employee.id == user.id:
-            raise serializers.ValidationError(
-                {"error": "Вы не можете оценить самого себя."}
-            )
-        if "rate" in data and (data["rate"] < 1 or data["rate"] > 5):
-            raise serializers.ValidationError({"error": "Недопустимая оценка."})
-
-        return data
-
-    @transaction.atomic
-    def create(self, validated_data):
-
-        user = self.context["request"].user
-        employee = validated_data.get("employee")
-        
-        rating, _ = Rating.objects.update_or_create(
-            user=user,
-            employee=employee,
-            defaults={
-                "rate": validated_data.get("rate"),
-                "text": validated_data.get("text")
-            }
-        )
-
-        return rating
-
-    class Meta:
-        model = Rating
-        fields = (
-            "id",
-            "employee",
-            "rate",
-            "text",
-            "date",
-            "user",
-        )
-        read_only_fields = (
-            "date",
-            "user",
-        )
+    """
+    Сериализатор для создания/обновления оценки.
+    Валидирует только поля 'rate' и 'text', которые присылает клиент.
+    """
+    pass
 
 
 class RatingDELETESerializer(serializers.ModelSerializer):
@@ -1530,6 +1469,16 @@ class RatingDELETESerializer(serializers.ModelSerializer):
     class Meta:
         model = Rating
         exclude = ("rate",)
+
+
+class RatingListSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для листинга рейтинга.
+    """
+
+    class Meta:
+        model = Rating
+        fields = ('id', 'user', 'rate', 'text', 'date')
 
 
 class ProfileInStrucureSerializer(serializers.ModelSerializer):
@@ -1594,7 +1543,7 @@ class ProfileInHierarchySerializer(serializers.ModelSerializer):
         )
 
 
-class StructuralSubdivisionSerializer(serializers.ModelSerializer):
+class StructuralSubdivisionInOrgSerializer(serializers.ModelSerializer):
     """Сериализатор структурного подразделения"""
 
     positions = ProfileInStrucureSerializer(many=True)
@@ -1626,11 +1575,11 @@ class StructuralSubdivisionInHierarchySerializer(serializers.ModelSerializer):
 class OrganizationSerializer(serializers.ModelSerializer):
     """Сериализатор организаций для страницы Орг. структуры"""
 
-    structural_subdivisions = StructuralSubdivisionSerializer(many=True)
+    structural_subdivisions = StructuralSubdivisionInOrgSerializer(many=True)
 
     class Meta:
         model = Organization
-        fields = ("id", "name", "address", "structural_subdivisions")
+        fields = ("id", "name", "head", "address", "structural_subdivisions")
 
 
 class ProfileInOrganizationSerializer(UserSerializer):
@@ -1771,3 +1720,102 @@ class PollUserAnswersListSerializer(serializers.Serializer):
     count = serializers.IntegerField()
     next = serializers.URLField(allow_null=True)
     previous = serializers.URLField(allow_null=True)
+
+
+class IdeaSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели Idea.
+    """
+    author_name = serializers.StringRelatedField(source='author', read_only=True)
+
+    class Meta:
+        model = Idea
+        fields = ['id', 'text', 'created_at', 'author', 'author_name']
+
+        read_only_fields = ['author', 'created_at', 'author_name']
+
+
+class StructuralSubdivisionWriteSerializer(serializers.ModelSerializer):
+    """
+    Универсальный сериализатор для создания (POST) и обновления (PUT/PATCH)
+    структурных подразделений. Управляет всеми изменяемыми полями,
+    включая вложенный список сотрудников (positions).
+    """
+
+    positions = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        many=True,
+        required=False,
+        write_only=True
+    )
+
+    class Meta:
+        model = StructuralSubdivision
+
+        fields = (
+            'id',
+            'name',
+            'organization',
+            'chief',
+            'supervisor',
+            'parent_structural_subdivision',
+            'positions'
+        )
+        read_only_fields = ('id',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance:
+            self.fields['organization'].read_only = True
+
+    @transaction.atomic
+    def create(self, validated_data):
+        """
+        Переопределяем метод создания.
+        """
+
+        positions_data = validated_data.pop('positions', [])
+
+        subdivision = StructuralSubdivision.objects.create(**validated_data)
+
+        if positions_data:
+            subdivision.positions.set(positions_data)
+
+        return subdivision
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+
+        positions_data = validated_data.pop('positions', None)
+
+        updated_instance = super().update(instance, validated_data)
+
+        if positions_data is not None:
+            updated_instance.positions.set(positions_data)
+
+        return updated_instance
+
+    def to_representation(self, instance):
+
+        read_serializer = StructuralSubdivisionReadSerializer(instance, context=self.context)
+        return read_serializer.data
+
+
+class StructuralSubdivisionReadSerializer(serializers.ModelSerializer):
+    """
+    Serializer for READ operations (GET list/detail).
+    Provides nested, readable data for related objects.
+    """
+
+    class Meta:
+        model = StructuralSubdivision
+        fields = (
+            'id',
+            'name',
+            'organization',
+            'chief',
+            'supervisor',
+            'parent_structural_subdivision',
+            'positions',
+        )

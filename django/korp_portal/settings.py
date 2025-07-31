@@ -110,7 +110,7 @@ DEBUG = os.getenv("DEBUG", "").lower() in ["1", "true", "yes"]
 
 vm_hostname = socket.gethostname() + ".favr"
 
-ALLOWED_HOSTS = [".localhost", vm_hostname]
+ALLOWED_HOSTS = [".localhost", "django", vm_hostname]
 if os.getenv("ALLOWED_HOSTS", "") != "":
     ALLOWED_HOSTS.extend(os.environ["ALLOWED_HOSTS"].split(","))
 

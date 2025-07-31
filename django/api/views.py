@@ -16,16 +16,18 @@ from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.filters import OrderingFilter
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from employees.models import Competence, Employee, Organization, Rating
+from employees.models import Competence, Employee, Idea, Organization, Rating, StructuralSubdivision
 from homepage.models import Answer, News, Poll, PollGroup, PollSubmission, Question
 
-from .filters import CompetenceFilter
+from .filters import CompetenceFilter, IdeaFilter
 from .permissions import IsAdminUserOrReadOnly, IsUserOrReadOnly
 from .serializers import (
     CompetenceSerializer,
@@ -33,6 +35,7 @@ from .serializers import (
     HierarchySerializer,
     MyProfileSerializer,
     NewsSerializer,
+    IdeaSerializer,
     OrganizationSerializer,
     OrgStructureSerializer,
     PollGroupSerializer,
@@ -41,9 +44,16 @@ from .serializers import (
     PollSubmissionWithAnswersSerializer,
     ProfileInOrganizationSerializer,
     RatingDELETESerializer,
+    RatingListSerializer,
     RatingPOSTSerializer,
     RatingPUTSerializer,
+    StructuralSubdivisionReadSerializer,
+    StructuralSubdivisionWriteSerializer
 )
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FileUploadAPIView(APIView):
@@ -636,8 +646,6 @@ class PollViewset(viewsets.ModelViewSet):
             'submission_details': serializer.data
         }
         return Response(response_data)
-    
-    
 
 
 class NewsViewSet(viewsets.ModelViewSet):
@@ -716,6 +724,8 @@ class ColleagueProfileViewset(UserViewSet):
             and self.kwargs.get("username") != self.request.user.username
         ):
             return ProfileInOrganizationSerializer
+        if self.action == "ratings":
+            return RatingListSerializer
 
         return super().get_serializer_class()
 
@@ -743,18 +753,33 @@ class ColleagueProfileViewset(UserViewSet):
         permission_classes=(IsAuthenticated,),
         serializer_class=RatingPOSTSerializer,
     )
-    def rate(self, request, id):
-        serializer = self.validate_rating(RatingPOSTSerializer, request, id)
-        employee = serializer.validated_data.get("employee")
-        serializer.save()
+    def rate(self, request, id=None):
+        """
+        Создает новую оценку для сотрудника.
+        Завершается ошибкой, если оценка уже существует.
+        """
+        employee_to_rate = self.get_object()
+        user = request.user
 
+        if employee_to_rate == user:
+            raise ValidationError("Вы не можете оценить самого себя.")
+
+        if Rating.objects.filter(user=user, employee=employee_to_rate).exists():
+            raise ValidationError("Нельзя оценивать одного сотрудника дважды.")
+
+        serializer = RatingPOSTSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(user=user, employee=employee_to_rate)
+
+        employee_to_rate.refresh_from_db()
         return Response(
             {
                 "message": "Вы успешно оценили сотрудника.",
-                "average_rating": employee.average_rating,
-                "num_rates": employee.rated.count(),
+                "average_rating": employee_to_rate.average_rating,
+                "num_rates": employee_to_rate.rated.count(),
             },
-            status=status.HTTP_200_OK,
+            status=status.HTTP_201_CREATED,
         )
 
     @transaction.atomic
@@ -777,19 +802,58 @@ class ColleagueProfileViewset(UserViewSet):
 
     @transaction.atomic
     @rate.mapping.put
-    def change_or_rate(self, request, id):
-        serializer = self.validate_rating(RatingPUTSerializer, request, id)
-        employee = serializer.validated_data.get("employee")
+    def change_or_rate(self, request, id=None):
+        """
+        Обновляет существующую оценку.
+        Возвращает 404, если оценка для обновления не найдена.
+        """
+        employee_to_rate = self.get_object()
+        user = request.user
+
+        try:
+            rating_to_update = Rating.objects.get(
+                user=user, 
+                employee=employee_to_rate
+            )
+        except Rating.DoesNotExist:
+            raise NotFound("Вы еще не ставили оценку этому сотруднику, поэтому не можете ее обновить.")
+
+        serializer = RatingPUTSerializer(
+            instance=rating_to_update, 
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+
         serializer.save()
+
+        employee_to_rate.refresh_from_db()
 
         return Response(
             {
-                "message": "Вы успешно оценили сотрудника.",
-                "average_rating": employee.average_rating,
-                "num_rates": employee.rated.count(),
+                "message": "Вы успешно обновили оценку.",
+                "average_rating": employee_to_rate.average_rating,
+                "num_rates": employee_to_rate.rated.count(),
             },
             status=status.HTTP_200_OK,
         )
+    
+    @action(detail=True, methods=['get'], url_path='ratings')
+    def ratings(self, request, id=None):
+        """
+        Returns a paginated list of all ratings for a specific employee.
+        """
+        employee = self.get_object()
+
+        queryset = employee.rated.all().order_by('-date')
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class OrgStructureViewset(ListModelMixin, RetrieveModelMixin, viewsets.GenericViewSet):
@@ -928,11 +992,6 @@ class CompetenceListView(generics.ListAPIView):
         return queryset.order_by("name")
 
 
-import logging
-
-logger = logging.getLogger(__name__)
-
-
 class CustomTokenCreateView(TokenCreateView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
@@ -996,3 +1055,52 @@ class PollGroupListView(generics.ListAPIView):
     search_fields = ["name"]
 
     queryset = PollGroup.objects.all()
+
+
+class IdeaViewSet(viewsets.ModelViewSet):
+    """
+    API эндпоинт для идей.
+    """
+    queryset = Idea.objects.select_related('author').all()
+    serializer_class = IdeaSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'head', 'options']
+
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+
+    filterset_class = IdeaFilter
+
+    ordering_fields = ['created_at', 'author']
+
+    def perform_create(self, serializer):
+        """
+        При создании идеи автор подставляется из текущего запроса.
+        """
+        serializer.save(author=self.request.user)
+
+
+class StructuralSubdivisionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows structural subdivisions to be viewed or edited.
+    """
+
+    queryset = StructuralSubdivision.objects.select_related(
+        'organization', 'chief', 'supervisor', 'parent_structural_subdivision'
+    ).prefetch_related('controlled_structural_subdivision').all()
+
+    permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
+
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
+    filterset_fields = ('organization', 'chief', 'supervisor', 'parent_structural_subdivision')
+    search_fields = ('name',)
+    ordering_fields = ('name', 'organization__name')
+
+    def get_serializer_class(self):
+        """
+        Determine which serializer to use based on the action.
+        - Use ReadSerializer for safe methods (GET).
+        - Use WriteSerializer for unsafe methods (POST, PUT, PATCH).
+        """
+        if self.action in ('list', 'retrieve'):
+            return StructuralSubdivisionReadSerializer
+        return StructuralSubdivisionWriteSerializer
