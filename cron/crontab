@@ -1,0 +1,10 @@
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Debug cron job - runs every minute to show it's working
+* * * * * root /bin/bash -c 'echo "DEBUG: Cron is running at $(date). PWD=$(pwd). USER=$(whoami)" >> /var/log/cron.log 2>&1'
+
+# Test environment variables
+* * * * * root /bin/bash -c 'echo "DEBUG: Testing env vars - NEWS_API_TOKEN=${NEWS_API_TOKEN:-NOT_SET}, DJANGO_CONTAINER_NAME=${DJANGO_CONTAINER_NAME:-NOT_SET}" >> /var/log/cron.log 2>&1'
+
+# Main import job - runs every 5 minutes for testing
+* * * * * root /bin/bash -c 'echo "DEBUG: Starting import job at $(date)" >> /var/log/cron.log 2>&1; source /etc/environment 2>/dev/null; export NEWS_API_TOKEN DJANGO_CONTAINER_NAME; /usr/local/bin/run_import.sh' >> /var/log/cron.log 2>&1

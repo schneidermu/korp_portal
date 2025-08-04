@@ -855,15 +855,23 @@ class NewsSerializer(serializers.ModelSerializer):
         attachments_data = validated_data.pop("attachments", [])
         organization_data = validated_data.pop("organization", None)
 
-        news = News.objects.create(**validated_data)
+        news_defaults = validated_data
 
-        if organization_data is not None:
-            news.organization.set(organization_data)
+        news_item, created = News.objects.get_or_create(
+            title=validated_data['title'],
+            defaults=news_defaults
+        )
 
-        for attachment_data in attachments_data:
-            Attachment.objects.create(publication=news, **attachment_data)
+        if created:
+            if organization_data is not None:
+                news_item.organization.set(organization_data)
 
-        return news
+            for attachment_data in attachments_data:
+                Attachment.objects.create(publication=news_item, **attachment_data)
+        else:
+            pass
+
+        return news_item
 
 
 class CourseSerializer(serializers.ModelSerializer):

@@ -1,0 +1,2 @@
+* * * * * echo "DEBUG: Simple cron test at $(date)" >> /var/log/cron.log 2>&1
+* * * * * /bin/bash -c 'echo "DEBUG: Bash test at $(date)" >> /var/log/cron.log 2>&1'
