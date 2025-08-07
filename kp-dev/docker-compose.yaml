@@ -52,6 +52,7 @@ services:
 
   django:
     build: ../django/
+    container_name: kp-dev-django
     environment:
       POSTGRES_USER: "${POSTGRES_USER_DJANGO}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD_DJANGO}"
@@ -64,8 +65,11 @@ services:
       CHALLENGE_URL: "${CHALLENGE_URL}"
       SCRIPT_NAME: "${BACKEND_PREFIX}"
       DJANGO_PORT: 8000
+      NEWS_API_TOKEN: "${NEWS_API_TOKEN}"
     volumes:
       - ./volumes/media:/media
+      - ../django:/app
+      - ./logs:/app/logs
     depends_on:
       database:
         condition: service_healthy
@@ -75,6 +79,20 @@ services:
       - "traefik.http.routers.django.rule=PathPrefix(`${BACKEND_PREFIX}/`)"
       - "traefik.http.routers.django.entrypoints=web"
       - "traefik.http.services.django.loadbalancer.server.port=8000"
+
+  cron-importer:
+    build:
+      context: ../
+      dockerfile: ./cron/Dockerfile
+    environment:
+      NEWS_API_TOKEN: "${NEWS_API_TOKEN}"
+      DJANGO_CONTAINER_NAME: "kp-dev-django" 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../django/scripts:/app/scripts
+    depends_on:
+      django:
+        condition: service_started
 
   react:
     build:

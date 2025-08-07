@@ -70,15 +70,35 @@ AUTH_LDAP_USER_FLAGS_BY_GROUP = {
 
 AUTHENTICATION_BACKENDS = ("korp_portal.backends.LiferayDatabaseBackend",)
 
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "simple_file": {
+            "format": "{asctime} - {message}",
+            "style": "{",
+        },
+    },
     "handlers": {
         "mail_admins": {
             "level": "ERROR",
             "class": "django.utils.log.AdminEmailHandler",
         },
-        "stream_to_console": {"level": "DEBUG", "class": "logging.StreamHandler"},
+        "stream_to_console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler"
+        },
+        "api_file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "/app/logs/api.log",
+            "maxBytes": 1024 * 1024 * 10,
+            "backupCount": 5,
+            "formatter": "simple_file",
+        },
     },
     "loggers": {
         "django.request": {
@@ -90,6 +110,11 @@ LOGGING = {
             "handlers": ["stream_to_console"],
             "level": "DEBUG",
             "propagate": True,
+        },
+        "api_logger": {
+            "handlers": ["api_file", "stream_to_console"],
+            "level": "INFO",
+            "propagate": False,
         },
     },
 }
@@ -157,6 +182,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "api.middleware.logging_middleware.ApiLoggingMiddleware",
 ]
 
 ROOT_URLCONF = "korp_portal.urls"
