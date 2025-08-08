@@ -54,10 +54,19 @@ export const useUpdateRating = () => {
 
     const res = await Option.match(rating, {
       onSome: (rate) =>
-        tokenFetch(`/colleagues/${user.id}/rate/`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rate }),
+        Option.match(user.myRating, {
+          onNone: () =>
+            tokenFetch(`/colleagues/${user.id}/rate/`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ rate }),
+            }),
+          onSome: () =>
+            tokenFetch(`/colleagues/${user.id}/rate/`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ rate }),
+            }),
         }),
       onNone: () =>
         tokenFetch(`/colleagues/${user.id}/rate/`, {
