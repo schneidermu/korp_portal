@@ -8,6 +8,11 @@ export default defineConfig(({ mode }) => {
   const conf = {
     base: "/vite/",
     plugins: [react(), tsconfigPaths()],
+    test: {
+      globals: true,
+      environment: "jsdom",
+      setupFiles: "./src/tests.ts",
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
