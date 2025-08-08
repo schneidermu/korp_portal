@@ -24,7 +24,7 @@ import { drawRoundedChain } from "@/features/UserTree/utils";
 import { Canvas } from "@/shared/comps/Canvas";
 import { useIntParam } from "@/shared/hooks/useIntParam.ts";
 import { UnitNodeEditorDialog, NodeView } from "./parts/NodeView";
-import { actions, useSliceSelector } from "./slice";
+import { actions, saveTree, useSliceSelector } from "./slice";
 
 import { Button } from "@/shared/comps/Button";
 
@@ -210,7 +210,11 @@ const Sidebar = ({ initialTree }: { initialTree?: Tree }) => {
           >
             Отменить
           </Button>
-          <Button variant="solid" onClick={undefined} fontSize="inherit">
+          <Button
+            variant="solid"
+            onClick={() => dispatch(saveTree(initialTree))}
+            fontSize="inherit"
+          >
             Сохранить
           </Button>
         </>

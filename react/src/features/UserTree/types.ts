@@ -228,3 +228,25 @@ export const recomputeChildren = (tree: Tree) => {
     }
   }
 };
+
+export const treeUnits = (t: Tree): UnitNode[] => {
+  return Object.values(t.nodes).filter(
+    (node): node is UnitNode => node.kind === "unit",
+  );
+};
+
+export const treeUnitIds = (t: Tree): string[] =>
+  treeUnits(t).map(({ id }) => id);
+
+export const treeUnitIdsSet = (t: Tree): Set<string> => new Set(treeUnitIds(t));
+
+export const treeUsers = (t: Tree): UserNode[] => {
+  return Object.values(t.nodes).filter(
+    (node): node is UserNode => node.kind === "user",
+  );
+};
+
+export const treeUserIds = (t: Tree): string[] =>
+  treeUsers(t).map(({ id }) => id);
+
+export const treeUserIdsSet = (t: Tree): Set<string> => new Set(treeUserIds(t));
