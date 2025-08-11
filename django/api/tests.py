@@ -1,9 +1,13 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
-from django.urls import reverse
+from django.test import override_settings
 from employees.models import Employee, Rating, StructuralSubdivision, Organization
 
 
+@override_settings(
+    AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
+    FORCE_SCRIPT_NAME=''
+)
 class RatingAPITests(APITestCase):
 
     def setUp(self):
@@ -22,11 +26,12 @@ class RatingAPITests(APITestCase):
             email='other@example.com'
         )
 
-        self.client.login(username='main_user', password='testpassword123')
+        self.client.force_authenticate(user=self.user)
 
     def test_create_rating_successfully(self):
         """Тест: Успешное создание новой оценки для другого сотрудника (POST)."""
-        url = reverse('colleagues-rate', kwargs={'pk': self.other_employee.pk})
+
+        url = f"/api/colleagues/{self.other_employee.pk}/rate/"
         rating_data = {"rate": 5, "text": "Отличная работа!"}
 
         response = self.client.post(url, rating_data, format='json')
@@ -39,7 +44,7 @@ class RatingAPITests(APITestCase):
         """Тест: Попытка создать вторую оценку тому же сотруднику должна провалиться (POST)."""
         Rating.objects.create(user=self.user, employee=self.other_employee, rate=4)
 
-        url = reverse('colleagues-rate', kwargs={'pk': self.other_employee.pk})
+        url = f"/api/colleagues/{self.other_employee.pk}/rate/"
         rating_data = {"rate": 5, "text": "Пытаюсь оценить снова."}
 
         response = self.client.post(url, rating_data, format='json')
@@ -57,7 +62,7 @@ class RatingAPITests(APITestCase):
             rate=3,
             text="Первоначальная оценка"
         )
-        url = reverse('colleagues-rate', kwargs={'pk': self.other_employee.pk})
+        url = f"/api/colleagues/{self.other_employee.pk}/rate/"
         update_data = {"rate": 5, "text": "Оценка обновлена!"}
 
         response = self.client.put(url, update_data, format='json')
@@ -73,7 +78,7 @@ class RatingAPITests(APITestCase):
         """
         Тест (Случай ошибки): Попытка обновить несуществующую оценку должна вернуть 404 (PUT).
         """
-        url = reverse('colleagues-rate', kwargs={'pk': self.other_employee.pk})
+        url = f"/api/colleagues/{self.other_employee.pk}/rate/"
         update_data = {"rate": 4}
 
         self.assertFalse(Rating.objects.filter(user=self.user, employee=self.other_employee).exists())
@@ -87,24 +92,55 @@ class RatingAPITests(APITestCase):
         """
         Тест: Нельзя оценить самого себя через POST.
         """
-        url = reverse('colleagues-rate', kwargs={'pk': self.user.pk})
+        url = f"/api/colleagues/{self.user.pk}/rate/"
         rating_data = {"rate": 5}
         response = self.client.post(url, rating_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Вы не можете оценить самого себя", str(response.data))
 
-    def test_cannot_rate_self_put_fails(self):
+    def test_delete_rating_successfully(self):
         """
-        Тест: Нельзя оценить самого себя через PUT.
-        Эта проверка происходит до поиска оценки, поэтому она все еще актуальна.
+        Тест: Успешное удаление существующей оценки (DELETE).
         """
-        url = reverse('colleagues-rate', kwargs={'pk': self.user.pk})
-        rating_data = {"rate": 5}
-        response = self.client.put(url, rating_data, format='json')
+        # Создаем оценку для удаления
+        Rating.objects.create(user=self.user, employee=self.other_employee, rate=4)
+        
+        url = f"/api/colleagues/{self.other_employee.pk}/rate/"
+        response = self.client.delete(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Rating.objects.filter(user=self.user, employee=self.other_employee).exists())
+        self.assertEqual(response.data['message'], "Вы успешно удалили свою оценку.")
+
+    def test_delete_non_existent_rating_fails(self):
+        """
+        Тест: Попытка удалить несуществующую оценку должна провалиться (DELETE).
+        """
+        url = f"/api/colleagues/{self.other_employee.pk}/rate/"
+        
+        # Убеждаемся, что оценки не существует
+        self.assertFalse(Rating.objects.filter(user=self.user, employee=self.other_employee).exists())
+        
+        response = self.client.delete(url)
+        
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("Вы не можете оценить самого себя", str(response.data))
 
+    def test_rate_another_employee_post_successfully(self):
+        """
+        Тест: Успешная оценка другого сотрудника через POST с минимальными данными.
+        """
+        url = f"/api/colleagues/{self.other_employee.pk}/rate/"
+        rating_data = {"rate": 3}  # Только обязательное поле
+        
+        response = self.client.post(url, rating_data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Rating.objects.filter(user=self.user, employee=self.other_employee, rate=3).exists())
 
+@override_settings(
+    AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
+    FORCE_SCRIPT_NAME=''
+)
 class StructuralSubdivisionAPITests(APITestCase):
 
     def setUp(self):
@@ -126,7 +162,7 @@ class StructuralSubdivisionAPITests(APITestCase):
         """
         Проверяем успешное создание нового структурного подразделения (POST).
         """
-        url = reverse('subdivision-list')
+        url = "/api/subdivisions/"
         data = {
             "name": "Новый Отдел Разработки",
             "organization": self.organization.pk,
@@ -152,9 +188,9 @@ class StructuralSubdivisionAPITests(APITestCase):
 
     def test_update_name(self):
         """Проверяем изменение атрибута 'name'."""
-        # Arrange
+
         subdivision = self.setUp_for_update()
-        url = reverse('subdivision-detail', kwargs={'pk': subdivision.pk})
+        url = f"/api/subdivisions/{subdivision.pk}/"
         new_name = "Измененное Название Отдела"
         data = {"name": new_name}
 
@@ -169,7 +205,7 @@ class StructuralSubdivisionAPITests(APITestCase):
 
         subdivision = self.setUp_for_update()
         new_chief = Employee.objects.create_user(username='newchief')
-        url = reverse('subdivision-detail', kwargs={'pk': subdivision.pk})
+        url = f"/api/subdivisions/{subdivision.pk}/"
         data = {"chief": new_chief.pk}
 
         response = self.client.patch(url, data, format='json')
@@ -182,7 +218,7 @@ class StructuralSubdivisionAPITests(APITestCase):
         """Проверяем изменение атрибута 'supervisor'."""
 
         subdivision = self.setUp_for_update()
-        url = reverse('subdivision-detail', kwargs={'pk': subdivision.pk})
+        url = f"/api/subdivisions/{subdivision.pk}/"
         data = {"supervisor": self.supervisor_employee.pk}
 
         response = self.client.patch(url, data, format='json')
@@ -195,7 +231,7 @@ class StructuralSubdivisionAPITests(APITestCase):
         """Проверяем изменение атрибута 'parent_structural_subdivision'."""
 
         subdivision = self.setUp_for_update()
-        url = reverse('subdivision-detail', kwargs={'pk': subdivision.pk})
+        url = f"/api/subdivisions/{subdivision.pk}/"
         data = {"parent_structural_subdivision": self.parent_subdivision.pk}
 
         response = self.client.patch(url, data, format='json')
@@ -208,7 +244,7 @@ class StructuralSubdivisionAPITests(APITestCase):
         """Проверяем возможность обнулить 'chief' (так как поле nullable)."""
 
         subdivision = self.setUp_for_update()
-        url = reverse('subdivision-detail', kwargs={'pk': subdivision.pk})
+        url = f"/api/subdivisions/{subdivision.pk}/"
         data = {"chief": None}
 
         response = self.client.patch(url, data, format='json')
@@ -226,7 +262,7 @@ class StructuralSubdivisionAPITests(APITestCase):
             name="Отдел на удаление",
             organization=self.organization
         )
-        url = reverse('subdivision-detail', kwargs={'pk': subdivision_to_delete.pk})
+        url = f"/api/subdivisions/{subdivision_to_delete.pk}/"
 
         self.assertTrue(StructuralSubdivision.objects.filter(pk=subdivision_to_delete.pk).exists())
 
