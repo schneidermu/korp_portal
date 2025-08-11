@@ -9,6 +9,15 @@ services:
     volumes:
       - ./database/gen/init.sql:/docker-entrypoint-initdb.d/init.sql
       - pg_data:/var/lib/postgresql/data
+    command: >
+      sh -c "
+        docker-entrypoint.sh postgres &
+        PG_PID=$$! &&
+        sleep 5 &&
+        until pg_isready -U postgres; do sleep 1; done &&
+        psql -U postgres -d postgres -c 'ALTER USER django CREATEDB;' || true &&
+        wait $$PG_PID
+      "
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       timeout: 3s
