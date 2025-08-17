@@ -49,6 +49,9 @@ def format_date_to_iso(date_string):
 
 
 def get_article_details(article_url, image_url):
+    """
+    Функция для получения чистого текста статьи.
+    """
     details = {"text": "", "base64_image": None}
 
     try:
@@ -60,26 +63,28 @@ def get_article_details(article_url, image_url):
         soup = BeautifulSoup(response.text, "lxml")
 
         text_container = soup.find("div", class_="content")
+        
         if text_container:
-            if time_tag := text_container.find("time", class_="date"):
-                time_tag.decompose()
-            for link in text_container.find_all(
-                "a",
-                href=lambda href: href
-                and any(ext in href for ext in [".docx", ".pdf"]),
-            ):
-                link.decompose()
+            paragraphs = text_container.find_all("p")
+            
+            clean_paragraph_texts = []
+            for p in paragraphs:
+                p_text = p.get_text(strip=True)
+                
+                if "Пресс-служба Росводресурсов" in p_text:
+                    break
+                
+                if p_text:
+                    clean_paragraph_texts.append(p_text)
 
-            raw_text = text_container.get_text(separator="\n", strip=True)
-            signature_phrase = "Пресс-служба Росводресурсов"
-            if signature_phrase in raw_text:
-                stop_index = raw_text.find(signature_phrase)
-                clean_text = raw_text[:stop_index].strip()
-            else:
-                clean_text = raw_text
-            details["text"] = clean_text
+            details["text"] = "\n\n".join(clean_paragraph_texts)
+            
+            if not details["text"]:
+                details["text"] = "Текст статьи не найден (отсутствуют теги <p>)."
+
         else:
-            details["text"] = "Текст статьи не найден."
+            details["text"] = "Текст статьи не найден (отсутствует div.content)."
+            
     except requests.RequestException as e:
         print(f"  [!] Ошибка при получении текста статьи: {e}", file=sys.stderr)
         details["text"] = f"Не удалось загрузить текст: {e}"
