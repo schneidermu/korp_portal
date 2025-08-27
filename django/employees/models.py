@@ -603,6 +603,23 @@ class Idea(models.Model):
         editable=False
     )
     text = models.TextField(verbose_name="Текст идеи")
+    STATUS_CHOICES = [
+        ("Получено", "Получено"),
+        ("Одобрено", "Одобрено"),
+        ("Отклонено", "Отклонено"),
+        ("На рассмотрении", "На рассмотрении"),
+    ]
+    status = models.CharField(
+        verbose_name="Статус",
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_CHOICES[0][0],
+    )
+    resolution = models.TextField(
+        verbose_name="Решение",
+        blank=True,
+        null=True,
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Дата создания"
