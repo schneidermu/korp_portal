@@ -212,7 +212,13 @@ class StructuralSubdivisionAPITests(APITestCase):
         Подготавливаем данные, которые будут использоваться в нескольких тестах.
         """
         self.user = Employee.objects.create_user(username='testuser', password='password123')
-        self.client.force_authenticate(user=self.user)
+        # Создаем администратора для операций создания/редактирования
+        self.admin_user = Employee.objects.create_user(
+            username='admin', 
+            password='password123',
+            is_staff=True
+        )
+        self.client.force_authenticate(user=self.admin_user)  # Используем администратора по умолчанию
 
         self.organization = Organization.objects.create(name="Главная Организация")
         self.chief_employee = Employee.objects.create_user(username='chief', password='password123')
@@ -334,6 +340,37 @@ class StructuralSubdivisionAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(StructuralSubdivision.objects.filter(pk=subdivision_to_delete.pk).exists())
+
+    def test_regular_user_cannot_create_subdivision(self):
+        """
+        Проверяем, что обычный пользователь не может создавать подразделения.
+        """
+        # Переключаемся на обычного пользователя
+        self.client.force_authenticate(user=self.user)
+        
+        url = "/api/subdivisions/"
+        data = {
+            "name": "Попытка создать отдел",
+            "organization": self.organization.pk,
+        }
+
+        response = self.client.post(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
+                        "Обычный пользователь не должен иметь возможность создавать подразделения")
+
+    def test_regular_user_can_read_subdivisions(self):
+        """
+        Проверяем, что обычный пользователь может читать подразделения.
+        """
+        # Переключаемся на обычного пользователя
+        self.client.force_authenticate(user=self.user)
+        
+        url = "/api/subdivisions/"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                        "Обычный пользователь должен иметь возможность читать подразделения")
 
 
 @override_settings(
@@ -516,72 +553,6 @@ class CompetenceListViewTests(APITestCase):
     AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
     FORCE_SCRIPT_NAME=''
 )
-class IdeaViewSetTests(APITestCase):
-    """
-    Тесты для API идей.
-    
-    Проверяет функциональность работы с идеями:
-    - Получение списка идей
-    - Получение отдельной идеи
-    - Создание новых идей
-    """
-    
-    def setUp(self):
-        self.user = Employee.objects.create_user(username='testuser', password='password123')
-        self.other_user = Employee.objects.create_user(username='otheruser', password='password123')
-        self.client.force_authenticate(user=self.user)
-        
-        self.idea = Idea.objects.create(
-            text="This is a test idea",
-            author=self.other_user
-        )
-    
-    def test_list_ideas(self):
-        """Тест: Получение списка идей."""
-        url = "/api/ideas/"
-        response = self.client.get(url)
-        
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "Не удалось получить список идей")
-        # Check if paginated or direct list
-        if 'results' in response.data:
-            self.assertTrue(len(response.data['results']) >= 1,
-                          f"Список идей пуст, ожидалось минимум 1: {len(response.data['results'])}")
-        else:
-            self.assertTrue(len(response.data) >= 1,
-                          f"Список идей пуст, ожидалось минимум 1: {len(response.data)}")
-    
-    def test_retrieve_idea(self):
-        """Тест: Получение отдельной идеи."""
-        url = f"/api/ideas/{self.idea.pk}/"
-        response = self.client.get(url)
-        
-        self.assertEqual(response.status_code, status.HTTP_200_OK, 
-                        f"Не удалось получить идею с ID {self.idea.pk}")
-        self.assertEqual(response.data['text'], "This is a test idea",
-                        f"Текст идеи не соответствует ожидаемому: {response.data['text']}")
-    
-    def test_create_idea(self):
-        """Тест: Создание новой идеи."""
-        url = "/api/ideas/"
-        data = {
-            "text": "This is a new idea"
-        }
-        
-        response = self.client.post(url, data, format='json')
-        
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Не удалось создать новую идею")
-        self.assertEqual(response.data['text'], "This is a new idea",
-                        f"Текст созданной идеи не соответствует ожидаемому: {response.data['text']}")
-        self.assertEqual(response.data['author'], self.user.pk,
-                        f"Автор идеи не соответствует ожидаемому: {response.data['author']}")
-        self.assertTrue(Idea.objects.filter(text="This is a new idea", author=self.user).exists(),
-                       "Идея не была сохранена в базе данных")
-
-
-@override_settings(
-    AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
-    FORCE_SCRIPT_NAME=''
-)
 class PollGroupListViewTests(APITestCase):
     """
     Тесты для API групп опросов.
@@ -746,3 +717,263 @@ class HierarchyViewSetTests(APITestCase):
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+@override_settings(
+    AUTHENTICATION_BACKENDS=['django.contrib.auth.backends.ModelBackend'],
+    FORCE_SCRIPT_NAME=''
+)
+class IdeaViewSetTests(APITestCase):
+    """
+    Тесты для API идей.
+    
+    Проверяет функциональность работы с идеями:
+    - Получение списка идей
+    - Получение отдельной идеи
+    - Создание новых идей
+    """
+    
+    def setUp(self):
+        self.user = Employee.objects.create_user(username='testuser', password='password123')
+        self.other_user = Employee.objects.create_user(username='otheruser', password='password123')
+        self.client.force_authenticate(user=self.user)
+        
+        # Создаем идею от текущего пользователя, чтобы он мог её видеть
+        self.idea = Idea.objects.create(
+            text="This is a test idea",
+            author=self.user  # Изменили с other_user на self.user
+        )
+        
+        # Создаем идею от другого пользователя для тестов доступа
+        self.other_idea = Idea.objects.create(
+            text="Other user's idea",
+            author=self.other_user
+        )
+    
+    def test_list_ideas(self):
+        """Тест: Получение списка идей."""
+        url = "/api/ideas/"
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Не удалось получить список идей")
+        # Check if paginated or direct list
+        if 'results' in response.data:
+            self.assertTrue(len(response.data['results']) >= 1,
+                          f"Список идей пуст, ожидалось минимум 1: {len(response.data['results'])}")
+        else:
+            self.assertTrue(len(response.data) >= 1,
+                          f"Список идей пуст, ожидалось минимум 1: {len(response.data)}")
+    
+    def test_retrieve_idea(self):
+        """Тест: Получение отдельной идеи."""
+        url = f"/api/ideas/{self.idea.pk}/"
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK, 
+                        f"Не удалось получить идею с ID {self.idea.pk}")
+        self.assertEqual(response.data['text'], "This is a test idea",
+                        f"Текст идеи не соответствует ожидаемому: {response.data['text']}")
+    
+    def test_create_idea(self):
+        """Тест: Создание новой идеи."""
+        url = "/api/ideas/"
+        data = {
+            "text": "This is a new idea"
+        }
+        
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Не удалось создать новую идею")
+        self.assertEqual(response.data['text'], "This is a new idea",
+                        f"Текст созданной идеи не соответствует ожидаемому: {response.data['text']}")
+        self.assertEqual(response.data['author'], self.user.pk,
+                        f"Автор идеи не соответствует ожидаемому: {response.data['author']}")
+        self.assertEqual(response.data['status'], "Получено",
+                        f"Статус новой идеи должен быть 'Получено': {response.data['status']}")
+        self.assertTrue(Idea.objects.filter(text="This is a new idea", author=self.user).exists(),
+                       "Идея не была сохранена в базе данных")
+
+    def test_create_idea_with_status_and_resolution(self):
+        """Тест: Проверка, что обычный пользователь не может устанавливать статус и резолюцию при создании."""
+        url = "/api/ideas/"
+        data = {
+            "text": "Idea with custom status",
+            "status": "Одобрено",
+            "resolution": "Custom resolution"
+        }
+        
+        response = self.client.post(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Не удалось создать идею")
+        # Статус должен остаться по умолчанию, несмотря на попытку его изменить
+        self.assertEqual(response.data['status'], "Получено",
+                        f"Статус должен быть 'Получено' по умолчанию: {response.data['status']}")
+
+    def test_user_can_edit_own_idea_text(self):
+        """Тест: Пользователь может редактировать текст своей идеи."""
+        # Создаем идею от текущего пользователя
+        my_idea = Idea.objects.create(
+            text="My original idea",
+            author=self.user
+        )
+        
+        url = f"/api/ideas/{my_idea.pk}/"
+        data = {"text": "My updated idea"}
+        
+        response = self.client.patch(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Не удалось обновить свою идею")
+        self.assertEqual(response.data['text'], "My updated idea",
+                        f"Текст идеи не был обновлен: {response.data['text']}")
+
+    def test_user_cannot_edit_status_of_own_idea(self):
+        """Тест: Обычный пользователь не может изменять статус своей идеи."""
+        # Создаем идею от текущего пользователя
+        my_idea = Idea.objects.create(
+            text="My idea for status test",
+            author=self.user
+        )
+        
+        url = f"/api/ideas/{my_idea.pk}/"
+        data = {"status": "Одобрено"}
+        
+        response = self.client.patch(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, 
+                        "Обычный пользователь не должен иметь возможность изменять статус")
+
+    def test_user_cannot_edit_others_idea(self):
+        """Тест: Пользователь не может редактировать чужую идею."""
+        url = f"/api/ideas/{self.other_idea.pk}/"
+        data = {"text": "Trying to edit someone else's idea"}
+        
+        response = self.client.patch(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND,
+                        "Пользователь не должен иметь доступ к чужой идее (404, так как он её не видит)")
+
+    def test_staff_can_edit_others_idea(self):
+        """Тест: Администратор может редактировать чужие идеи."""
+        # Создаем администратора
+        admin_user = Employee.objects.create_user(
+            username='admin', 
+            password='password123',
+            is_staff=True
+        )
+        self.client.force_authenticate(user=admin_user)
+        
+        url = f"/api/ideas/{self.other_idea.pk}/"
+        data = {"text": "Admin editing someone else's idea"}
+        
+        response = self.client.patch(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK,
+                        "Администратор должен иметь возможность редактировать любые идеи")
+        self.assertEqual(response.data['text'], "Admin editing someone else's idea",
+                        f"Текст идеи не был обновлен: {response.data['text']}")
+
+    def test_staff_can_update_idea_status_and_resolution(self):
+        """Тест: Администратор может изменять статус и резолюцию идеи."""
+        # Создаем администратора
+        admin_user = Employee.objects.create_user(
+            username='admin', 
+            password='password123',
+            is_staff=True
+        )
+        self.client.force_authenticate(user=admin_user)
+        
+        # Используем any existing idea (администратор видит все идеи)
+        url = f"/api/ideas/{self.idea.pk}/"
+        data = {
+            "status": "Одобрено",
+            "resolution": "Отличная идея! Принимается к реализации."
+        }
+        
+        response = self.client.patch(url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Администратор должен иметь возможность обновить статус")
+        self.assertEqual(response.data['status'], "Одобрено",
+                        f"Статус не был обновлен: {response.data['status']}")
+        self.assertEqual(response.data['resolution'], "Отличная идея! Принимается к реализации.",
+                        f"Резолюция не была обновлена: {response.data['resolution']}")
+
+    def test_filter_ideas_by_status(self):
+        """Тест: Фильтрация идей по статусу."""
+        # Создаем администратора для установки статуса
+        admin_user = Employee.objects.create_user(
+            username='admin', 
+            password='password123',
+            is_staff=True
+        )
+        
+        # Создаем идею с одобренным статусом
+        approved_idea = Idea.objects.create(
+            text="Approved idea",
+            author=self.user,
+            status="Одобрено"
+        )
+        
+        self.client.force_authenticate(user=admin_user)
+        
+        url = "/api/ideas/?status=Одобрено"
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Не удалось отфильтровать идеи по статусу")
+        
+        # Проверяем результат
+        if 'results' in response.data:
+            ideas = response.data['results']
+        else:
+            ideas = response.data
+            
+        # Убеждаемся, что все возвращенные идеи имеют статус "Одобрено"
+        for idea in ideas:
+            self.assertEqual(idea['status'], "Одобрено",
+                           f"Найдена идея с неправильным статусом: {idea['status']}")
+
+    def test_user_sees_only_own_ideas(self):
+        """Тест: Обычный пользователь видит только свои идеи."""
+        # Создаем идею от текущего пользователя
+        my_idea = Idea.objects.create(
+            text="My private idea",
+            author=self.user
+        )
+        
+        url = "/api/ideas/"
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Не удалось получить список идей")
+        
+        if 'results' in response.data:
+            ideas = response.data['results']
+        else:
+            ideas = response.data
+            
+        # Все идеи должны принадлежать текущему пользователю
+        for idea in ideas:
+            self.assertEqual(idea['author'], self.user.pk,
+                           f"Пользователь видит чужую идею: автор {idea['author']}")
+
+    def test_staff_sees_all_ideas(self):
+        """Тест: Администратор видит все идеи."""
+        # Создаем администратора
+        admin_user = Employee.objects.create_user(
+            username='admin', 
+            password='password123',
+            is_staff=True
+        )
+        self.client.force_authenticate(user=admin_user)
+        
+        url = "/api/ideas/"
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Не удалось получить список идей")
+        
+        if 'results' in response.data:
+            ideas_count = len(response.data['results'])
+        else:
+            ideas_count = len(response.data)
+            
+        # Администратор должен видеть все идеи (минимум 1 из setUp)
+        self.assertGreaterEqual(ideas_count, 1,
+                               f"Администратор должен видеть все идеи, получено: {ideas_count}")

@@ -1056,19 +1056,58 @@ class IdeaViewSet(viewsets.ModelViewSet):
     queryset = Idea.objects.select_related('author').all()
     serializer_class = IdeaSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = ['get', 'post', 'head', 'options']
+    http_method_names = ['get', 'post', 'patch', 'head', 'options']
 
     filter_backends = [DjangoFilterBackend, OrderingFilter]
 
     filterset_class = IdeaFilter
 
-    ordering_fields = ['created_at', 'author']
+    ordering_fields = ['created_at', 'author', 'status']
 
     def perform_create(self, serializer):
         """
         При создании идеи автор подставляется из текущего запроса.
         """
         serializer.save(author=self.request.user)
+
+    def get_queryset(self):
+        """
+        Пользователи могут видеть только свои идеи, 
+        администраторы - все идеи.
+        """
+        if self.request.user.is_staff:
+            return self.queryset
+        return self.queryset.filter(author=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Проверка прав на обновление идеи.
+        """
+        instance = self.get_object()
+        
+        # Проверяем права доступа
+        if instance.author != request.user and not request.user.is_staff:
+            return Response(
+                {"detail": "Вы можете редактировать только свои идеи."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """
+        Проверка прав на частичное обновление идеи.
+        """
+        instance = self.get_object()
+        
+        # Проверяем права доступа
+        if instance.author != request.user and not request.user.is_staff:
+            return Response(
+                {"detail": "Вы можете редактировать только свои идеи."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        return super().partial_update(request, *args, **kwargs)
 
 
 class StructuralSubdivisionViewSet(viewsets.ModelViewSet):

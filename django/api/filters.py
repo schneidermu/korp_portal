@@ -44,4 +44,4 @@ class IdeaFilter(FilterSet):
 
     class Meta:
         model = Idea
-        fields = ['author']
+        fields = ['author', 'status']

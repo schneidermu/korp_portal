@@ -1738,9 +1738,46 @@ class IdeaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Idea
-        fields = ['id', 'text', 'created_at', 'author', 'author_name']
+        fields = ['id', 'text', 'status', 'resolution', 'created_at', 'author', 'author_name']
 
         read_only_fields = ['author', 'created_at', 'author_name']
+
+    def create(self, validated_data):
+        """
+        Создание идеи. Обычные пользователи не могут устанавливать статус и резолюцию.
+        """
+        user = self.context['request'].user
+        
+        # Обычные пользователи не могут устанавливать статус и резолюцию при создании
+        if not user.is_staff:
+            validated_data.pop('status', None)
+            validated_data.pop('resolution', None)
+        
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        Обновление идеи. Обычные пользователи могут изменять только свои идеи и только текст.
+        Администраторы могут изменять статус и резолюцию любых идей.
+        """
+        user = self.context['request'].user
+        
+        # Если пользователь не является автором идеи и не администратор
+        if instance.author != user and not user.is_staff:
+            raise serializers.ValidationError("Вы можете редактировать только свои идеи.")
+        
+        # Обычные пользователи могут изменять только текст своих идей
+        if instance.author == user and not user.is_staff:
+            if 'status' in validated_data or 'resolution' in validated_data:
+                raise serializers.ValidationError("Вы можете изменять только текст своей идеи.")
+            instance.text = validated_data.get('text', instance.text)
+        else:
+            # Администраторы могут изменять все поля
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+        
+        instance.save()
+        return instance
 
 
 class StructuralSubdivisionWriteSerializer(serializers.ModelSerializer):
