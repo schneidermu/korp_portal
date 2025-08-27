@@ -66,6 +66,7 @@ services:
       SCRIPT_NAME: "${BACKEND_PREFIX}"
       DJANGO_PORT: 8000
       NEWS_API_TOKEN: "${NEWS_API_TOKEN}"
+      DJANGO_CONTAINER_NAME: "${DJANGO_CONTAINER_NAME}"
     volumes:
       - ./volumes/media:/media
       - ../django:/app
