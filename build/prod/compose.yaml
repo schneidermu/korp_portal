@@ -11,6 +11,7 @@ services:
     restart: always
     volumes:
       - ./volumes/media/:/media/
+      - ./volumes/logs/:/app/logs/
       - django_static:/srv/static/
     environment:
       PROD: 1

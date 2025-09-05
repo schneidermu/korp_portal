@@ -36,6 +36,7 @@ services:
     stop_signal: SIGINT
     volumes:
       - ./volumes/media/:/media/
+      - ./volumes/logs/:/app/logs/
       - django_static:/srv/static/
     depends_on:
       db:
