@@ -40,6 +40,9 @@ SEX = (
 class UploadedFile(models.Model):
     file = models.FileField()
 
+    def __str__(self):
+        return super().__str__()
+
 
 class Employee(AbstractUser):
     """Модель страницы сотрудника."""
@@ -108,7 +111,7 @@ class Employee(AbstractUser):
         max_length=PHONE_NUMBER_LENGTH,
     )
     office = models.CharField(
-        verbose_name="Кабинет", blank=True, null=True, max_length=OFFICE_NUMBER_LENGTH
+        verbose_name="Кабинет", blank=True, null=True, max_length=OFFICE_NUMBER_LENGTH,
     )
 
     job_title = models.CharField(
@@ -152,7 +155,7 @@ class Employee(AbstractUser):
     )
 
     avatar = models.CharField(
-        verbose_name="Аватар", null=True, blank=True, default=None
+        verbose_name="Аватар", null=True, blank=True, default=None,
     )
 
     @property
@@ -169,7 +172,7 @@ class Employee(AbstractUser):
                 name_part
                 for name_part in (self.surname, self.name, self.patronym)
                 if name_part is not None
-            ]
+            ],
         )
 
         if not name:
@@ -263,12 +266,12 @@ class Rating(models.Model):
         verbose_name="Кто оценивает",
     )
 
-    def __str__(self):
-        return f"{self.employee} оценил {self.user} на {self.rate}"
-
     class Meta:
         verbose_name = "запись оценки"
         verbose_name_plural = "Записи оценок"
+
+    def __str__(self):
+        return f"{self.employee} оценил {self.user} на {self.rate}"
 
 
 class Characteristic(models.Model):
@@ -284,7 +287,7 @@ class Characteristic(models.Model):
     # Курсы через class Course
 
     experience = models.CharField(
-        verbose_name="Стаж работы", blank=True, max_length=CHARFIELD_LENGTH
+        verbose_name="Стаж работы", blank=True, max_length=CHARFIELD_LENGTH,
     )
 
     # Карьерный рост через class Career
@@ -310,7 +313,7 @@ class Characteristic(models.Model):
     # Диплом через class Diploma
 
     about = models.TextField(
-        verbose_name="Обо мне", blank=True, max_length=CHARFIELD_LENGTH * 4
+        verbose_name="Обо мне", blank=True, max_length=CHARFIELD_LENGTH * 4,
     )
 
     class Meta:
@@ -325,7 +328,7 @@ class Course(AbstractWithPhotoNameModel):
     """Модель курса."""
 
     year = models.IntegerField(
-        verbose_name="Год прохождения курса", blank=True, null=True
+        verbose_name="Год прохождения курса", blank=True, null=True,
     )
     month = models.IntegerField(
         verbose_name="Месяц прохождения курса",
@@ -354,7 +357,7 @@ class Career(AbstractNameModel):
     )
 
     year_finish = models.IntegerField(
-        verbose_name="Год ухода из должности", blank=True, null=True
+        verbose_name="Год ухода из должности", blank=True, null=True,
     )
     month_finish = models.IntegerField(
         verbose_name="Месяц ухода из должности",
@@ -398,7 +401,7 @@ class Diploma(AbstractWithPhotoNameModel):
     """Модель диплома."""
 
     year = models.IntegerField(
-        verbose_name="Год получения диплома", blank=True, null=True
+        verbose_name="Год получения диплома", blank=True, null=True,
     )
     month = models.IntegerField(
         verbose_name="Месяц получения диплома",
@@ -416,7 +419,7 @@ class University(AbstractWithPhotoNameModel):
     """Модель университета."""
 
     year = models.IntegerField(
-        verbose_name="Год окончания университета", blank=True, null=True
+        verbose_name="Год окончания университета", blank=True, null=True,
     )
     month = models.IntegerField(
         verbose_name="Месяц окончания университета",
@@ -426,7 +429,7 @@ class University(AbstractWithPhotoNameModel):
     )
 
     faculty = models.CharField(
-        verbose_name="Факультет", blank=True, max_length=CHARFIELD_LENGTH
+        verbose_name="Факультет", blank=True, max_length=CHARFIELD_LENGTH,
     )
 
     class Meta:
@@ -438,7 +441,7 @@ class Training(AbstractWithPhotoNameModel):
     """Модель повышения квалификации."""
 
     year = models.IntegerField(
-        verbose_name="Год повышения квалификации", blank=True, null=True
+        verbose_name="Год повышения квалификации", blank=True, null=True,
     )
 
     class Meta:
@@ -524,12 +527,12 @@ class Organization(models.Model):
         null=True,
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = "запись организации"
         verbose_name_plural = "записи организаций"
+
+    def __str__(self):
+        return self.name
 
 
 class StructuralSubdivision(models.Model):

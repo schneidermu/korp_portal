@@ -1,4 +1,3 @@
-import logging
 
 from employees.models import Employee
 from korp_portal.backends import cursor
@@ -14,7 +13,7 @@ def run():
         FROM user_ u
         INNER JOIN contact_ c
         USING (emailaddress);
-        """
+        """,
     )
 
     list_of_users = cursor.fetchall()
@@ -24,7 +23,7 @@ def run():
         patronym,
         surname,
         job_title,
-        companyid,
+        _companyid,
         birth_date,
     ) in list_of_users:
         try:

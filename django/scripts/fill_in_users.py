@@ -59,7 +59,7 @@ def run():
     data = json.load(sys.stdin)
 
     org, created = Organization.objects.update_or_create(
-        name=data["org"]["name"], address=data["org"]["address"]
+        name=data["org"]["name"], address=data["org"]["address"],
     )
     print("{} org: {}".format("Created" if created else "Updated", org.name))
 
@@ -75,8 +75,8 @@ def run():
         unit2ss[name] = ss
         print(
             "{} unit '{}', parent '{}'".format(
-                "Created" if created else "Updated", unit["name"], unit["parent"]
-            )
+                "Created" if created else "Updated", unit["name"], unit["parent"],
+            ),
         )
 
     unit2boss = {}
@@ -93,7 +93,7 @@ def run():
             continue
         elif matches.count() > 1:
             logger.warning(
-                "Too many (%d) matches found for: %s", matches.count(), user["name"]
+                "Too many (%d) matches found for: %s", matches.count(), user["name"],
             )
             continue
 
@@ -124,5 +124,5 @@ def run():
                 user["name"],
                 user["unit"],
                 None if boss is None else f"{boss.surname} {boss.name}",
-            )
+            ),
         )

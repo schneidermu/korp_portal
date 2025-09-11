@@ -43,7 +43,7 @@ class EmployeeAdmin(UserAdmin):
                     "status",
                     "avatar",
                     "agreed_with_data_processing",
-                )
+                ),
             },
         ),
     )

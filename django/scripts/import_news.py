@@ -1,7 +1,8 @@
 import json
-import requests
-import time
 import sys
+import time
+
+import requests
 
 
 def run(*args):
@@ -50,20 +51,20 @@ def run(*args):
 
     for i, news_item in enumerate(news_data, 1):
         print(
-            f"\n--- Отправка новости {i}/{total_news}: '{news_item.get('title', 'Без заголовка')[:50]}...' ---"
+            f"\n--- Отправка новости {i}/{total_news}: '{news_item.get('title', 'Без заголовка')[:50]}...' ---",
         )
         try:
             response = requests.post(
-                api_endpoint, headers=headers, json=news_item, timeout=20
+                api_endpoint, headers=headers, json=news_item, timeout=20,
             )
             if 200 <= response.status_code < 300:
                 print(
-                    f"  [УСПЕХ] Новость успешно создана (Статус: {response.status_code})"
+                    f"  [УСПЕХ] Новость успешно создана (Статус: {response.status_code})",
                 )
                 success_count += 1
             else:
                 print(
-                    f"  [ОШИБКА] Не удалось создать новость (Статус: {response.status_code})"
+                    f"  [ОШИБКА] Не удалось создать новость (Статус: {response.status_code})",
                 )
                 print(f"  Ответ сервера: {response.text}")
                 failure_count += 1

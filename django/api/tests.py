@@ -1,15 +1,17 @@
-from rest_framework.test import APITestCase
-from rest_framework import status
+from datetime import timedelta
+
 from django.test import override_settings
 from django.utils import timezone
-from datetime import timedelta
+from rest_framework import status
+from rest_framework.test import APITestCase
+
 from employees.models import (
+    Competence,
     Employee,
+    Idea,
+    Organization,
     Rating,
     StructuralSubdivision,
-    Organization,
-    Competence,
-    Idea,
 )
 from homepage.models import News, PollGroup
 
@@ -32,7 +34,7 @@ class RatingAPITests(APITestCase):
         и аутентифицируем одного из них.
         """
         self.user = Employee.objects.create_user(
-            username="main_user", password="testpassword123", email="main@example.com"
+            username="main_user", password="testpassword123", email="main@example.com",
         )
         self.other_employee = Employee.objects.create_user(
             username="other_employee",
@@ -64,7 +66,7 @@ class RatingAPITests(APITestCase):
         )
 
         rating_exists = Rating.objects.filter(
-            user=self.user, employee=self.other_employee
+            user=self.user, employee=self.other_employee,
         ).exists()
         self.assertTrue(rating_exists, "Оценка не была создана в базе данных")
 
@@ -105,7 +107,7 @@ class RatingAPITests(APITestCase):
 
         # Проверяем, что в базе все еще только одна оценка
         ratings_count = Rating.objects.filter(
-            user=self.user, employee=self.other_employee
+            user=self.user, employee=self.other_employee,
         ).count()
         self.assertEqual(
             ratings_count,
@@ -169,7 +171,7 @@ class RatingAPITests(APITestCase):
 
         # Убеждаемся, что оценки не существует
         rating_exists = Rating.objects.filter(
-            user=self.user, employee=self.other_employee
+            user=self.user, employee=self.other_employee,
         ).exists()
         self.assertFalse(rating_exists, "Оценка не должна существовать для этого теста")
 
@@ -210,7 +212,7 @@ class RatingAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(
-            Rating.objects.filter(user=self.user, employee=self.other_employee).exists()
+            Rating.objects.filter(user=self.user, employee=self.other_employee).exists(),
         )
         self.assertEqual(response.data["message"], "Вы успешно удалили свою оценку.")
 
@@ -222,7 +224,7 @@ class RatingAPITests(APITestCase):
 
         # Убеждаемся, что оценки не существует
         self.assertFalse(
-            Rating.objects.filter(user=self.user, employee=self.other_employee).exists()
+            Rating.objects.filter(user=self.user, employee=self.other_employee).exists(),
         )
 
         response = self.client.delete(url)
@@ -241,8 +243,8 @@ class RatingAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
             Rating.objects.filter(
-                user=self.user, employee=self.other_employee, rate=3
-            ).exists()
+                user=self.user, employee=self.other_employee, rate=3,
+            ).exists(),
         )
 
 
@@ -264,25 +266,25 @@ class StructuralSubdivisionAPITests(APITestCase):
         Подготавливаем данные, которые будут использоваться в нескольких тестах.
         """
         self.user = Employee.objects.create_user(
-            username="testuser", password="password123"
+            username="testuser", password="password123",
         )
         # Создаем администратора для операций создания/редактирования
         self.admin_user = Employee.objects.create_user(
-            username="admin", password="password123", is_staff=True
+            username="admin", password="password123", is_staff=True,
         )
         self.client.force_authenticate(
-            user=self.admin_user
+            user=self.admin_user,
         )  # Используем администратора по умолчанию
 
         self.organization = Organization.objects.create(name="Главная Организация")
         self.chief_employee = Employee.objects.create_user(
-            username="chief", password="password123"
+            username="chief", password="password123",
         )
         self.supervisor_employee = Employee.objects.create_user(
-            username="supervisor", password="password123"
+            username="supervisor", password="password123",
         )
         self.parent_subdivision = StructuralSubdivision.objects.create(
-            name="Головной Департамент", organization=self.organization
+            name="Головной Департамент", organization=self.organization,
         )
 
     def test_create_subdivision(self):
@@ -302,7 +304,7 @@ class StructuralSubdivisionAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
-            StructuralSubdivision.objects.filter(name="Новый Отдел Разработки").exists()
+            StructuralSubdivision.objects.filter(name="Новый Отдел Разработки").exists(),
         )
         self.assertEqual(response.data["name"], "Новый Отдел Разработки")
         self.assertEqual(response.data["chief"], self.chief_employee.pk)
@@ -368,7 +370,7 @@ class StructuralSubdivisionAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         subdivision.refresh_from_db()
         self.assertEqual(
-            subdivision.parent_structural_subdivision, self.parent_subdivision
+            subdivision.parent_structural_subdivision, self.parent_subdivision,
         )
 
     def test_set_chief_to_null(self):
@@ -390,19 +392,19 @@ class StructuralSubdivisionAPITests(APITestCase):
         """
 
         subdivision_to_delete = StructuralSubdivision.objects.create(
-            name="Отдел на удаление", organization=self.organization
+            name="Отдел на удаление", organization=self.organization,
         )
         url = f"/api/subdivisions/{subdivision_to_delete.pk}/"
 
         self.assertTrue(
-            StructuralSubdivision.objects.filter(pk=subdivision_to_delete.pk).exists()
+            StructuralSubdivision.objects.filter(pk=subdivision_to_delete.pk).exists(),
         )
 
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(
-            StructuralSubdivision.objects.filter(pk=subdivision_to_delete.pk).exists()
+            StructuralSubdivision.objects.filter(pk=subdivision_to_delete.pk).exists(),
         )
 
     def test_regular_user_cannot_create_subdivision(self):
@@ -459,7 +461,7 @@ class NewsViewSetTests(APITestCase):
 
     def setUp(self):
         self.user = Employee.objects.create_user(
-            username="testuser", password="password123"
+            username="testuser", password="password123",
         )
         self.client.force_authenticate(user=self.user)
 
@@ -561,7 +563,7 @@ class OrganizationViewSetTests(APITestCase):
 
     def setUp(self):
         self.user = Employee.objects.create_user(
-            username="testuser", password="password123"
+            username="testuser", password="password123",
         )
         self.client.force_authenticate(user=self.user)
 
@@ -621,7 +623,7 @@ class CompetenceListViewTests(APITestCase):
 
     def setUp(self):
         self.user = Employee.objects.create_user(
-            username="testuser", password="password123"
+            username="testuser", password="password123",
         )
         self.client.force_authenticate(user=self.user)
 
@@ -700,7 +702,7 @@ class PollGroupListViewTests(APITestCase):
 
     def setUp(self):
         self.user = Employee.objects.create_user(
-            username="testuser", password="password123"
+            username="testuser", password="password123",
         )
         self.client.force_authenticate(user=self.user)
 
@@ -767,7 +769,7 @@ class AgreeWithDataProcessingViewTests(APITestCase):
 
     def setUp(self):
         self.user = Employee.objects.create_user(
-            username="testuser", password="password123"
+            username="testuser", password="password123",
         )
         self.client.force_authenticate(user=self.user)
 
@@ -814,7 +816,7 @@ class FileUploadAPIViewTests(APITestCase):
 
     def setUp(self):
         self.user = Employee.objects.create_user(
-            username="testuser", password="password123"
+            username="testuser", password="password123",
         )
         self.client.force_authenticate(user=self.user)
 
@@ -846,7 +848,7 @@ class OrgStructureViewsetTests(APITestCase):
 
     def setUp(self):
         self.user = Employee.objects.create_user(
-            username="testuser", password="password123"
+            username="testuser", password="password123",
         )
         self.client.force_authenticate(user=self.user)
 
@@ -880,7 +882,7 @@ class OrgStructureViewsetTests(APITestCase):
 class HierarchyViewSetTests(APITestCase):
     def setUp(self):
         self.user = Employee.objects.create_user(
-            username="testuser", password="password123"
+            username="testuser", password="password123",
         )
         self.client.force_authenticate(user=self.user)
 
@@ -917,10 +919,10 @@ class IdeaViewSetTests(APITestCase):
 
     def setUp(self):
         self.user = Employee.objects.create_user(
-            username="testuser", password="password123"
+            username="testuser", password="password123",
         )
         self.other_user = Employee.objects.create_user(
-            username="otheruser", password="password123"
+            username="otheruser", password="password123",
         )
         self.client.force_authenticate(user=self.user)
 
@@ -932,7 +934,7 @@ class IdeaViewSetTests(APITestCase):
 
         # Создаем идею от другого пользователя для тестов доступа
         self.other_idea = Idea.objects.create(
-            text="Other user's idea", author=self.other_user
+            text="Other user's idea", author=self.other_user,
         )
 
     def test_list_ideas(self):
@@ -941,7 +943,7 @@ class IdeaViewSetTests(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(
-            response.status_code, status.HTTP_200_OK, "Не удалось получить список идей"
+            response.status_code, status.HTTP_200_OK, "Не удалось получить список идей",
         )
         # Check if paginated or direct list
         if "results" in response.data:
@@ -1015,7 +1017,7 @@ class IdeaViewSetTests(APITestCase):
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, "Не удалось создать идею"
+            response.status_code, status.HTTP_201_CREATED, "Не удалось создать идею",
         )
         # Статус должен остаться по умолчанию, несмотря на попытку его изменить
         self.assertEqual(
@@ -1035,7 +1037,7 @@ class IdeaViewSetTests(APITestCase):
         response = self.client.patch(url, data, format="json")
 
         self.assertEqual(
-            response.status_code, status.HTTP_200_OK, "Не удалось обновить свою идею"
+            response.status_code, status.HTTP_200_OK, "Не удалось обновить свою идею",
         )
         self.assertEqual(
             response.data["text"],
@@ -1076,7 +1078,7 @@ class IdeaViewSetTests(APITestCase):
         """Тест: Администратор может редактировать чужие идеи."""
         # Создаем администратора
         admin_user = Employee.objects.create_user(
-            username="admin", password="password123", is_staff=True
+            username="admin", password="password123", is_staff=True,
         )
         self.client.force_authenticate(user=admin_user)
 
@@ -1100,7 +1102,7 @@ class IdeaViewSetTests(APITestCase):
         """Тест: Администратор может изменять статус и резолюцию идеи."""
         # Создаем администратора
         admin_user = Employee.objects.create_user(
-            username="admin", password="password123", is_staff=True
+            username="admin", password="password123", is_staff=True,
         )
         self.client.force_authenticate(user=admin_user)
 
@@ -1133,12 +1135,12 @@ class IdeaViewSetTests(APITestCase):
         """Тест: Фильтрация идей по статусу."""
         # Создаем администратора для установки статуса
         admin_user = Employee.objects.create_user(
-            username="admin", password="password123", is_staff=True
+            username="admin", password="password123", is_staff=True,
         )
 
         # Создаем идею с одобренным статусом
-        approved_idea = Idea.objects.create(
-            text="Approved idea", author=self.user, status="Одобрено"
+        Idea.objects.create(
+            text="Approved idea", author=self.user, status="Одобрено",
         )
 
         self.client.force_authenticate(user=admin_user)
@@ -1169,13 +1171,13 @@ class IdeaViewSetTests(APITestCase):
     def test_user_sees_only_own_ideas(self):
         """Тест: Обычный пользователь видит только свои идеи."""
         # Создаем идею от текущего пользователя
-        my_idea = Idea.objects.create(text="My private idea", author=self.user)
+        Idea.objects.create(text="My private idea", author=self.user)
 
         url = "/api/ideas/"
         response = self.client.get(url)
 
         self.assertEqual(
-            response.status_code, status.HTTP_200_OK, "Не удалось получить список идей"
+            response.status_code, status.HTTP_200_OK, "Не удалось получить список идей",
         )
 
         if "results" in response.data:
@@ -1195,7 +1197,7 @@ class IdeaViewSetTests(APITestCase):
         """Тест: Администратор видит все идеи."""
         # Создаем администратора
         admin_user = Employee.objects.create_user(
-            username="admin", password="password123", is_staff=True
+            username="admin", password="password123", is_staff=True,
         )
         self.client.force_authenticate(user=admin_user)
 
@@ -1203,7 +1205,7 @@ class IdeaViewSetTests(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(
-            response.status_code, status.HTTP_200_OK, "Не удалось получить список идей"
+            response.status_code, status.HTTP_200_OK, "Не удалось получить список идей",
         )
 
         if "results" in response.data:

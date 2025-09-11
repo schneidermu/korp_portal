@@ -4,18 +4,18 @@ from .models import (
     Answer,
     Attachment,
     Choice,
+    Comment,
+    Course,
+    CourseVideo,
+    Like,
     News,
     Poll,
     PollGroup,
     PollSubmission,
     Question,
     QuestionDependency,
-    Course,
-    CourseVideo,
     Video,
-    Comment,
     VideoView,
-    Like,
 )
 
 
@@ -63,7 +63,7 @@ class QuestionDependencyInline(admin.StackedInline):
             try:
                 dependent_question_id = int(request.resolver_match.kwargs["object_id"])
                 dependent_question_instance = Question.objects.get(
-                    pk=dependent_question_id
+                    pk=dependent_question_id,
                 )
             except (ValueError, Question.DoesNotExist):
                 pass
@@ -85,7 +85,7 @@ class QuestionDependencyInline(admin.StackedInline):
                 and current_dependency_instance.trigger_question
             ):
                 kwargs["queryset"] = Choice.objects.filter(
-                    question=current_dependency_instance.trigger_question
+                    question=current_dependency_instance.trigger_question,
                 )
             elif dependent_question_instance and dependent_question_instance.poll:
                 possible_trigger_questions = Question.objects.filter(
@@ -94,7 +94,7 @@ class QuestionDependencyInline(admin.StackedInline):
                 ).exclude(pk=dependent_question_instance.pk)
 
                 kwargs["queryset"] = Choice.objects.filter(
-                    question__in=possible_trigger_questions
+                    question__in=possible_trigger_questions,
                 )
             else:
                 kwargs["queryset"] = Choice.objects.none()
@@ -226,7 +226,7 @@ class PollAdmin(admin.ModelAdmin):
                     "poll_group",
                     "status",
                     "kind",
-                )
+                ),
             },
         ),
         (

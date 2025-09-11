@@ -2,8 +2,8 @@ import argparse
 import base64
 import json
 import time
-from urllib.parse import urljoin
 from datetime import date, timedelta
+from urllib.parse import urljoin
 
 import requests
 import urllib3
@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 ORGANIZATION_ID = [None]
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
 }
 PROXIES = {"http": None, "https": None}
 URLS = {
@@ -60,7 +60,7 @@ def get_article_details(article_url, image_url):
     try:
         print(f"  -> Запрос на страницу статьи: {article_url}", file=sys.stderr)
         response = requests.get(
-            article_url, headers=HEADERS, proxies=PROXIES, verify=False, timeout=15
+            article_url, headers=HEADERS, proxies=PROXIES, verify=False, timeout=15,
         )
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "lxml")
@@ -96,7 +96,7 @@ def get_article_details(article_url, image_url):
         try:
             print(f"  -> Загрузка изображения: {image_url}", file=sys.stderr)
             img_response = requests.get(
-                image_url, headers=HEADERS, proxies=PROXIES, verify=False, timeout=15
+                image_url, headers=HEADERS, proxies=PROXIES, verify=False, timeout=15,
             )
             img_response.raise_for_status()
             encoded_string = base64.b64encode(img_response.content).decode("utf-8")
@@ -170,7 +170,7 @@ def parse_voda_gov(base_url, start_date, end_date):
                     "text": details["text"],
                     "pub_date": iso_date,
                     "attachments": attachments,
-                }
+                },
             )
             time.sleep(0.5)
 
@@ -182,7 +182,7 @@ def parse_voda_gov(base_url, start_date, end_date):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Парсер новостей с voda.gov.ru за последние 3 дня."
+        description="Парсер новостей с voda.gov.ru за последние 3 дня.",
     )
 
     parser.add_argument(

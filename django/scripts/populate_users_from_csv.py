@@ -3,8 +3,8 @@ import logging
 import os
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from email_validator import EmailNotValidError, validate_email
+
 from employees.models import Employee
 
 logger = logging.getLogger(__name__)
@@ -33,21 +33,17 @@ def run():
 
     try:
         # Open with utf-8-sig encoding to handle potential BOM in CSV files
-        with open(csv_file_path, "r", encoding="utf-8-sig") as csv_file:
+        with open(csv_file_path, encoding="utf-8-sig") as csv_file:
             reader = csv.DictReader(csv_file, delimiter=";")
 
             for row in reader:
                 try:
                     # Extract data from CSV row
-                    organization = row.get("organization", "").strip()
-                    structural_subdivision = row.get(
-                        "structural_subdivision", ""
-                    ).strip()
                     fio = row.get("fio", "").strip()
                     job_title = row.get("job_title", "").strip()
                     telephone_number = row.get("telephone_number", "").strip()
                     inner_telephone_number = row.get(
-                        "inner_telephone_number", ""
+                        "inner_telephone_number", "",
                     ).strip()
                     office = row.get("office", "").strip()
                     email = row.get("email", "").strip()
@@ -77,7 +73,7 @@ def run():
 
                     if not (fio and email):
                         logger.warning(
-                            f"Skipping row with missing required data: {row}"
+                            f"Skipping row with missing required data: {row}",
                         )
                         error_count += 1
                         continue
@@ -90,8 +86,6 @@ def run():
                         email=email,
                         defaults={
                             "username": email,
-                            #                            'organization': organization,
-                            #                            'structural_subdivision': structural_subdivision,
                             "job_title": job_title,
                             "telephone_number": telephone_number,
                             "inner_telephone_number": inner_telephone_number,
@@ -111,7 +105,7 @@ def run():
                     error_count += 1
 
         logger.info(
-            f"Import completed. Created: {created_count}, Updated: {updated_count}, Errors: {error_count}"
+            f"Import completed. Created: {created_count}, Updated: {updated_count}, Errors: {error_count}",
         )
 
     except Exception as e:
