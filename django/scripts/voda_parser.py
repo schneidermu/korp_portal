@@ -44,7 +44,10 @@ def format_date_to_iso(date_string):
         day_formatted = f"{int(day):02d}"
         return f"{year}-{month}-{day_formatted}T10:00:00Z"
     except Exception as e:
-        print(f"  [!] Не удалось отформатировать дату '{date_string}': {e}", file=sys.stderr)
+        print(
+            f"  [!] Не удалось отформатировать дату '{date_string}': {e}",
+            file=sys.stderr,
+        )
         return None
 
 
@@ -63,28 +66,28 @@ def get_article_details(article_url, image_url):
         soup = BeautifulSoup(response.text, "lxml")
 
         text_container = soup.find("div", class_="content")
-        
+
         if text_container:
             paragraphs = text_container.find_all("p")
-            
+
             clean_paragraph_texts = []
             for p in paragraphs:
                 p_text = p.get_text(strip=True)
-                
+
                 if "Пресс-служба Росводресурсов" in p_text:
                     break
-                
+
                 if p_text:
                     clean_paragraph_texts.append(p_text)
 
             details["text"] = "\n\n".join(clean_paragraph_texts)
-            
+
             if not details["text"]:
                 details["text"] = "Текст статьи не найден (отсутствуют теги <p>)."
 
         else:
             details["text"] = "Текст статьи не найден (отсутствует div.content)."
-            
+
     except requests.RequestException as e:
         print(f"  [!] Ошибка при получении текста статьи: {e}", file=sys.stderr)
         details["text"] = f"Не удалось загрузить текст: {e}"
@@ -135,7 +138,10 @@ def parse_voda_gov(base_url, start_date, end_date):
             print("Новости по заданным критериям не найдены.")
             return []
 
-        print(f"Найдено {len(news_items)} новостей. Начинаю детальную обработку...", file=sys.stderr)
+        print(
+            f"Найдено {len(news_items)} новостей. Начинаю детальную обработку...",
+            file=sys.stderr,
+        )
 
         for item in news_items:
             title_tag = item.find("h6", class_="article__title")
@@ -175,31 +181,35 @@ def parse_voda_gov(base_url, start_date, end_date):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(
         description="Парсер новостей с voda.gov.ru за последние 3 дня."
     )
-    
+
     parser.add_argument(
         "news_type",
-        choices=['federal', 'regional'],
-        help="Тип новостей для парсинга: 'federal' или 'regional'"
+        choices=["federal", "regional"],
+        help="Тип новостей для парсинга: 'federal' или 'regional'",
     )
     parser.add_argument(
-        "-o", "--output",
-        help="Имя выходного файла. Если не указано, результат выводится в stdout."
+        "-o",
+        "--output",
+        help="Имя выходного файла. Если не указано, результат выводится в stdout.",
     )
-    
+
     args = parser.parse_args()
 
     today = date.today()
     start_date_obj = today - timedelta(days=3)
 
-    end_date_str = today.strftime('%d.%m.%Y')
-    start_date_str = start_date_obj.strftime('%d.%m.%Y')
-    
+    end_date_str = today.strftime("%d.%m.%Y")
+    start_date_str = start_date_obj.strftime("%d.%m.%Y")
+
     import sys
-    print(f"Запуск парсинга для типа '{args.news_type}' за период с {start_date_str} по {end_date_str}", file=sys.stderr)
+
+    print(
+        f"Запуск парсинга для типа '{args.news_type}' за период с {start_date_str} по {end_date_str}",
+        file=sys.stderr,
+    )
 
     selected_url = URLS[args.news_type]
 
@@ -208,7 +218,7 @@ if __name__ == "__main__":
     if news_data:
         if args.output:
             output_filename = args.output
-            with open(output_filename, 'w', encoding='utf-8') as f:
+            with open(output_filename, "w", encoding="utf-8") as f:
                 json.dump(news_data, f, ensure_ascii=False, indent=4)
             print(f"Данные сохранены в файл: {output_filename}", file=sys.stderr)
         else:

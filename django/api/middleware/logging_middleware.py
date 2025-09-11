@@ -1,6 +1,6 @@
 import logging
 
-api_logger = logging.getLogger('api_logger')
+api_logger = logging.getLogger("api_logger")
 
 
 class ApiLoggingMiddleware:
@@ -10,7 +10,7 @@ class ApiLoggingMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
 
-        user = request.user if request.user.is_authenticated else 'Anonymous'
+        user = request.user if request.user.is_authenticated else "Anonymous"
 
         action = f"{request.method} {request.path}"
 

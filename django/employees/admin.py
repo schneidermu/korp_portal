@@ -131,7 +131,7 @@ class CharacteristicAdmin(admin.ModelAdmin):
         DiplomaInline,
         UniversityInline,
     )
-    exclude = ('competences',)
+    exclude = ("competences",)
 
 
 class CharacteristicLinkInline(admin.TabularInline):
@@ -169,14 +169,15 @@ class IdeaAdmin(admin.ModelAdmin):
     """
     Настройки для отображения модели Idea в админ-панели.
     """
-    list_display = ('short_text', 'author', 'created_at')
-    search_fields = ('text', 'author__name', 'author__surname')
-    list_filter = ('created_at',)
-    readonly_fields = ('author', 'created_at')
-    fields = ('author', 'created_at', 'text')
+
+    list_display = ("short_text", "author", "created_at")
+    search_fields = ("text", "author__name", "author__surname")
+    list_filter = ("created_at",)
+    readonly_fields = ("author", "created_at")
+    fields = ("author", "created_at", "text")
 
     def short_text(self, obj):
         """Возвращает укороченный текст идеи для отображения в списке."""
-        return obj.text[:80] + '...' if len(obj.text) > 80 else obj.text
+        return obj.text[:80] + "..." if len(obj.text) > 80 else obj.text
 
-    short_text.short_description = 'Текст идеи'
+    short_text.short_description = "Текст идеи"

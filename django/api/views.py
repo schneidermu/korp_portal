@@ -22,7 +22,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from employees.models import Competence, Employee, Idea, Organization, Rating, StructuralSubdivision
+from employees.models import (
+    Competence,
+    Employee,
+    Idea,
+    Organization,
+    Rating,
+    StructuralSubdivision,
+)
 from homepage.models import Answer, News, Poll, PollGroup, PollSubmission, Question
 
 from .filters import CompetenceFilter, IdeaFilter
@@ -46,7 +53,7 @@ from .serializers import (
     RatingPOSTSerializer,
     RatingPUTSerializer,
     StructuralSubdivisionReadSerializer,
-    StructuralSubdivisionWriteSerializer
+    StructuralSubdivisionWriteSerializer,
 )
 
 import logging
@@ -142,7 +149,10 @@ class PollViewset(viewsets.ModelViewSet):
         if not answer:
             return ""
 
-        if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+        if question.question_type in [
+            Question.QuestionType.SINGLE_CHOICE,
+            Question.QuestionType.MULTIPLE_CHOICE,
+        ]:
             choice_texts = [c.choice_text for c in answer.selected_choices.all()]
             if question.allow_custom_answer and answer.custom_choice_text:
                 choice_texts.append(answer.custom_choice_text)
@@ -175,7 +185,10 @@ class PollViewset(viewsets.ModelViewSet):
         return Response(PollSerializer(poll, context={"request": request}).data)
 
     @action(
-        detail=True, methods=["post"], serializer_class=PollSubmissionCreateSerializer, permission_classes=(IsAuthenticated,),
+        detail=True,
+        methods=["post"],
+        serializer_class=PollSubmissionCreateSerializer,
+        permission_classes=(IsAuthenticated,),
     )
     def submit_answers(self, request, pk=None):
         """Принимает ответы пользователя на опрос."""
@@ -241,24 +254,37 @@ class PollViewset(viewsets.ModelViewSet):
                 {"detail": "У вас нет прав для просмотра статистики этого опроса."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        
+
         if poll.kind == Poll.KindChoices.FORM:
             response = HttpResponse(
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-            response['Content-Disposition'] = f'attachment; filename="form_{poll.id}_answers.xlsx"'
+            response["Content-Disposition"] = (
+                f'attachment; filename="form_{poll.id}_answers.xlsx"'
+            )
 
             wb = Workbook()
             ws = wb.active
             ws.title = "Ответы на анкету"
 
             header_font = Font(bold=True)
-            header_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-            header_fill = PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid")
-            data_alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
-            thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+            header_alignment = Alignment(
+                horizontal="center", vertical="center", wrap_text=True
+            )
+            header_fill = PatternFill(
+                start_color="D9D9D9", end_color="D9D9D9", fill_type="solid"
+            )
+            data_alignment = Alignment(
+                horizontal="left", vertical="top", wrap_text=True
+            )
+            thin_border = Border(
+                left=Side(style="thin"),
+                right=Side(style="thin"),
+                top=Side(style="thin"),
+                bottom=Side(style="thin"),
+            )
 
-            questions = poll.questions.order_by('order')
+            questions = poll.questions.order_by("order")
             headers = ["№"]
             question_headers = [q.text for q in questions]
             headers.extend(question_headers)
@@ -269,20 +295,23 @@ class PollViewset(viewsets.ModelViewSet):
                 cell.alignment = header_alignment
                 cell.fill = header_fill
                 cell.border = thin_border
-            
+
             ws.row_dimensions[1].height = 30
 
             submissions = poll.submissions.prefetch_related(
-                'answers__question',
-                'answers__selected_choices'
-            ).order_by('submitted_at')
+                "answers__question", "answers__selected_choices"
+            ).order_by("submitted_at")
 
             for row_idx, submission in enumerate(submissions, 2):
                 col_idx = 1
-                ws.cell(row=row_idx, column=col_idx, value=row_idx - 1).border = thin_border
+                ws.cell(
+                    row=row_idx, column=col_idx, value=row_idx - 1
+                ).border = thin_border
                 col_idx += 1
 
-                submission_answers = {ans.question_id: ans for ans in submission.answers.all()}
+                submission_answers = {
+                    ans.question_id: ans for ans in submission.answers.all()
+                }
                 for question in questions:
                     answer = submission_answers.get(question.id)
                     answer_text = self._get_answer_text(answer, question)
@@ -290,14 +319,16 @@ class PollViewset(viewsets.ModelViewSet):
                     cell.alignment = data_alignment
                     cell.border = thin_border
                     col_idx += 1
-            
+
             for col_idx, column_cells in enumerate(ws.columns, 1):
                 max_length = 0
                 column_letter = get_column_letter(col_idx)
                 for cell in column_cells:
                     try:
                         if cell.value:
-                            cell_text_len = max(len(line) for line in str(cell.value).split('\n'))
+                            cell_text_len = max(
+                                len(line) for line in str(cell.value).split("\n")
+                            )
                             if cell_text_len > max_length:
                                 max_length = cell_text_len
                     except:
@@ -309,11 +340,12 @@ class PollViewset(viewsets.ModelViewSet):
             return response
 
         else:
-
             response = HttpResponse(
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
-            response['Content-Disposition'] = f'attachment; filename="poll_{poll.id}_statistics.xlsx"'
+            response["Content-Disposition"] = (
+                f'attachment; filename="poll_{poll.id}_statistics.xlsx"'
+            )
 
             wb = Workbook()
             ws = wb.active
@@ -321,13 +353,19 @@ class PollViewset(viewsets.ModelViewSet):
 
             header_font = Font(bold=True, size=12)
             question_header_font = Font(bold=True, italic=True, size=11)
-            center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-            left_alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
-            thin_border = Border(left=Side(style='thin'), 
-                                right=Side(style='thin'), 
-                                top=Side(style='thin'), 
-                                bottom=Side(style='thin'))
-            
+            center_alignment = Alignment(
+                horizontal="center", vertical="center", wrap_text=True
+            )
+            left_alignment = Alignment(
+                horizontal="left", vertical="top", wrap_text=True
+            )
+            thin_border = Border(
+                left=Side(style="thin"),
+                right=Side(style="thin"),
+                top=Side(style="thin"),
+                bottom=Side(style="thin"),
+            )
+
             row_num = 1
             ws.cell(row=row_num, column=1, value="ID Опроса").font = header_font
             ws.cell(row=row_num, column=2, value=poll.id)
@@ -340,88 +378,167 @@ class PollViewset(viewsets.ModelViewSet):
             ws.cell(row=row_num, column=2, value=total_submissions_count)
             row_num += 2
 
-            questions_with_related = poll.questions.prefetch_related('choices', 'answers__selected_choices')
+            questions_with_related = poll.questions.prefetch_related(
+                "choices", "answers__selected_choices"
+            )
 
             for question in questions_with_related:
-                ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=4)
-                q_header_cell = ws.cell(row=row_num, column=1, value=f"--- Вопрос ID: {question.id} ---")
+                ws.merge_cells(
+                    start_row=row_num, start_column=1, end_row=row_num, end_column=4
+                )
+                q_header_cell = ws.cell(
+                    row=row_num, column=1, value=f"--- Вопрос ID: {question.id} ---"
+                )
                 q_header_cell.font = question_header_font
                 q_header_cell.alignment = center_alignment
                 row_num += 1
-                
-                ws.cell(row=row_num, column=1, value="Текст вопроса:").font = Font(bold=True)
-                ws.cell(row=row_num, column=2, value=question.text).alignment = left_alignment
-                ws.merge_cells(start_row=row_num, start_column=2, end_row=row_num, end_column=4)
-                row_num += 1
-                
-                ws.cell(row=row_num, column=1, value="Тип вопроса:").font = Font(bold=True)
-                ws.cell(row=row_num, column=2, value=question.get_question_type_display())
+
+                ws.cell(row=row_num, column=1, value="Текст вопроса:").font = Font(
+                    bold=True
+                )
+                ws.cell(
+                    row=row_num, column=2, value=question.text
+                ).alignment = left_alignment
+                ws.merge_cells(
+                    start_row=row_num, start_column=2, end_row=row_num, end_column=4
+                )
                 row_num += 1
 
-                if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
-                    ws.cell(row=row_num, column=1, value="Вариант ответа").font = Font(bold=True)
-                    ws.cell(row=row_num, column=2, value="Количество выборов").font = Font(bold=True)
-                    ws.cell(row=row_num, column=3, value="Процент").font = Font(bold=True)
+                ws.cell(row=row_num, column=1, value="Тип вопроса:").font = Font(
+                    bold=True
+                )
+                ws.cell(
+                    row=row_num, column=2, value=question.get_question_type_display()
+                )
+                row_num += 1
+
+                if question.question_type in [
+                    Question.QuestionType.SINGLE_CHOICE,
+                    Question.QuestionType.MULTIPLE_CHOICE,
+                ]:
+                    ws.cell(row=row_num, column=1, value="Вариант ответа").font = Font(
+                        bold=True
+                    )
+                    ws.cell(
+                        row=row_num, column=2, value="Количество выборов"
+                    ).font = Font(bold=True)
+                    ws.cell(row=row_num, column=3, value="Процент").font = Font(
+                        bold=True
+                    )
                     row_num += 1
-                    
+
                     annotated_choices = question.choices.annotate(
-                        num_answers=Count('chosen_in_answers', filter=Q(chosen_in_answers__submission__poll=poll))
+                        num_answers=Count(
+                            "chosen_in_answers",
+                            filter=Q(chosen_in_answers__submission__poll=poll),
+                        )
                     )
                     for choice in annotated_choices:
                         count = choice.num_answers
-                        percentage = (count / total_submissions_count * 100) if total_submissions_count > 0 else 0
-                        ws.cell(row=row_num, column=1, value=choice.choice_text).alignment = left_alignment
-                        ws.cell(row=row_num, column=2, value=count).alignment = center_alignment
-                        ws.cell(row=row_num, column=3, value=f"{percentage:.2f}%").alignment = center_alignment
+                        percentage = (
+                            (count / total_submissions_count * 100)
+                            if total_submissions_count > 0
+                            else 0
+                        )
+                        ws.cell(
+                            row=row_num, column=1, value=choice.choice_text
+                        ).alignment = left_alignment
+                        ws.cell(
+                            row=row_num, column=2, value=count
+                        ).alignment = center_alignment
+                        ws.cell(
+                            row=row_num, column=3, value=f"{percentage:.2f}%"
+                        ).alignment = center_alignment
                         ws.cell(row=row_num, column=3).number_format = '0.00"%"'
                         row_num += 1
-                    
+
                     if question.allow_custom_answer:
-                        custom_answers = Answer.objects.filter(
-                            question=question, submission__poll=poll
-                        ).exclude(custom_choice_text__exact='').exclude(custom_choice_text__isnull=True)
-                        
+                        custom_answers = (
+                            Answer.objects.filter(
+                                question=question, submission__poll=poll
+                            )
+                            .exclude(custom_choice_text__exact="")
+                            .exclude(custom_choice_text__isnull=True)
+                        )
+
                         custom_answers_count = custom_answers.count()
-                        custom_percentage = (custom_answers_count / total_submissions_count * 100) if total_submissions_count > 0 else 0
-                        
-                        ws.cell(row=row_num, column=1, value="Другое (свой вариант)").font = Font(bold=True)
-                        ws.cell(row=row_num, column=2, value=custom_answers_count).alignment = center_alignment
-                        ws.cell(row=row_num, column=3, value=f"{custom_percentage:.2f}%").alignment = center_alignment
+                        custom_percentage = (
+                            (custom_answers_count / total_submissions_count * 100)
+                            if total_submissions_count > 0
+                            else 0
+                        )
+
+                        ws.cell(
+                            row=row_num, column=1, value="Другое (свой вариант)"
+                        ).font = Font(bold=True)
+                        ws.cell(
+                            row=row_num, column=2, value=custom_answers_count
+                        ).alignment = center_alignment
+                        ws.cell(
+                            row=row_num, column=3, value=f"{custom_percentage:.2f}%"
+                        ).alignment = center_alignment
                         ws.cell(row=row_num, column=3).number_format = '0.00"%"'
                         row_num += 1
-                        
+
                         if custom_answers.exists():
-                            ws.cell(row=row_num, column=1, value="Тексты своих вариантов ('Другое'):").font = Font(italic=True)
+                            ws.cell(
+                                row=row_num,
+                                column=1,
+                                value="Тексты своих вариантов ('Другое'):",
+                            ).font = Font(italic=True)
                             row_num += 1
-                            for c_ans_text in custom_answers.values_list('custom_choice_text', flat=True):
-                                ws.cell(row=row_num, column=1, value=c_ans_text).alignment = left_alignment
-                                ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=3)
+                            for c_ans_text in custom_answers.values_list(
+                                "custom_choice_text", flat=True
+                            ):
+                                ws.cell(
+                                    row=row_num, column=1, value=c_ans_text
+                                ).alignment = left_alignment
+                                ws.merge_cells(
+                                    start_row=row_num,
+                                    start_column=1,
+                                    end_row=row_num,
+                                    end_column=3,
+                                )
                                 row_num += 1
-                
+
                 elif question.question_type in [
-                    Question.QuestionType.FREE_TEXT, 
-                    Question.QuestionType.DATE, 
-                    Question.QuestionType.TELEPHONE, 
-                    Question.QuestionType.MAIL
+                    Question.QuestionType.FREE_TEXT,
+                    Question.QuestionType.DATE,
+                    Question.QuestionType.TELEPHONE,
+                    Question.QuestionType.MAIL,
                 ]:
-                    text_answers_qs = Answer.objects.filter(
-                        question=question, 
-                        submission__poll=poll
-                    ).exclude(free_text_answer__exact='').exclude(free_text_answer__isnull=True)
-                    
-                    ws.cell(row=row_num, column=1, value="Текстовые ответы:").font = Font(bold=True)
-                    ws.cell(row=row_num, column=2, value=text_answers_qs.count()).alignment = center_alignment
+                    text_answers_qs = (
+                        Answer.objects.filter(question=question, submission__poll=poll)
+                        .exclude(free_text_answer__exact="")
+                        .exclude(free_text_answer__isnull=True)
+                    )
+
+                    ws.cell(
+                        row=row_num, column=1, value="Текстовые ответы:"
+                    ).font = Font(bold=True)
+                    ws.cell(
+                        row=row_num, column=2, value=text_answers_qs.count()
+                    ).alignment = center_alignment
                     row_num += 1
-                    
+
                     if text_answers_qs.exists():
-                        for ans_text in text_answers_qs.values_list('free_text_answer', flat=True):
-                            ws.cell(row=row_num, column=1, value=ans_text).alignment = left_alignment
-                            ws.merge_cells(start_row=row_num, start_column=1, end_row=row_num, end_column=3)
+                        for ans_text in text_answers_qs.values_list(
+                            "free_text_answer", flat=True
+                        ):
+                            ws.cell(
+                                row=row_num, column=1, value=ans_text
+                            ).alignment = left_alignment
+                            ws.merge_cells(
+                                start_row=row_num,
+                                start_column=1,
+                                end_row=row_num,
+                                end_column=3,
+                            )
                             row_num += 1
                     else:
                         ws.cell(row=row_num, column=1, value="Нет текстовых ответов")
                         row_num += 1
-                
+
                 row_num += 1
 
             for col_idx in range(1, 5):
@@ -434,10 +551,10 @@ class PollViewset(viewsets.ModelViewSet):
                             cell_len = len(str(cell_value))
                         else:
                             cell_len = len(str(cell_value))
-                        
-                        lines = str(cell_value).split('\n')
+
+                        lines = str(cell_value).split("\n")
                         max_line_len = max(len(line) for line in lines) if lines else 0
-                        
+
                         if max_line_len > max_length:
                             max_length = max_line_len
                 adjusted_width = (max_length + 2) * 1.2
@@ -445,8 +562,8 @@ class PollViewset(viewsets.ModelViewSet):
 
             wb.save(response)
             return response
-    
-    @action(detail=True, methods=['get'])
+
+    @action(detail=True, methods=["get"])
     def statistics(self, request, pk=None):
         """
         Возвращает агрегированную статистику по ответам на каждый вопрос опроса.
@@ -462,7 +579,7 @@ class PollViewset(viewsets.ModelViewSet):
             or poll.stats_viewers.filter(id=request.user.id).exists()
         ):
             can_view_stats = True
-        
+
         if not can_view_stats:
             return Response(
                 {"detail": "У вас нет прав для просмотра статистики этого опроса."},
@@ -470,76 +587,102 @@ class PollViewset(viewsets.ModelViewSet):
             )
 
         total_submissions_count = poll.submissions.count()
-        
+
         response_data = {
             "poll_id": poll.id,
             "poll_name": poll.name if poll.name else "N/A",
             "total_submissions": total_submissions_count,
-            "question_statistics": []
+            "question_statistics": [],
         }
 
-        questions_with_related = poll.questions.prefetch_related('choices', 'answers__selected_choices')
+        questions_with_related = poll.questions.prefetch_related(
+            "choices", "answers__selected_choices"
+        )
 
         for question in questions_with_related:
             q_stat = {
                 "question_id": question.id,
                 "text": question.text,
                 "question_type": question.question_type,
-                "question_type_display": question.get_question_type_display()
+                "question_type_display": question.get_question_type_display(),
             }
 
-            if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+            if question.question_type in [
+                Question.QuestionType.SINGLE_CHOICE,
+                Question.QuestionType.MULTIPLE_CHOICE,
+            ]:
                 q_stat["choices_stats"] = []
-                
+
                 annotated_choices = question.choices.annotate(
-                    num_answers=Count('chosen_in_answers', filter=Q(chosen_in_answers__submission__poll=poll))
+                    num_answers=Count(
+                        "chosen_in_answers",
+                        filter=Q(chosen_in_answers__submission__poll=poll),
+                    )
                 )
 
                 for choice in annotated_choices:
                     count = choice.num_answers
-                    percentage = (count / total_submissions_count * 100) if total_submissions_count > 0 else 0
-                    q_stat["choices_stats"].append({
-                        "choice_id": choice.id,
-                        "choice_text": choice.choice_text,
-                        "count": count,
-                        "percentage": round(percentage, 2)
-                    })
+                    percentage = (
+                        (count / total_submissions_count * 100)
+                        if total_submissions_count > 0
+                        else 0
+                    )
+                    q_stat["choices_stats"].append(
+                        {
+                            "choice_id": choice.id,
+                            "choice_text": choice.choice_text,
+                            "count": count,
+                            "percentage": round(percentage, 2),
+                        }
+                    )
 
                 if question.allow_custom_answer:
-                    custom_answers_qs = Answer.objects.filter(
-                        question=question, submission__poll=poll
-                    ).exclude(custom_choice_text__exact='').exclude(custom_choice_text__isnull=True)
-                    
+                    custom_answers_qs = (
+                        Answer.objects.filter(question=question, submission__poll=poll)
+                        .exclude(custom_choice_text__exact="")
+                        .exclude(custom_choice_text__isnull=True)
+                    )
+
                     custom_answers_count = custom_answers_qs.count()
-                    custom_percentage = (custom_answers_count / total_submissions_count * 100) if total_submissions_count > 0 else 0
-                    
+                    custom_percentage = (
+                        (custom_answers_count / total_submissions_count * 100)
+                        if total_submissions_count > 0
+                        else 0
+                    )
+
                     q_stat["custom_answers_stats"] = {
                         "label": "Другое (свой вариант)",
                         "count": custom_answers_count,
                         "percentage": round(custom_percentage, 2),
-                        "sample_texts": list(custom_answers_qs.values_list('custom_choice_text', flat=True)[:5])
+                        "sample_texts": list(
+                            custom_answers_qs.values_list(
+                                "custom_choice_text", flat=True
+                            )[:5]
+                        ),
                     }
 
             elif question.question_type in [
-                Question.QuestionType.FREE_TEXT, 
-                Question.QuestionType.DATE, 
-                Question.QuestionType.TELEPHONE, 
-                Question.QuestionType.MAIL
+                Question.QuestionType.FREE_TEXT,
+                Question.QuestionType.DATE,
+                Question.QuestionType.TELEPHONE,
+                Question.QuestionType.MAIL,
             ]:
-                text_answers_qs = Answer.objects.filter(
-                    question=question, 
-                    submission__poll=poll
-                ).exclude(free_text_answer__exact='').exclude(free_text_answer__isnull=True)
-                
+                text_answers_qs = (
+                    Answer.objects.filter(question=question, submission__poll=poll)
+                    .exclude(free_text_answer__exact="")
+                    .exclude(free_text_answer__isnull=True)
+                )
+
                 q_stat["free_text_answers_count"] = text_answers_qs.count()
-                q_stat["sample_free_text_answers"] = list(text_answers_qs.values_list('free_text_answer', flat=True)[:5])
-            
+                q_stat["sample_free_text_answers"] = list(
+                    text_answers_qs.values_list("free_text_answer", flat=True)[:5]
+                )
+
             response_data["question_statistics"].append(q_stat)
-        
+
         return Response(response_data)
 
-
-    @action(detail=True, methods=['get'], url_path='answers')
+    @action(detail=True, methods=["get"], url_path="answers")
     def user_answers_list(self, request, pk=None):
         """
         Возвращает список ответов пользователей для данного опроса.
@@ -556,34 +699,40 @@ class PollViewset(viewsets.ModelViewSet):
             or poll.stats_viewers.filter(id=request.user.id).exists()
         ):
             can_view_details = True
-        
+
         if not can_view_details:
             return Response(
-                {"detail": "У вас нет прав для просмотра детальных ответов этого опроса."},
+                {
+                    "detail": "У вас нет прав для просмотра детальных ответов этого опроса."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         if poll.is_anonymous:
             return Response(
-                {"detail": "Просмотр ответов по пользователям недоступен для анонимных опросов."},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "detail": "Просмотр ответов по пользователям недоступен для анонимных опросов."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        submissions = poll.submissions.filter(user__isnull=False).select_related('user').prefetch_related(
-            'answers__question', 
-            'answers__selected_choices'
-        ).order_by('submitted_at')
+        submissions = (
+            poll.submissions.filter(user__isnull=False)
+            .select_related("user")
+            .prefetch_related("answers__question", "answers__selected_choices")
+            .order_by("submitted_at")
+        )
 
+        serializer = PollSubmissionWithAnswersSerializer(
+            submissions, many=True, context={"request": request}
+        )
+        return Response(
+            {"poll_id": poll.id, "poll_name": poll.name, "results": serializer.data}
+        )
 
-        serializer = PollSubmissionWithAnswersSerializer(submissions, many=True, context={'request': request})
-        return Response({
-            'poll_id': poll.id,
-            'poll_name': poll.name,
-            'results': serializer.data
-        })
-    
-
-    @action(detail=True, methods=['get'], url_path='answers/(?P<user_pk>[^/.]+)') # (?P<user_pk>[^/.]+) - для UUID или int
+    @action(
+        detail=True, methods=["get"], url_path="answers/(?P<user_pk>[^/.]+)"
+    )  # (?P<user_pk>[^/.]+) - для UUID или int
     def retrieve_user_answers(self, request, pk=None, user_pk=None):
         """
         Возвращает ответы конкретного пользователя на данный опрос.
@@ -594,16 +743,18 @@ class PollViewset(viewsets.ModelViewSet):
 
         if poll.is_anonymous:
             return Response(
-                {"detail": "Просмотр ответов по пользователям недоступен для анонимных опросов."},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "detail": "Просмотр ответов по пользователям недоступен для анонимных опросов."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
             target_user = get_object_or_404(Employee, pk=user_pk)
         except (ValueError, Employee.DoesNotExist):
-             return Response(
+            return Response(
                 {"detail": "Пользователь с указанным ID не найден."},
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         current_user = request.user
@@ -612,36 +763,45 @@ class PollViewset(viewsets.ModelViewSet):
         if current_user.is_staff or current_user.is_superuser:
             can_view_target_user_answers = True
         elif current_user.is_authenticated:
-            if (poll.author == current_user or
-                poll.editors.filter(id=current_user.id).exists() or
-                poll.stats_viewers.filter(id=current_user.id).exists()):
+            if (
+                poll.author == current_user
+                or poll.editors.filter(id=current_user.id).exists()
+                or poll.stats_viewers.filter(id=current_user.id).exists()
+            ):
                 can_view_target_user_answers = True
             elif current_user == target_user:
                 can_view_target_user_answers = True
-        
+
         if not can_view_target_user_answers:
             return Response(
-                {"detail": "У вас нет прав для просмотра ответов этого пользователя на данный опрос."},
+                {
+                    "detail": "У вас нет прав для просмотра ответов этого пользователя на данный опрос."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         try:
-            submission = PollSubmission.objects.select_related('user').prefetch_related(
-                'answers__question', 
-                'answers__selected_choices'
-            ).get(poll=poll, user=target_user)
+            submission = (
+                PollSubmission.objects.select_related("user")
+                .prefetch_related("answers__question", "answers__selected_choices")
+                .get(poll=poll, user=target_user)
+            )
         except PollSubmission.DoesNotExist:
             return Response(
-                {"detail": "Указанный пользователь не проходил данный опрос, или ответы не найдены."},
-                status=status.HTTP_404_NOT_FOUND
+                {
+                    "detail": "Указанный пользователь не проходил данный опрос, или ответы не найдены."
+                },
+                status=status.HTTP_404_NOT_FOUND,
             )
 
-        serializer = PollSubmissionWithAnswersSerializer(submission, context={'request': request})
-        
+        serializer = PollSubmissionWithAnswersSerializer(
+            submission, context={"request": request}
+        )
+
         response_data = {
-            'poll_id': poll.id,
-            'poll_name': poll.name,
-            'submission_details': serializer.data
+            "poll_id": poll.id,
+            "poll_name": poll.name,
+            "submission_details": serializer.data,
         }
         return Response(response_data)
 
@@ -687,7 +847,20 @@ class ColleagueProfileViewset(UserViewSet):
         "chief__id": ["exact", "isnull"],
         "structural_division__organization__id": ["exact", "isnull"],
     }
-    search_fields = ('email', 'surname', 'name', 'patronym', 'birth_date', 'email', 'telephone_number', 'inner_telephone_number', 'office', 'job_title', 'class_rank', 'status')
+    search_fields = (
+        "email",
+        "surname",
+        "name",
+        "patronym",
+        "birth_date",
+        "email",
+        "telephone_number",
+        "inner_telephone_number",
+        "office",
+        "job_title",
+        "class_rank",
+        "status",
+    )
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -809,17 +982,14 @@ class ColleagueProfileViewset(UserViewSet):
         user = request.user
 
         try:
-            rating_to_update = Rating.objects.get(
-                user=user, 
-                employee=employee_to_rate
-            )
+            rating_to_update = Rating.objects.get(user=user, employee=employee_to_rate)
         except Rating.DoesNotExist:
-            raise NotFound("Вы еще не ставили оценку этому сотруднику, поэтому не можете ее обновить.")
+            raise NotFound(
+                "Вы еще не ставили оценку этому сотруднику, поэтому не можете ее обновить."
+            )
 
         serializer = RatingPUTSerializer(
-            instance=rating_to_update, 
-            data=request.data,
-            partial=True
+            instance=rating_to_update, data=request.data, partial=True
         )
         serializer.is_valid(raise_exception=True)
 
@@ -835,15 +1005,15 @@ class ColleagueProfileViewset(UserViewSet):
             },
             status=status.HTTP_200_OK,
         )
-    
-    @action(detail=True, methods=['get'], url_path='ratings')
+
+    @action(detail=True, methods=["get"], url_path="ratings")
     def ratings(self, request, id=None):
         """
         Returns a paginated list of all ratings for a specific employee.
         """
         employee = self.get_object()
 
-        queryset = employee.rated.all().order_by('-date')
+        queryset = employee.rated.all().order_by("-date")
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -1053,16 +1223,17 @@ class IdeaViewSet(viewsets.ModelViewSet):
     """
     API эндпоинт для идей.
     """
-    queryset = Idea.objects.select_related('author').all()
+
+    queryset = Idea.objects.select_related("author").all()
     serializer_class = IdeaSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = ['get', 'post', 'patch', 'head', 'options']
+    http_method_names = ["get", "post", "patch", "head", "options"]
 
     filter_backends = [DjangoFilterBackend, OrderingFilter]
 
     filterset_class = IdeaFilter
 
-    ordering_fields = ['created_at', 'author', 'status']
+    ordering_fields = ["created_at", "author", "status"]
 
     def perform_create(self, serializer):
         """
@@ -1072,7 +1243,7 @@ class IdeaViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """
-        Пользователи могут видеть только свои идеи, 
+        Пользователи могут видеть только свои идеи,
         администраторы - все идеи.
         """
         if self.request.user.is_staff:
@@ -1084,14 +1255,14 @@ class IdeaViewSet(viewsets.ModelViewSet):
         Проверка прав на обновление идеи.
         """
         instance = self.get_object()
-        
+
         # Проверяем права доступа
         if instance.author != request.user and not request.user.is_staff:
             return Response(
                 {"detail": "Вы можете редактировать только свои идеи."},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
+
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
@@ -1099,14 +1270,14 @@ class IdeaViewSet(viewsets.ModelViewSet):
         Проверка прав на частичное обновление идеи.
         """
         instance = self.get_object()
-        
+
         # Проверяем права доступа
         if instance.author != request.user and not request.user.is_staff:
             return Response(
                 {"detail": "Вы можете редактировать только свои идеи."},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
+
         return super().partial_update(request, *args, **kwargs)
 
 
@@ -1115,16 +1286,29 @@ class StructuralSubdivisionViewSet(viewsets.ModelViewSet):
     API endpoint that allows structural subdivisions to be viewed or edited.
     """
 
-    queryset = StructuralSubdivision.objects.select_related(
-        'organization', 'chief', 'supervisor', 'parent_structural_subdivision'
-    ).prefetch_related('controlled_structural_subdivision').all()
+    queryset = (
+        StructuralSubdivision.objects.select_related(
+            "organization", "chief", "supervisor", "parent_structural_subdivision"
+        )
+        .prefetch_related("controlled_structural_subdivision")
+        .all()
+    )
 
     permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
 
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter)
-    filterset_fields = ('organization', 'chief', 'supervisor', 'parent_structural_subdivision')
-    search_fields = ('name',)
-    ordering_fields = ('name', 'organization__name')
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    )
+    filterset_fields = (
+        "organization",
+        "chief",
+        "supervisor",
+        "parent_structural_subdivision",
+    )
+    search_fields = ("name",)
+    ordering_fields = ("name", "organization__name")
 
     def get_serializer_class(self):
         """
@@ -1132,6 +1316,6 @@ class StructuralSubdivisionViewSet(viewsets.ModelViewSet):
         - Use ReadSerializer for safe methods (GET).
         - Use WriteSerializer for unsafe methods (POST, PUT, PATCH).
         """
-        if self.action in ('list', 'retrieve'):
+        if self.action in ("list", "retrieve"):
             return StructuralSubdivisionReadSerializer
         return StructuralSubdivisionWriteSerializer

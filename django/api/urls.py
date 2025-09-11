@@ -27,7 +27,9 @@ router_version1.register("org-structure", OrgStructureViewset, basename="org-str
 router_version1.register("organization", OrganizationViewSet, basename="organization")
 router_version1.register("hierarchy", HierarchyViewSet, basename="hierarchy")
 router_version1.register("ideas", IdeaViewSet, basename="idea")
-router_version1.register("subdivisions", StructuralSubdivisionViewSet, basename='subdivision')
+router_version1.register(
+    "subdivisions", StructuralSubdivisionViewSet, basename="subdivision"
+)
 
 
 urlpatterns = [

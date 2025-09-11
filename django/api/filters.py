@@ -30,18 +30,15 @@ class IdeaFilter(FilterSet):
     """
     Набор фильтров для модели Idea.
     """
+
     start_date = DateFilter(
-        field_name="created_at",
-        lookup_expr='gte',
-        label="Дата создания (от)"
+        field_name="created_at", lookup_expr="gte", label="Дата создания (от)"
     )
 
     end_date = DateFilter(
-        field_name="created_at",
-        lookup_expr='lte',
-        label="Дата создания (до)"
+        field_name="created_at", lookup_expr="lte", label="Дата создания (до)"
     )
 
     class Meta:
         model = Idea
-        fields = ['author', 'status']
+        fields = ["author", "status"]

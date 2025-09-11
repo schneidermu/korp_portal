@@ -238,7 +238,7 @@ class Question(models.Model):
     allow_custom_answer = models.BooleanField(
         default=False,
         verbose_name="Разрешить свой вариант ответа ('Другое')",
-        help_text="Если отмечено, пользователь сможет вписать свой вариант (для типов 'Один вариант' и 'Несколько вариантов')."
+        help_text="Если отмечено, пользователь сможет вписать свой вариант (для типов 'Один вариант' и 'Несколько вариантов').",
     )
 
     def __str__(self):
@@ -356,9 +356,10 @@ class Answer(models.Model):
     free_text_answer = models.TextField(blank=True, null=True)
 
     custom_choice_text = models.TextField(
-        blank=True, null=True,
+        blank=True,
+        null=True,
         verbose_name="Текст своего варианта ответа ('Другое')",
-        help_text="Заполняется, если пользователь выбрал опцию 'Другое' и вписал свой вариант."
+        help_text="Заполняется, если пользователь выбрал опцию 'Другое' и вписал свой вариант.",
     )
 
     def __str__(self):
@@ -450,9 +451,7 @@ class CourseVideo(models.Model):
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
     video = models.ForeignKey(Video, on_delete=models.CASCADE, verbose_name="Видео")
-    order = models.PositiveIntegerField(
-        default=0, verbose_name="Порядок в курсе"
-    )
+    order = models.PositiveIntegerField(default=0, verbose_name="Порядок в курсе")
 
     class Meta:
         verbose_name = "Видео в курсе"

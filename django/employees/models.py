@@ -5,8 +5,11 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
 
-from homepage.constants import (CHARFIELD_LENGTH, OFFICE_NUMBER_LENGTH,
-                                PHONE_NUMBER_LENGTH)
+from homepage.constants import (
+    CHARFIELD_LENGTH,
+    OFFICE_NUMBER_LENGTH,
+    PHONE_NUMBER_LENGTH,
+)
 
 
 def return_name(instance, filename):
@@ -89,7 +92,7 @@ class Employee(AbstractUser):
         verbose_name="Номер телефона",
         blank=True,
         null=True,
-        max_length=PHONE_NUMBER_LENGTH
+        max_length=PHONE_NUMBER_LENGTH,
     )
 
     agreed_with_data_processing = models.BooleanField(
@@ -102,13 +105,10 @@ class Employee(AbstractUser):
         verbose_name="Внутренний номер телефона",
         blank=True,
         null=True,
-        max_length=PHONE_NUMBER_LENGTH
+        max_length=PHONE_NUMBER_LENGTH,
     )
     office = models.CharField(
-        verbose_name="Кабинет",
-        blank=True,
-        null=True,
-        max_length=OFFICE_NUMBER_LENGTH
+        verbose_name="Кабинет", blank=True, null=True, max_length=OFFICE_NUMBER_LENGTH
     )
 
     job_title = models.CharField(
@@ -244,12 +244,9 @@ class Rating(models.Model):
         verbose_name="Комментарий",
         help_text="Текст, поясняющий оценку (необязательно)",
         blank=True,
-        null=True
+        null=True,
     )
-    date = models.DateTimeField(
-        verbose_name="Дата оценки",
-        auto_now_add=True
-    )
+    date = models.DateTimeField(verbose_name="Дата оценки", auto_now_add=True)
     rate = models.PositiveSmallIntegerField(
         choices=((1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")),
     )
@@ -287,9 +284,7 @@ class Characteristic(models.Model):
     # Курсы через class Course
 
     experience = models.CharField(
-        verbose_name="Стаж работы",
-        blank=True,
-        max_length=CHARFIELD_LENGTH
+        verbose_name="Стаж работы", blank=True, max_length=CHARFIELD_LENGTH
     )
 
     # Карьерный рост через class Career
@@ -315,9 +310,7 @@ class Characteristic(models.Model):
     # Диплом через class Diploma
 
     about = models.TextField(
-        verbose_name="Обо мне",
-        blank=True,
-        max_length=CHARFIELD_LENGTH*4
+        verbose_name="Обо мне", blank=True, max_length=CHARFIELD_LENGTH * 4
     )
 
     class Meta:
@@ -393,7 +386,7 @@ class Competence(AbstractNameModel):
     is_important = models.BooleanField(
         verbose_name="Важный навык",
         default=False,
-        help_text="Указывает, была ли эта компетенция определена администратором как важный навык."
+        help_text="Указывает, была ли эта компетенция определена администратором как важный навык.",
     )
 
     class Meta:
@@ -433,9 +426,7 @@ class University(AbstractWithPhotoNameModel):
     )
 
     faculty = models.CharField(
-        verbose_name="Факультет",
-        blank=True,
-        max_length=CHARFIELD_LENGTH
+        verbose_name="Факультет", blank=True, max_length=CHARFIELD_LENGTH
     )
 
     class Meta:
@@ -595,12 +586,13 @@ class Idea(models.Model):
     """
     Модель для хранения идеи. Содержит текст, автора и дату создания.
     """
+
     author = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
-        related_name='ideas',
+        related_name="ideas",
         verbose_name="Автор",
-        editable=False
+        editable=False,
     )
     text = models.TextField(verbose_name="Текст идеи")
     STATUS_CHOICES = [
@@ -620,15 +612,12 @@ class Idea(models.Model):
         blank=True,
         null=True,
     )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Дата создания"
-    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
         verbose_name = "Идея"
         verbose_name_plural = "Идеи"
 
     def __str__(self):
-        return f'Идея от {self.author} ({self.created_at.strftime("%Y-%m-%d")})'
+        return f"Идея от {self.author} ({self.created_at.strftime('%Y-%m-%d')})"

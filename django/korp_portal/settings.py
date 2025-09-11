@@ -87,10 +87,7 @@ LOGGING = {
             "level": "ERROR",
             "class": "django.utils.log.AdminEmailHandler",
         },
-        "stream_to_console": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler"
-        },
+        "stream_to_console": {"level": "DEBUG", "class": "logging.StreamHandler"},
         "api_file": {
             "level": "INFO",
             "class": "logging.handlers.RotatingFileHandler",
