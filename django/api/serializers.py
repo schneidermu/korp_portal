@@ -23,12 +23,14 @@ from employees.models import (
     Course,
     Diploma,
     Employee,
+    FavoriteSegment,
     Hobby,
     Idea,
     Organization,
     Performance,
     Rating,
     Reward,
+    Segment,
     Sport,
     StructuralSubdivision,
     Training,
@@ -1961,3 +1963,78 @@ class StructuralSubdivisionReadSerializer(serializers.ModelSerializer):
             "parent_structural_subdivision",
             "positions",
         )
+
+
+class SegmentSerializer(serializers.ModelSerializer):
+    """Сериализатор для сегментов."""
+    
+    supervisor_name = serializers.CharField(
+        source="supervisor.get_full_name", 
+        read_only=True,
+    )
+    is_favorite = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Segment
+        fields = (
+            "id",
+            "name",
+            "supervisor",
+            "supervisor_name",
+            "url",
+            "description",
+            "created_at",
+            "is_favorite",
+        )
+        read_only_fields = ("created_at",)
+    
+    def get_is_favorite(self, obj):
+        """Проверяет, является ли сегмент избранным для текущего пользователя."""
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return FavoriteSegment.objects.filter(
+                user=request.user, 
+                segment=obj,
+            ).exists()
+        return False
+
+
+class FavoriteSegmentSerializer(serializers.ModelSerializer):
+    """Сериализатор для избранных сегментов."""
+    
+    segment_name = serializers.CharField(source="segment.name", read_only=True)
+    
+    class Meta:
+        model = FavoriteSegment
+        fields = (
+            "id",
+            "segment",
+            "segment_name",
+            "created_at",
+        )
+        read_only_fields = ("created_at",)
+    
+    def validate(self, data):
+        """Проверка ограничений на количество избранных сегментов."""
+        user = self.context["request"].user
+        segment = data["segment"]
+        
+        # Проверка на дублирование
+        if FavoriteSegment.objects.filter(user=user, segment=segment).exists():
+            raise serializers.ValidationError(
+                "Этот сегмент уже добавлен в избранное.",
+            )
+        
+        # Проверка на лимит
+        from homepage.constants import MAX_FAVORITE_SEGMENTS
+        if user.favorite_segments.count() >= MAX_FAVORITE_SEGMENTS:
+            raise serializers.ValidationError(
+                f"Вы можете добавить в избранное максимум {MAX_FAVORITE_SEGMENTS} сегментов.",
+            )
+        
+        return data
+    
+    def create(self, validated_data):
+        """Создание избранного сегмента с привязкой к пользователю."""
+        validated_data["user"] = self.context["request"].user
+        return super().create(validated_data)

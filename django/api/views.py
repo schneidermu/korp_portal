@@ -26,9 +26,11 @@ from rest_framework.views import APIView
 from employees.models import (
     Competence,
     Employee,
+    FavoriteSegment,
     Idea,
     Organization,
     Rating,
+    Segment,
     StructuralSubdivision,
 )
 from homepage.models import Answer, News, Poll, PollGroup, PollSubmission, Question
@@ -37,6 +39,7 @@ from .filters import CompetenceFilter, IdeaFilter
 from .permissions import IsAdminUserOrReadOnly
 from .serializers import (
     CompetenceSerializer,
+    FavoriteSegmentSerializer,
     FileUploadSerializer,
     HierarchySerializer,
     IdeaSerializer,
@@ -53,6 +56,7 @@ from .serializers import (
     RatingListSerializer,
     RatingPOSTSerializer,
     RatingPUTSerializer,
+    SegmentSerializer,
     StructuralSubdivisionReadSerializer,
     StructuralSubdivisionWriteSerializer,
 )
@@ -1312,3 +1316,74 @@ class StructuralSubdivisionViewSet(viewsets.ModelViewSet):
         if self.action in ("list", "retrieve"):
             return StructuralSubdivisionReadSerializer
         return StructuralSubdivisionWriteSerializer
+
+
+class SegmentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для сегментов с CRUD операциями."""
+
+    queryset = Segment.objects.all()
+    serializer_class = SegmentSerializer
+    permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["supervisor"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["name", "created_at"]
+    ordering = ["name"]
+
+    def get_queryset(self):
+        """Возвращает кверисет с prefetch для оптимизации."""
+        return self.queryset.select_related("supervisor").prefetch_related(
+            "favorited_by",
+        )
+
+
+class FavoriteSegmentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для управления избранными сегментами пользователя."""
+
+    serializer_class = FavoriteSegmentSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ["get", "post", "delete"]  # Только чтение, создание и удаление
+
+    def get_queryset(self):
+        """Возвращает только избранные сегменты текущего пользователя."""
+        return FavoriteSegment.objects.filter(user=self.request.user).select_related(
+            "segment", "segment__supervisor",
+        )
+
+    @action(detail=False, methods=["post"], url_path="toggle/(?P<segment_id>[^/.]+)")
+    def toggle_favorite(self, request, segment_id=None):
+        """Переключает статус избранного для сегмента."""
+        try:
+            segment = Segment.objects.get(id=segment_id)
+        except Segment.DoesNotExist:
+            return Response(
+                {"error": "Сегмент не найден"}, status=status.HTTP_404_NOT_FOUND,
+            )
+
+        favorite, created = FavoriteSegment.objects.get_or_create(
+            user=request.user, segment=segment,
+        )
+
+        if not created:
+            # Если уже существует, удаляем
+            favorite.delete()
+            return Response(
+                {"message": "Сегмент удален из избранного", "is_favorite": False},
+                status=status.HTTP_200_OK,
+            )
+        else:
+            # Проверяем лимит
+            from homepage.constants import MAX_FAVORITE_SEGMENTS
+            if request.user.favorite_segments.count() > MAX_FAVORITE_SEGMENTS:
+                favorite.delete()
+                return Response(
+                    {
+                        "error": f"Вы можете добавить в избранное максимум {MAX_FAVORITE_SEGMENTS} сегментов",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            return Response(
+                {"message": "Сегмент добавлен в избранное", "is_favorite": True},
+                status=status.HTTP_201_CREATED,
+            )

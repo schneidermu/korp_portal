@@ -7,6 +7,7 @@ from django.db.models import Avg
 
 from homepage.constants import (
     CHARFIELD_LENGTH,
+    MAX_FAVORITE_SEGMENTS,
     OFFICE_NUMBER_LENGTH,
     PHONE_NUMBER_LENGTH,
 )
@@ -624,3 +625,91 @@ class Idea(models.Model):
 
     def __str__(self):
         return f"Идея от {self.author} ({self.created_at.strftime('%Y-%m-%d')})"
+
+
+class Segment(models.Model):
+    """Модель сегмента."""
+
+    name = models.CharField(
+        verbose_name="Название",
+        max_length=CHARFIELD_LENGTH,
+    )
+
+    supervisor = models.ForeignKey(
+        Employee,
+        verbose_name="Ответственный",
+        on_delete=models.SET_NULL,
+        related_name="supervised_segments",
+        null=True,
+        blank=True,
+    )
+
+    url = models.URLField(
+        verbose_name="Ссылка",
+        blank=True,
+        default="",
+    )
+
+    description = models.TextField(
+        verbose_name="Описание",
+        blank=True,
+        default="",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания",
+    )
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Сегмент"
+        verbose_name_plural = "Сегменты"
+
+    def __str__(self):
+        return self.name
+
+
+class FavoriteSegment(models.Model):
+    """Модель избранного сегмента пользователя."""
+
+    user = models.ForeignKey(
+        Employee,
+        verbose_name="Пользователь",
+        on_delete=models.CASCADE,
+        related_name="favorite_segments",
+    )
+
+    segment = models.ForeignKey(
+        Segment,
+        verbose_name="Сегмент",
+        on_delete=models.CASCADE,
+        related_name="favorited_by",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата добавления в избранное",
+    )
+
+    class Meta:
+        unique_together = ("user", "segment")
+        ordering = ["-created_at"]
+        verbose_name = "Избранный сегмент"
+        verbose_name_plural = "Избранные сегменты"
+
+    def __str__(self):
+        return f"{self.user} - {self.segment}"
+
+    def clean(self):
+        """Проверка на количество избранных сегментов."""
+        from django.core.exceptions import ValidationError
+        
+        if (
+            self.user
+            and self.user.favorite_segments.count() >= MAX_FAVORITE_SEGMENTS
+            and not self.pk
+        ):
+            raise ValidationError(
+                f"Пользователь может иметь максимум {MAX_FAVORITE_SEGMENTS} избранных сегментов.",
+            )

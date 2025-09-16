@@ -8,11 +8,14 @@ from rest_framework.test import APITestCase
 from employees.models import (
     Competence,
     Employee,
+    FavoriteSegment,
     Idea,
     Organization,
     Rating,
+    Segment,
     StructuralSubdivision,
 )
+from homepage.constants import MAX_FAVORITE_SEGMENTS
 from homepage.models import News, PollGroup
 
 
@@ -1218,4 +1221,370 @@ class IdeaViewSetTests(APITestCase):
             ideas_count,
             1,
             f"Администратор должен видеть все идеи, получено: {ideas_count}",
+        )
+
+
+@override_settings(
+    AUTHENTICATION_BACKENDS=["django.contrib.auth.backends.ModelBackend"],
+    FORCE_SCRIPT_NAME="",
+)
+class SegmentAPITests(APITestCase):
+    """
+    Тесты для API сегментов.
+    
+    Проверяет функциональность CRUD операций для сегментов,
+    включая права доступа и валидацию.
+    """
+
+    def setUp(self):
+        """Настройка тестового окружения."""
+        self.user = Employee.objects.create_user(
+            username="regular_user",
+            password="testpass123",
+            email="user@example.com",
+        )
+        self.admin_user = Employee.objects.create_user(
+            username="admin_user",
+            password="adminpass123",
+            email="admin@example.com",
+            is_staff=True,
+        )
+        self.supervisor = Employee.objects.create_user(
+            username="supervisor",
+            password="supervisorpass123",
+            email="supervisor@example.com",
+        )
+        
+        # Создаем тестовый сегмент
+        self.segment = Segment.objects.create(
+            name="Тестовый сегмент",
+            supervisor=self.supervisor,
+            url="https://example.com",
+            description="Описание тестового сегмента",
+        )
+
+    def test_create_segment_by_admin_success(self):
+        """Тест: Успешное создание сегмента администратором (POST)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "name": "Новый сегмент",
+            "supervisor": self.supervisor.id,
+            "url": "https://newsegment.com",
+            "description": "Описание нового сегмента",
+        }
+        
+        response = self.client.post("/api/segments/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["name"], "Новый сегмент")
+        self.assertEqual(response.data["supervisor"], self.supervisor.id)
+        self.assertTrue(Segment.objects.filter(name="Новый сегмент").exists())
+
+    def test_create_segment_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может создавать сегменты (POST)."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "name": "Запрещенный сегмент",
+            "supervisor": self.supervisor.id,
+            "url": "https://forbidden.com",
+            "description": "Это должно быть запрещено",
+        }
+        
+        response = self.client.post("/api/segments/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(
+            Segment.objects.filter(name="Запрещенный сегмент").exists(),
+        )
+
+    def test_update_segment_by_admin_success(self):
+        """Тест: Успешное обновление сегмента администратором (PUT)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "name": "Обновленный сегмент",
+            "supervisor": self.supervisor.id,
+            "url": "https://updated.com",
+            "description": "Обновленное описание",
+        }
+        
+        response = self.client.put(f"/api/segments/{self.segment.id}/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.segment.refresh_from_db()
+        self.assertEqual(self.segment.name, "Обновленный сегмент")
+        self.assertEqual(self.segment.url, "https://updated.com")
+
+    def test_partial_update_segment_by_admin_success(self):
+        """Тест: Успешное частичное обновление сегмента администратором (PATCH)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {"name": "Частично обновленный сегмент"}
+        
+        response = self.client.patch(f"/api/segments/{self.segment.id}/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.segment.refresh_from_db()
+        self.assertEqual(self.segment.name, "Частично обновленный сегмент")
+        # Остальные поля должны остаться неизменными
+        self.assertEqual(self.segment.supervisor, self.supervisor)
+
+    def test_update_segment_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может обновлять сегменты (PUT)."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "name": "Запрещенное обновление",
+            "supervisor": self.supervisor.id,
+            "url": "https://forbidden-update.com",
+            "description": "Это должно быть запрещено",
+        }
+        
+        response = self.client.put(f"/api/segments/{self.segment.id}/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.segment.refresh_from_db()
+        self.assertNotEqual(self.segment.name, "Запрещенное обновление")
+
+    def test_delete_segment_by_admin_success(self):
+        """Тест: Успешное удаление сегмента администратором (DELETE)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        segment_id = self.segment.id
+        response = self.client.delete(f"/api/segments/{segment_id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Segment.objects.filter(id=segment_id).exists())
+
+    def test_delete_segment_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может удалять сегменты (DELETE)."""
+        self.client.force_authenticate(user=self.user)
+        
+        segment_id = self.segment.id
+        response = self.client.delete(f"/api/segments/{segment_id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Segment.objects.filter(id=segment_id).exists())
+
+    def test_list_segments_authenticated_user(self):
+        """Тест: Получение списка сегментов аутентифицированным пользователем."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get("/api/segments/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Проверяем, что наш тестовый сегмент есть в списке
+        segment_names = [segment["name"] for segment in response.data]
+        self.assertIn("Тестовый сегмент", segment_names)
+
+    def test_segment_has_is_favorite_field(self):
+        """Тест: Сегмент содержит поле is_favorite в ответе."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(f"/api/segments/{self.segment.id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("is_favorite", response.data)
+        self.assertFalse(response.data["is_favorite"])
+
+
+@override_settings(
+    AUTHENTICATION_BACKENDS=["django.contrib.auth.backends.ModelBackend"],
+    FORCE_SCRIPT_NAME="",
+)
+class FavoriteSegmentAPITests(APITestCase):
+    """
+    Тесты для API избранных сегментов.
+    
+    Проверяет функциональность добавления/удаления сегментов в избранное,
+    включая ограничения по количеству и права доступа.
+    """
+
+    def setUp(self):
+        """Настройка тестового окружения."""
+        self.user = Employee.objects.create_user(
+            username="test_user",
+            password="testpass123",
+            email="testuser@example.com",
+        )
+        self.other_user = Employee.objects.create_user(
+            username="other_user",
+            password="otherpass123",
+            email="otheruser@example.com",
+        )
+        
+        # Создаем несколько сегментов для тестирования
+        self.segments = []
+        for i in range(MAX_FAVORITE_SEGMENTS + 2):  # Создаем больше максимума
+            segment = Segment.objects.create(
+                name=f"Сегмент {i+1}",
+                description=f"Описание сегмента {i+1}",
+                url=f"https://segment{i+1}.com",
+            )
+            self.segments.append(segment)
+
+    def test_add_segment_to_favorites_success(self):
+        """Тест: Успешное добавление сегмента в избранное (POST)."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {"segment": self.segments[0].id}
+        
+        response = self.client.post("/api/favorite-segments/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(
+            FavoriteSegment.objects.filter(
+                user=self.user, segment=self.segments[0],
+            ).exists(),
+        )
+
+    def test_add_segment_to_favorites_duplicate_error(self):
+        """Тест: Нельзя добавить один сегмент в избранное дважды."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Сначала добавляем сегмент в избранное
+        FavoriteSegment.objects.create(user=self.user, segment=self.segments[0])
+        
+        data = {"segment": self.segments[0].id}
+        
+        response = self.client.post("/api/favorite-segments/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("уже добавлен в избранное", str(response.data))
+
+    def test_exceed_max_favorite_segments_limit(self):
+        """Тест: Нельзя добавить больше MAX_FAVORITE_SEGMENTS сегментов."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Добавляем максимальное количество сегментов
+        for i in range(MAX_FAVORITE_SEGMENTS):
+            FavoriteSegment.objects.create(
+                user=self.user, segment=self.segments[i],
+            )
+        
+        # Пытаемся добавить еще один
+        data = {"segment": self.segments[MAX_FAVORITE_SEGMENTS].id}
+        
+        response = self.client.post("/api/favorite-segments/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn(f"максимум {MAX_FAVORITE_SEGMENTS}", str(response.data))
+
+    def test_remove_segment_from_favorites_success(self):
+        """Тест: Успешное удаление сегмента из избранного (DELETE)."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Добавляем сегмент в избранное
+        favorite = FavoriteSegment.objects.create(
+            user=self.user, segment=self.segments[0],
+        )
+        
+        response = self.client.delete(f"/api/favorite-segments/{favorite.id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(
+            FavoriteSegment.objects.filter(
+                user=self.user, segment=self.segments[0],
+            ).exists(),
+        )
+
+    def test_toggle_favorite_segment_add(self):
+        """Тест: Переключение избранного - добавление."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.post(
+            f"/api/favorite-segments/toggle/{self.segments[0].id}/",
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("добавлен в избранное", response.data["message"])
+        self.assertTrue(response.data["is_favorite"])
+        self.assertTrue(
+            FavoriteSegment.objects.filter(
+                user=self.user, segment=self.segments[0],
+            ).exists(),
+        )
+
+    def test_toggle_favorite_segment_remove(self):
+        """Тест: Переключение избранного - удаление."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Сначала добавляем в избранное
+        FavoriteSegment.objects.create(user=self.user, segment=self.segments[0])
+        
+        response = self.client.post(
+            f"/api/favorite-segments/toggle/{self.segments[0].id}/",
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("удален из избранного", response.data["message"])
+        self.assertFalse(response.data["is_favorite"])
+        self.assertFalse(
+            FavoriteSegment.objects.filter(
+                user=self.user, segment=self.segments[0],
+            ).exists(),
+        )
+
+    def test_toggle_favorite_nonexistent_segment(self):
+        """Тест: Переключение избранного для несуществующего сегмента."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.post("/api/favorite-segments/toggle/99999/")
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn("не найден", response.data["error"])
+
+    def test_list_user_favorite_segments(self):
+        """Тест: Получение списка избранных сегментов пользователя."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Добавляем несколько сегментов в избранное
+        favorite1 = FavoriteSegment.objects.create(
+            user=self.user, segment=self.segments[0],
+        )
+        favorite2 = FavoriteSegment.objects.create(
+            user=self.user, segment=self.segments[1],
+        )
+        
+        # Добавляем сегмент в избранное другому пользователю (не должен появиться)
+        FavoriteSegment.objects.create(
+            user=self.other_user, segment=self.segments[2],
+        )
+        
+        response = self.client.get("/api/favorite-segments/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        
+        # Проверяем, что вернулись только наши избранные сегменты
+        favorite_ids = [item["id"] for item in response.data]
+        self.assertIn(favorite1.id, favorite_ids)
+        self.assertIn(favorite2.id, favorite_ids)
+
+    def test_favorite_segments_authentication_required(self):
+        """Тест: Для работы с избранными сегментами нужна аутентификация."""
+        response = self.client.get("/api/favorite-segments/")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
+        response = self.client.post("/api/favorite-segments/", {})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_can_only_access_own_favorites(self):
+        """Тест: Пользователь может получить доступ только к своим избранным."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Создаем избранный сегмент для другого пользователя
+        other_favorite = FavoriteSegment.objects.create(
+            user=self.other_user, segment=self.segments[0],
+        )
+        
+        # Пытаемся удалить чужой избранный сегмент
+        response = self.client.delete(f"/api/favorite-segments/{other_favorite.id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        # Убеждаемся, что он не был удален
+        self.assertTrue(
+            FavoriteSegment.objects.filter(id=other_favorite.id).exists(),
         )
