@@ -31,6 +31,7 @@ from employees.models import (
     Rating,
     Reward,
     Segment,
+    SegmentGroup,
     Sport,
     StructuralSubdivision,
     Training,
@@ -1974,6 +1975,10 @@ class SegmentSerializer(serializers.ModelSerializer):
         source="supervisor.get_full_name", 
         read_only=True,
     )
+    segment_group_name = serializers.CharField(
+        source="segment_group.name",
+        read_only=True,
+    )
     is_favorite = serializers.SerializerMethodField()
     
     class Meta:
@@ -1981,8 +1986,12 @@ class SegmentSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "name",
+            "status",
+            "segment_group",
+            "segment_group_name",
             "supervisor",
             "supervisor_name",
+            "supervisor_fallback",
             "url",
             "description",
             "created_at",
@@ -2040,3 +2049,22 @@ class FavoriteSegmentSerializer(serializers.ModelSerializer):
         """Создание избранного сегмента с привязкой к пользователю."""
         validated_data["user"] = self.context["request"].user
         return super().create(validated_data)
+
+
+class SegmentGroupSerializer(serializers.ModelSerializer):
+    """Сериализатор для групп сегментов."""
+
+    segments_count = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = SegmentGroup
+        fields = (
+            "id",
+            "name",
+            "description",
+            "segments_count",
+        )
+
+    def get_segments_count(self, obj):
+        """Возвращает количество сегментов в группе."""
+        return obj.segments.count()
