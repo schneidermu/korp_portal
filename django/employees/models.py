@@ -627,12 +627,57 @@ class Idea(models.Model):
         return f"Идея от {self.author} ({self.created_at.strftime('%Y-%m-%d')})"
 
 
+class SegmentGroup(models.Model):
+    """Модель группы сегментов."""
+
+    name = models.CharField(
+        verbose_name="Наименование группы",
+        max_length=CHARFIELD_LENGTH,
+    )
+
+    description = models.TextField(
+        verbose_name="Описание группы",
+        blank=True,
+        default="",
+    )
+
+    class Meta:
+        verbose_name = "Группа сегментов"
+        verbose_name_plural = "Группы сегментов"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name if self.name else "Пусто"
+
+
 class Segment(models.Model):
     """Модель сегмента."""
+
+    STATUS_CHOICES = [
+        ("В разработке", "В разработке"),
+        ("Активно", "Активно"),
+        ("Архив", "Архив"),
+    ]
 
     name = models.CharField(
         verbose_name="Название",
         max_length=CHARFIELD_LENGTH,
+    )
+
+    status = models.CharField(
+        verbose_name="Статус",
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_CHOICES[0][0],
+    )
+
+    segment_group = models.ForeignKey(
+        SegmentGroup,
+        verbose_name="Группа сегмента",
+        on_delete=models.SET_NULL,
+        related_name="segments",
+        null=True,
+        blank=True,
     )
 
     supervisor = models.ForeignKey(
@@ -642,6 +687,14 @@ class Segment(models.Model):
         related_name="supervised_segments",
         null=True,
         blank=True,
+    )
+
+    supervisor_fallback = models.CharField(
+        verbose_name="Ответственный (текст)",
+        max_length=CHARFIELD_LENGTH,
+        blank=True,
+        default="",
+        help_text="Используется, если ответственного нет в системе",
     )
 
     url = models.URLField(

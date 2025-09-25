@@ -16,6 +16,7 @@ from .models import (
     Performance,
     Rating,
     Segment,
+    SegmentGroup,
     Reward,
     Sport,
     StructuralSubdivision,
@@ -165,9 +166,43 @@ class StructuralSubdivisionAdmin(admin.ModelAdmin):
 class CareerAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(SegmentGroup)
+class SegmentGroupAdmin(admin.ModelAdmin):
+    """
+    Настройки для отображения модели SegmentGroup в админ-панели.
+    """
+    list_display = ("name", "segments_count", "description")
+    search_fields = ("name", "description")
+    ordering = ("name",)
+    
+    def segments_count(self, obj):
+        """Возвращает количество сегментов в группе."""
+        return obj.segments.count()
+    
+    segments_count.short_description = "Количество сегментов"
+
+
 @admin.register(Segment)
 class SegmentAdmin(admin.ModelAdmin):
-    pass
+    """
+    Настройки для отображения модели Segment в админ-панели.
+    """
+    list_display = ("name", "status", "segment_group", "supervisor", "supervisor_fallback", "created_at")
+    list_filter = ("status", "segment_group", "created_at")
+    search_fields = ("name", "description", "supervisor_fallback")
+    ordering = ("name",)
+    fieldsets = (
+        ("Основная информация", {
+            "fields": ("name", "status", "segment_group"),
+        }),
+        ("Ответственные", {
+            "fields": ("supervisor", "supervisor_fallback"),
+        }),
+        ("Дополнительная информация", {
+            "fields": ("url", "description"),
+        }),
+    )
+    readonly_fields = ("created_at",)
 
 @admin.register(FavoriteSegment)
 class FavoriteSegmentAdmin(admin.ModelAdmin):

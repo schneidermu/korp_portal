@@ -13,6 +13,7 @@ from employees.models import (
     Organization,
     Rating,
     Segment,
+    SegmentGroup,
     StructuralSubdivision,
 )
 from homepage.constants import MAX_FAVORITE_SEGMENTS
@@ -1255,6 +1256,12 @@ class SegmentAPITests(APITestCase):
             email="supervisor@example.com",
         )
         
+        # Создаем группу сегментов
+        self.segment_group = SegmentGroup.objects.create(
+            name="ПКИ",
+            description="Группа для сегментов ПКИ",
+        )
+        
         # Создаем тестовый сегмент
         self.segment = Segment.objects.create(
             name="Тестовый сегмент",
@@ -1388,6 +1395,116 @@ class SegmentAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("is_favorite", response.data)
         self.assertFalse(response.data["is_favorite"])
+
+    def test_create_segment_with_new_fields(self):
+        """Тест: Создание сегмента с новыми полями (status, segment_group, supervisor_fallback)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "name": "Новый сегмент",
+            "status": "Активно",
+            "segment_group": self.segment_group.id,
+            "supervisor": self.supervisor.id,
+            "supervisor_fallback": "Иванов Иван Иванович",
+            "url": "https://newsegment.com",
+            "description": "Описание нового сегмента",
+        }
+        
+        response = self.client.post("/api/segments/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["name"], "Новый сегмент")
+        self.assertEqual(response.data["status"], "Активно")
+        self.assertEqual(response.data["segment_group"], self.segment_group.id)
+        self.assertEqual(response.data["segment_group_name"], "ПКИ")
+        self.assertEqual(response.data["supervisor"], self.supervisor.id)
+        self.assertEqual(response.data["supervisor_fallback"], "Иванов Иван Иванович")
+
+    def test_create_segment_with_supervisor_fallback_only(self):
+        """Тест: Создание сегмента только с fallback-ответственным (без supervisor)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "name": "Сегмент без супервизора",
+            "status": "В разработке",
+            "supervisor_fallback": "Петров Петр Петрович",
+            "description": "Ответственный не зарегистрирован в системе",
+        }
+        
+        response = self.client.post("/api/segments/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["supervisor"], None)
+        self.assertEqual(response.data["supervisor_fallback"], "Петров Петр Петрович")
+
+    def test_filter_segments_by_status(self):
+        """Тест: Фильтрация сегментов по статусу."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Создаем сегменты с разными статусами
+        Segment.objects.create(name="Активный сегмент", status="Активно")
+        Segment.objects.create(name="Архивный сегмент", status="Архив")
+        Segment.objects.create(name="В разработке", status="В разработке")
+        
+        response = self.client.get("/api/segments/?status=Активно")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["name"], "Активный сегмент")
+
+    def test_filter_segments_by_segment_group(self):
+        """Тест: Фильтрация сегментов по группе."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Создаем сегменты в разных группах
+        other_group = SegmentGroup.objects.create(name="Другая группа")
+        
+        Segment.objects.create(name="Сегмент ПКИ", segment_group=self.segment_group)
+        Segment.objects.create(name="Другой сегмент", segment_group=other_group)
+        Segment.objects.create(name="Без группы")
+        
+        response = self.client.get(f"/api/segments/?segment_group={self.segment_group.id}")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["name"], "Сегмент ПКИ")
+
+    def test_search_segments_by_supervisor_fallback(self):
+        """Тест: Поиск сегментов по fallback-ответственному."""
+        self.client.force_authenticate(user=self.user)
+        
+        Segment.objects.create(
+            name="Сегмент 1",
+            supervisor_fallback="Иванов Иван",
+        )
+        Segment.objects.create(
+            name="Сегмент 2",
+            supervisor_fallback="Петров Петр",
+        )
+        
+        response = self.client.get("/api/segments/?search=Иванов")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["name"], "Сегмент 1")
+
+    def test_update_segment_status(self):
+        """Тест: Обновление статуса сегмента (PATCH)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        segment = Segment.objects.create(
+            name="Тестовый сегмент для обновления",
+            status="В разработке",
+        )
+        
+        data = {"status": "Активно"}
+        response = self.client.patch(f"/api/segments/{segment.id}/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["status"], "Активно")
+        
+        segment.refresh_from_db()
+        self.assertEqual(segment.status, "Активно")
 
 
 @override_settings(
@@ -1588,3 +1705,231 @@ class FavoriteSegmentAPITests(APITestCase):
         self.assertTrue(
             FavoriteSegment.objects.filter(id=other_favorite.id).exists(),
         )
+
+    def test_toggle_favorite_segment_functionality(self):
+        """Тест: Функциональность переключения избранного сегмента."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Добавляем в избранное
+        response = self.client.post(f"/api/favorite-segments/toggle/{self.segments[0].id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(response.data["is_favorite"])
+        self.assertTrue(
+            FavoriteSegment.objects.filter(
+                user=self.user,
+                segment=self.segments[0],
+            ).exists(),
+        )
+        
+        # Убираем из избранного
+        response = self.client.post(f"/api/favorite-segments/toggle/{self.segments[0].id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["is_favorite"])
+        self.assertFalse(
+            FavoriteSegment.objects.filter(
+                user=self.user,
+                segment=self.segments[0],
+            ).exists(),
+        )
+
+    def test_segment_is_favorite_field_in_segments_list(self):
+        """Тест: Поле is_favorite корректно показывается в списке сегментов."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Добавляем один сегмент в избранное
+        FavoriteSegment.objects.create(user=self.user, segment=self.segments[0])
+        
+        response = self.client.get("/api/segments/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Находим наши сегменты в ответе
+        segment_data = {s["id"]: s for s in response.data}
+        
+        self.assertTrue(segment_data[self.segments[0].id]["is_favorite"])
+        self.assertFalse(segment_data[self.segments[1].id]["is_favorite"])
+
+
+@override_settings(
+    AUTHENTICATION_BACKENDS=["django.contrib.auth.backends.ModelBackend"],
+    FORCE_SCRIPT_NAME="",
+)
+class SegmentGroupAPITests(APITestCase):
+    """
+    Тесты для API групп сегментов.
+    
+    Проверяет функциональность CRUD операций для групп сегментов,
+    включая права доступа и валидацию.
+    """
+
+    def setUp(self):
+        """Настройка тестового окружения."""
+        self.user = Employee.objects.create_user(
+            username="regular_user",
+            password="testpass123",
+            email="user@example.com",
+        )
+        self.admin_user = Employee.objects.create_user(
+            username="admin_user",
+            password="adminpass123",
+            email="admin@example.com",
+            is_staff=True,
+        )
+        
+        # Создаем тестовую группу сегментов
+        self.segment_group = SegmentGroup.objects.create(
+            name="ПКИ",
+            description="Группа для сегментов ПКИ",
+        )
+        
+        # Создаем сегменты в группе
+        self.segment1 = Segment.objects.create(
+            name="Сегмент 1",
+            segment_group=self.segment_group,
+            status="Активно",
+        )
+        self.segment2 = Segment.objects.create(
+            name="Сегмент 2", 
+            segment_group=self.segment_group,
+            status="В разработке",
+        )
+
+    def test_create_segment_group_by_admin_success(self):
+        """Тест: Успешное создание группы сегментов администратором (POST)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "name": "Новая группа",
+            "description": "Описание новой группы",
+        }
+        
+        response = self.client.post("/api/segment-groups/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["name"], "Новая группа")
+        self.assertEqual(response.data["description"], "Описание новой группы")
+        self.assertEqual(response.data["segments_count"], 0)
+        self.assertTrue(SegmentGroup.objects.filter(name="Новая группа").exists())
+
+    def test_create_segment_group_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может создавать группы сегментов (POST)."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "name": "Запрещенная группа",
+            "description": "Это должно быть запрещено",
+        }
+        
+        response = self.client.post("/api/segment-groups/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(
+            SegmentGroup.objects.filter(name="Запрещенная группа").exists(),
+        )
+
+    def test_get_segment_group_list(self):
+        """Тест: Получение списка групп сегментов (GET)."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get("/api/segment-groups/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["name"], "ПКИ")
+        self.assertEqual(response.data[0]["segments_count"], 2)
+
+    def test_get_segment_group_detail(self):
+        """Тест: Получение детальной информации о группе сегментов (GET)."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(f"/api/segment-groups/{self.segment_group.id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "ПКИ")
+        self.assertEqual(response.data["description"], "Группа для сегментов ПКИ")
+        self.assertEqual(response.data["segments_count"], 2)
+
+    def test_update_segment_group_by_admin_success(self):
+        """Тест: Успешное обновление группы сегментов администратором (PUT)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "name": "Обновленная ПКИ",
+            "description": "Обновленное описание",
+        }
+        
+        response = self.client.put(f"/api/segment-groups/{self.segment_group.id}/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "Обновленная ПКИ")
+        self.assertEqual(response.data["description"], "Обновленное описание")
+        
+        # Проверяем, что изменения сохранились в базе
+        self.segment_group.refresh_from_db()
+        self.assertEqual(self.segment_group.name, "Обновленная ПКИ")
+
+    def test_partial_update_segment_group_by_admin_success(self):
+        """Тест: Успешное частичное обновление группы сегментов администратором (PATCH)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "description": "Частично обновленное описание",
+        }
+        
+        response = self.client.patch(f"/api/segment-groups/{self.segment_group.id}/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "ПКИ")  # Не изменилось
+        self.assertEqual(response.data["description"], "Частично обновленное описание")
+
+    def test_delete_segment_group_by_admin_success(self):
+        """Тест: Успешное удаление группы сегментов администратором (DELETE)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        response = self.client.delete(f"/api/segment-groups/{self.segment_group.id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(
+            SegmentGroup.objects.filter(id=self.segment_group.id).exists(),
+        )
+
+    def test_update_segment_group_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может обновлять группы сегментов (PUT)."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "name": "Запрещенное обновление",
+            "description": "Это должно быть запрещено",
+        }
+        
+        response = self.client.put(f"/api/segment-groups/{self.segment_group.id}/", data)
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_segment_group_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может удалять группы сегментов (DELETE)."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.delete(f"/api/segment-groups/{self.segment_group.id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(
+            SegmentGroup.objects.filter(id=self.segment_group.id).exists(),
+        )
+
+    def test_search_segment_groups(self):
+        """Тест: Поиск групп сегментов по названию."""
+        self.client.force_authenticate(user=self.user)
+        
+        # Создаем дополнительную группу
+        SegmentGroup.objects.create(name="Другая группа", description="Другое описание")
+        
+        response = self.client.get("/api/segment-groups/?search=ПКИ")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["name"], "ПКИ")
+
+

@@ -31,6 +31,7 @@ from employees.models import (
     Organization,
     Rating,
     Segment,
+    SegmentGroup,
     StructuralSubdivision,
 )
 from homepage.models import Answer, News, Poll, PollGroup, PollSubmission, Question
@@ -56,6 +57,7 @@ from .serializers import (
     RatingListSerializer,
     RatingPOSTSerializer,
     RatingPUTSerializer,
+    SegmentGroupSerializer,
     SegmentSerializer,
     StructuralSubdivisionReadSerializer,
     StructuralSubdivisionWriteSerializer,
@@ -1329,14 +1331,14 @@ class SegmentViewSet(viewsets.ModelViewSet):
     serializer_class = SegmentSerializer
     permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ["supervisor"]
-    search_fields = ["name", "description"]
-    ordering_fields = ["name", "created_at"]
+    filterset_fields = ["supervisor", "status", "segment_group"]
+    search_fields = ["name", "description", "supervisor_fallback"]
+    ordering_fields = ["name", "created_at", "status"]
     ordering = ["name"]
 
     def get_queryset(self):
         """Возвращает кверисет с prefetch для оптимизации."""
-        return self.queryset.select_related("supervisor").prefetch_related(
+        return self.queryset.select_related("supervisor", "segment_group").prefetch_related(
             "favorited_by",
         )
 
@@ -1391,3 +1393,19 @@ class FavoriteSegmentViewSet(viewsets.ModelViewSet):
                 {"message": "Сегмент добавлен в избранное", "is_favorite": True},
                 status=status.HTTP_201_CREATED,
             )
+
+
+class SegmentGroupViewSet(viewsets.ModelViewSet):
+    """Вьюсет для групп сегментов с CRUD операциями."""
+
+    queryset = SegmentGroup.objects.all()
+    serializer_class = SegmentGroupSerializer
+    permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["name", "description"]
+    ordering_fields = ["name"]
+    ordering = ["name"]
+
+    def get_queryset(self):
+        """Возвращает кверисет с prefetch для оптимизации."""
+        return self.queryset.prefetch_related("segments")
