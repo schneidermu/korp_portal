@@ -825,7 +825,11 @@ class NewsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return News.objects.filter(
             is_published=True, pub_date__lte=timezone.now(),
-        ).order_by("-pub_date")
+        ).select_related("author").order_by("-pub_date")
+
+    def perform_create(self, serializer):
+        """Автоматически устанавливает автора новости при создании."""
+        serializer.save(author=self.request.user)
 
 
 class ColleagueProfileViewset(UserViewSet):

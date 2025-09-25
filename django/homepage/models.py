@@ -62,6 +62,14 @@ class News(Published):
 
     title = models.CharField(max_length=CHARFIELD_LENGTH, verbose_name="Заголовок")
 
+    author = models.ForeignKey(
+        Employee,
+        verbose_name="Автор",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="authored_news",
+    )
+
     organization = models.ManyToManyField(
         Organization, verbose_name="Организация", null=True, default=None,
     )

@@ -914,6 +914,7 @@ class NewsSerializer(serializers.ModelSerializer):
     """Сериализатор для новостей"""
 
     attachments = AttachmentSerializer(many=True, required=False)
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
     organization = serializers.PrimaryKeyRelatedField(
         queryset=Organization.objects.all(), many=True, required=False, allow_null=True,
     )
@@ -923,6 +924,7 @@ class NewsSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
+            "author",
             "text",
             "attachments",
             "video",
