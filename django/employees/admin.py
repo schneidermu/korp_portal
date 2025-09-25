@@ -9,11 +9,13 @@ from .models import (
     Course,
     Diploma,
     Employee,
+    FavoriteSegment,
     Hobby,
     Idea,
     Organization,
     Performance,
     Rating,
+    Segment,
     Reward,
     Sport,
     StructuralSubdivision,
@@ -163,6 +165,13 @@ class StructuralSubdivisionAdmin(admin.ModelAdmin):
 class CareerAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(Segment)
+class SegmentAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(FavoriteSegment)
+class FavoriteSegmentAdmin(admin.ModelAdmin):
+    pass
 
 @admin.register(Idea)
 class IdeaAdmin(admin.ModelAdmin):
