@@ -18,7 +18,7 @@ export default function Skel() {
 
   return (
     <Grid
-      gridTemplateColumns={isDev ? "73px auto 1fr auto" : "auto 1fr auto"}
+      gridTemplateColumns={isDev ? "50px auto 1fr auto" : "auto 1fr auto"}
       gap={0}
     >
       {isDev && <LiferayHeader />}
@@ -42,7 +42,7 @@ const LiferayHeader = () => {
       bg="Corporate/Accent"
       color="white"
       px={5}
-      h="57px"
+      h="50px"
       w="full"
       position="sticky"
       top="0"

@@ -7,10 +7,10 @@ import * as R from "radashi";
 import { css } from "@styled-system/css";
 import { Box, BoxProps, Center, Stack, styled } from "@styled-system/jsx";
 
-import { resolveMediaPath } from "@/shared/utils";
 import { useFetchUser } from "@api/user";
 import { User } from "@api/user/types";
 
+import { Avatar } from "@/v2/view/Avatar";
 import { CircProgress } from "@view/CircProgress";
 import { Drawer, DrawerContext } from "./Drawer";
 import { Events } from "./Events";
@@ -27,11 +27,11 @@ export const Sidebar = () => {
           py: 8,
           px: 5,
           w: "24rem",
-          h: "calc(100vh - 57px)",
+          h: "calc(100vh - 50px)",
           minH: "52rem",
           shadow: "Sidebar",
           position: "sticky",
-          top: "57px",
+          top: "50px",
         })}
       >
         <SidebarWrapper />
@@ -59,7 +59,7 @@ const ProfileCard = () => {
     <Stack gap={4} align="center">
       {user ? (
         <Link to={`/profile/${user.id}`}>
-          <Avatar user={user} w={24} h={24} />
+          <AvatarWithRating user={user} w={24} h={24} />
         </Link>
       ) : (
         <Box h={24} />
@@ -104,22 +104,12 @@ const ProfileCard = () => {
   );
 };
 
-const Avatar = ({ user, ...rest }: { user: User } & BoxProps) => {
+const AvatarWithRating = ({ user, ...rest }: { user: User } & BoxProps) => {
   const ctx = useContext(DrawerContext);
   const rating = user.avgRating ?? 0;
 
-  const src = user.photo ? resolveMediaPath(user.photo) : undefined;
-
   if (!ctx.isOpen) {
-    return (
-      <styled.img
-        borderRadius="full"
-        width="2.75rem"
-        height="2.75rem"
-        objectFit="cover"
-        src={src}
-      />
-    );
+    return <Avatar user={user} w="2.75rem" h="2.75rem" />;
   }
 
   return (
@@ -131,13 +121,7 @@ const Avatar = ({ user, ...rest }: { user: User } & BoxProps) => {
         thickness={0.16}
       />
       <Center top="0" left="0" w="full" h="full" position="absolute">
-        <styled.img
-          borderRadius="full"
-          width="4.5rem"
-          height="4.5rem"
-          objectFit="cover"
-          src={src}
-        />
+        <Avatar user={user} w="4.5rem" h="4.5rem" />
         <RatingBadge rating={rating} />
       </Center>
     </Box>
