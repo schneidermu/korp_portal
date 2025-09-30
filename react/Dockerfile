@@ -1,4 +1,4 @@
-FROM node:22.9-alpine3.20 AS node
+FROM node:24-alpine3.21 AS node
 
 RUN --mount=type=cache,target=/var/cache/apk \
   apk add zip
@@ -12,9 +12,9 @@ COPY package.json ./
 RUN corepack install
 
 # Cache packages.
-COPY yarn.lock .yarnrc.yml ./
-RUN --mount=type=cache,target=/app/.yarn \
-  yarn --immutable
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store/ \
+  pnpm install
 
 
 FROM node AS portlet
@@ -27,7 +27,7 @@ ENV VITE_LIFERAY_EMBED=true
 ENV VITE_BACKEND_PREFIX=/api/kp
 ENV VITE_NEXTCLOUD_PREFIX=/api/kp/nextcloud
 
-RUN yarn build && \
+RUN pnpm build && \
   rm -rf dist/index.html dist/dev/ && \
   sed -i "s/INDEX_JS/$(find dist/assets/ -name 'index-*.js' -exec basename {} +)/" view.jsp && \
   sed -i "s/INDEX_CSS/$(find dist/assets/ -name 'index-*.css' -exec basename {} +)/" view.jsp && \
@@ -42,6 +42,6 @@ FROM node AS dev
 
 USER 1000
 
-ENTRYPOINT [ "sh", "-c", "yarn && yarn dev" ]
+ENTRYPOINT [ "pnpm", "run", "dev" ]
 
 EXPOSE 3000

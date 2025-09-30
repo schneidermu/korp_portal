@@ -96,8 +96,8 @@ services:
     build:
       context: ../../react/
       target: dev
-    command: yarn dev
     volumes:
+      - /app/node_modules
       - ../../react:/app
     environment:
       VITE_LIFERAY_EMBED: false

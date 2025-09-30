@@ -82,7 +82,7 @@ services:
     build:
       context: ../../react/
       target: dev
-    command: yarn preview
+    command: pnpm run preview
     restart: always
     volumes:
       - ../../react:/app

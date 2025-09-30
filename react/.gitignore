@@ -1,5 +1,5 @@
 /.vite/
-/.yarn/
+/.pnpm-store/
 /dist/
 /node_modules/
 
