@@ -86,9 +86,9 @@ export const Navbar = () => {
           gap: 16,
           px: 5,
           py: 8,
-          top: "57px",
+          top: "50px",
           w: "18rem",
-          h: "calc(100vh - 57px)",
+          h: "calc(100vh - 50px)",
           minH: "52rem",
           position: "sticky",
           shadow: "Sidebar",
@@ -101,8 +101,8 @@ export const Navbar = () => {
           ))}
         </Stack>
         <Stack gap={3}>
-          <SubmitIdea />
           {/*
+          <SubmitIdea />
           <NavItem
             link={{
               to: "/",
