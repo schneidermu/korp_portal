@@ -70,7 +70,6 @@ const GroupsNav = () => {
             textAlign="center"
             fontSize="Body/L"
             lineHeight={1.3}
-            // shadow="inset -1px 0 0 0 #ccc"
             borderColor="Grayscale/SpacerLight"
             borderRightWidth="1px"
           >
