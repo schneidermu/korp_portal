@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "prepare": "panda codegen",
     "dev": "vite --host --port 3000",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -34,6 +35,7 @@
   "devDependencies": {
     "@chakra-ui/cli": "^3.21.0",
     "@eslint/js": "^9.27.0",
+    "@pandacss/dev": "^1.2.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",

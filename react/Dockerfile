@@ -12,7 +12,7 @@ COPY package.json ./
 RUN corepack install
 
 # Cache packages.
-COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml panda.config.ts ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store/ \
   pnpm install
 

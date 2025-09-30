@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        "@styled-system": path.resolve(__dirname, "./styled-system/"),
         "@app": path.resolve(__dirname, "./src/v2/app"),
         "@api": path.resolve(__dirname, "./src/v2/api"),
         "@view": path.resolve(__dirname, "./src/v2/view"),

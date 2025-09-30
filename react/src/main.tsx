@@ -12,6 +12,9 @@ import { App } from "@/features/App/App";
 
 import "./index.css";
 
+import "@styled-system/styles.css";
+import "@app/index.css";
+
 enableMapSet();
 
 createRoot(document.getElementById("root")!).render(
