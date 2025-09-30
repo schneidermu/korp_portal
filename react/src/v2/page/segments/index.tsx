@@ -73,6 +73,7 @@ const GroupsNav = ({
         <Box
           key={g}
           onClick={() => scrollToSection(g)}
+          cursor="pointer"
           py={4}
           _hover={{
             borderColor: "Corporate/Accent",

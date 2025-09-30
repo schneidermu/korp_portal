@@ -114,6 +114,9 @@ export const SegmentView = ({ full, segment: s, ...rest }: SegmentProps) => {
         <styled.h1 fontWeight="semibold" fontSize="Headline/H4" lineClamp={1}>
           {s.name}
         </styled.h1>
+        <Box fontSize="Body/S" color="Grayscale/Border">
+          {s.groupName}
+        </Box>
       </styled.a>
     </styled.article>
   );

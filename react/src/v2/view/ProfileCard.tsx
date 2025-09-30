@@ -56,7 +56,7 @@ export const ProfileCard = ({
             transition={transition}
             className={css({ gridRow: "span 2" })}
           >
-            <Avatar w="full" h="full" />
+            <Avatar w="full" h="full" user={user} />
           </motion.div>
         )}
         {isOpen && (
