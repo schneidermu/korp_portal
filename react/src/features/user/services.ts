@@ -8,7 +8,7 @@ import useSWRInfinite from "swr/infinite";
 import { USERS_PAGE_LIMIT } from "@/app/const";
 
 import { tokenFetch, useTokenFetcher } from "@/features/auth/hooks";
-import { Paged } from "@/shared/types";
+import { Paged } from "@api/common/types";
 import {
   fileExtension,
   fullNameLong,

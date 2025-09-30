@@ -11,7 +11,7 @@ import { useAuth } from "@/features/auth/slice";
 import { useFetchUsers } from "@/features/user/services";
 
 import { User } from "@/features/user/types";
-import { Paged } from "@/shared/types";
+import { Paged } from "@api/common/types";
 
 import { Birthday, News, Poll, Post } from "./types";
 import { formatDateLong } from "@/shared/utils";
