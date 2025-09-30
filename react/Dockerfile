@@ -1,8 +1,5 @@
 FROM node:24-alpine3.21 AS node
 
-RUN --mount=type=cache,target=/var/cache/apk \
-  apk add zip
-
 RUN corepack enable
 
 WORKDIR /app
@@ -19,23 +16,17 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store/ \
 
 FROM node AS portlet
 
-COPY --from=kp-portlet /portlet.war /
-
-COPY . .
+RUN --mount=type=cache,target=/var/cache/apk \
+  apk add zip
 
 ENV VITE_LIFERAY_EMBED=true
 ENV VITE_BACKEND_PREFIX=/api/kp
 ENV VITE_NEXTCLOUD_PREFIX=/api/kp/nextcloud
 
-RUN pnpm build && \
-  rm -rf dist/index.html dist/dev/ && \
-  sed -i "s/INDEX_JS/$(find dist/assets/ -name 'index-*.js' -exec basename {} +)/" view.jsp && \
-  sed -i "s/INDEX_CSS/$(find dist/assets/ -name 'index-*.css' -exec basename {} +)/" view.jsp && \
-  zip -qr /portlet.war view.jsp dist/
+WORKDIR /app
+COPY . .
 
-USER 1000
-
-ENTRYPOINT [ "cat", "/portlet.war" ]
+ENTRYPOINT [ "bin/portlet.sh" ]
 
 
 FROM node AS dev
