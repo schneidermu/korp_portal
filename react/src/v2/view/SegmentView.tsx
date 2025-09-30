@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/features/auth/slice";
 
 import { css } from "@styled-system/css";
-import { BoxProps, Grid, HStack, Stack, styled } from "@styled-system/jsx";
+import { Box, BoxProps, Grid, HStack, Stack, styled } from "@styled-system/jsx";
 import { flex, hstack, stack } from "@styled-system/patterns";
 
 import { SaxArrowRightLinear } from "@meysam213/iconsax-react";
@@ -18,6 +18,14 @@ import { Segment } from "@api/segment/types";
 export type SegmentProps = Omit<BoxProps, "children"> & {
   full?: boolean;
   segment: Segment;
+};
+
+const COLORS: {
+  [key in Segment["status"]]: { bg: string; border: string; fg: string };
+} = {
+  "В разработке": { bg: "#EBF6FF", border: "#5DB9FF", fg: "#15476D" },
+  Архив: { bg: "#FFFDED", border: "#FFE74C", fg: "#A7972E" },
+  Активно: { bg: "#F6FFF6", border: "#83E281", fg: "#158212" },
 };
 
 export const SegmentView = ({ full, segment: s, ...rest }: SegmentProps) => {
@@ -36,8 +44,21 @@ export const SegmentView = ({ full, segment: s, ...rest }: SegmentProps) => {
         borderWidth="1px"
         borderColor="Grayscale/SpacerLight"
       >
-        <HStack>
+        <HStack justify="space-between">
           <FavToggle fav={s.isFavorite} toggle={toggle} />
+          <Box
+            borderWidth="1px"
+            borderRadius="12px"
+            px={2}
+            py={1}
+            style={{
+              borderColor: COLORS[s.status].border,
+              background: COLORS[s.status].bg,
+              color: COLORS[s.status].fg,
+            }}
+          >
+            {s.status}
+          </Box>
         </HStack>
         <Stack gap={2}>
           <styled.h1 fontSize="Headline/H4" fontWeight="semibold">

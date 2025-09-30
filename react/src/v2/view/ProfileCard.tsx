@@ -43,20 +43,22 @@ export const ProfileCard = ({
           h: "3.75rem",
         })}
       >
-        <motion.div
-          initial={{
-            width: isOpen ? "2.25rem" : "2.75rem",
-            height: isOpen ? "2.25rem" : "2.75rem",
-          }}
-          animate={{
-            width: isOpen ? "2.25rem" : "2.75rem",
-            height: isOpen ? "2.25rem" : "2.75rem",
-          }}
-          transition={transition}
-          className={css({ gridRow: "span 2" })}
-        >
-          <Avatar user={user} w="full" h="full" />
-        </motion.div>
+        {(user || fallbackName) && (
+          <motion.div
+            initial={{
+              width: isOpen ? "2.25rem" : "2.75rem",
+              height: isOpen ? "2.25rem" : "2.75rem",
+            }}
+            animate={{
+              width: isOpen ? "2.25rem" : "2.75rem",
+              height: isOpen ? "2.25rem" : "2.75rem",
+            }}
+            transition={transition}
+            className={css({ gridRow: "span 2" })}
+          >
+            <Avatar w="full" h="full" />
+          </motion.div>
+        )}
         {isOpen && (
           <>
             <styled.h1
@@ -68,7 +70,8 @@ export const ProfileCard = ({
               {user && userId ? fullNameShort(user) : fallbackName} &nbsp;
             </styled.h1>
             <Box fontSize="Body/XS" color="Grayscale/Border" lineClamp={1}>
-              {subtitle ?? (user && user.email)} &nbsp;
+              {(user || fallbackName) && (subtitle ?? (user && user.email))}{" "}
+              &nbsp;
             </Box>
           </>
         )}
