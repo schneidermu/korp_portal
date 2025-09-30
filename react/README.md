@@ -1,5 +1,26 @@
 # React
 
+## Build Liferay portlet (`.war`)
+
+1. Build base portlet, for that see step 1 at [build/portlet/README.md](../build/portlet/README.md).
+
+2. Build and bundle the app, package it into a portlet.
+
+   ```sh
+   # NOTE: requires base portlet at `art/war/korp-portal-portlet_base.war`
+   docker build -t portlet-kp --target portlet react
+   docker run --rm -it -v ./art/war/:/art portlet-kp
+   # -> outputs `art/war/<date>/<timestamp>.war`,
+   #    and copies it to `art/war/korp-portal-portlet.war`.
+   ```
+
+3. Deploy to dev Liferay.
+
+   ```sh
+   # NOTE: it's best to set filename to the portlet name
+   cp -v art/war/korp-portal-portlet.war build/dev/volumes/deploy/
+   ```
+
 ## Tooling
 
 - docker, alpine
