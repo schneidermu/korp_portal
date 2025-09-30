@@ -3,6 +3,7 @@ import * as R from "radashi";
 export interface News {
   id: number;
   pubDate: string;
+  author: string | null;
   title: string;
   text: string;
   images: string[]; // URIs
@@ -13,6 +14,7 @@ export interface News {
 export interface NewsRaw {
   id: number;
   title: string;
+  author: string | null;
   text: string;
   attachments: {
     image: string; // URI
@@ -23,7 +25,7 @@ export interface NewsRaw {
 }
 
 export const toNews = (r: NewsRaw): News => ({
-  ...R.pick(r, ["id", "title", "text", "video"]),
+  ...R.pick(r, ["id", "title", "author", "text", "video"]),
   images: r.attachments.map(({ image }) => image),
   orgs: r.organization,
   pubDate: r.pub_date,
