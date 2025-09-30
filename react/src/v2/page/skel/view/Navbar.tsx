@@ -1,7 +1,10 @@
+import { useContext, useState } from "react";
+
 import { Link, useLocation } from "react-router-dom";
 
 import { css } from "@styled-system/css";
 import { Box, Center, HStack, Stack, styled } from "@styled-system/jsx";
+import { stack } from "@styled-system/patterns";
 
 import {
   Sax3DcubeOutline,
@@ -12,16 +15,12 @@ import {
   SaxHomeOutline,
   SaxMessageAdd1Outline,
   SaxMessageQuestionOutline,
-  SaxNotificationOutline,
 } from "@meysam213/iconsax-react";
 
 import { Button, IconButton } from "@view/Button";
-// import { resolveMediaPath } from "@/shared/utils";
-import { resolveMediaPath } from "@/shared/utils";
-import { useFetchUser } from "@api/user";
-import { grid, stack } from "@styled-system/patterns";
-import { motion } from "motion/react";
-import { useContext } from "react";
+import { ProfileCard } from "@view/ProfileCard";
+
+import { Modal } from "@/v2/view/Modal";
 import { Drawer, DrawerContext } from "./Drawer";
 
 const links = [
@@ -103,6 +102,7 @@ export const Navbar = () => {
         </Stack>
         <Stack gap={3}>
           <SubmitIdea />
+          {/*
           <NavItem
             link={{
               to: "/",
@@ -112,27 +112,38 @@ export const Navbar = () => {
             }}
             count={3}
           />
-          {/*
-          <NavItem
-            link={{
-              to: "/",
-              name: "Выйти",
-              icon: SaxExport2Outline,
-              match: /^$/,
-            }}
-          />
           */}
-          <Link to="/profile">
-            <ProfileCard />
-          </Link>
+          <ProfileCardCtx />
         </Stack>
       </Drawer>
     </nav>
   );
 };
 
-const SubmitIdea = () => {
+const ProfileCardCtx = () => {
   const ctx = useContext(DrawerContext);
+
+  return (
+    <ProfileCard
+      userId="me"
+      isOpen={ctx.isOpen}
+      transition={{ duration: ctx.duration }}
+    />
+  );
+};
+
+const IdeaForm = () => {
+  return (
+    <styled.form
+      borderRadius="25px"
+      /* FIXME */ className={stack({})}
+    ></styled.form>
+  );
+};
+
+export const SubmitIdea = () => {
+  const ctx = useContext(DrawerContext);
+  const [isOpen, setIsOpen] = useState(false);
 
   if (!ctx.isOpen || ctx.isAnimating) return;
 
@@ -155,69 +166,13 @@ const SubmitIdea = () => {
         </styled.p>
       </Stack>
       {/* TODO: icons */}
-      <Button display="flex">Предложить идею</Button>
+      <Button display="flex" onClick={() => setIsOpen(true)}>
+        Предложить идею
+      </Button>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <IdeaForm />
+      </Modal>
     </styled.article>
-  );
-};
-
-const ProfileCard = () => {
-  const ctx = useContext(DrawerContext);
-  const { data: user } = useFetchUser("me");
-
-  return (
-    <motion.div
-      initial={{
-        paddingInline: ctx.isOpen ? "0.75rem" : 0,
-        paddingBlock: ctx.isOpen ? "0.75rem" : "0.5rem",
-      }}
-      animate={{
-        paddingInline: ctx.isOpen ? "0.75rem" : 0,
-        paddingBlock: ctx.isOpen ? "0.75rem" : "0.5rem",
-      }}
-      transition={{ duration: ctx.duration }}
-      className={grid({
-        gridTemplateColumns: "auto 1fr",
-        columnGap: 2,
-        rowGap: 1,
-        h: "3.75rem",
-      })}
-    >
-      <motion.div
-        initial={{
-          width: ctx.isOpen ? "2.25rem" : "2.75rem",
-          height: ctx.isOpen ? "2.25rem" : "2.75rem",
-        }}
-        animate={{
-          width: ctx.isOpen ? "2.25rem" : "2.75rem",
-          height: ctx.isOpen ? "2.25rem" : "2.75rem",
-        }}
-        transition={{ duration: ctx.duration }}
-        className={css({ gridRow: "span 2" })}
-      >
-        <styled.img
-          bg="Corporate/Accent"
-          borderRadius="full"
-          objectFit="cover"
-          w="full"
-          h="full"
-          src={user?.photo ? resolveMediaPath(user.photo) : undefined}
-        />
-      </motion.div>
-      {user && ctx.isOpen && (
-        <>
-          <Box
-            fontSize="Body/S"
-            color="Grayscale/Black"
-            textDecoration={{ _hover: "underline" }}
-          >
-            {user.firstName} {user.lastName}
-          </Box>
-          <Box fontSize="Body/XS" color="Grayscale/Border">
-            {user.email}
-          </Box>
-        </>
-      )}
-    </motion.div>
   );
 };
 

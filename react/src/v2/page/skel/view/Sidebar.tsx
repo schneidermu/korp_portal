@@ -1,19 +1,19 @@
+import { useContext } from "react";
+
+import { Link } from "react-router-dom";
+
 import * as R from "radashi";
 
 import { css } from "@styled-system/css";
 import { Box, BoxProps, Center, Stack, styled } from "@styled-system/jsx";
 
 import { resolveMediaPath } from "@/shared/utils";
-
 import { useFetchUser } from "@api/user";
 import { User } from "@api/user/types";
 
 import { CircProgress } from "@view/CircProgress";
-
-import { useContext } from "react";
 import { Drawer, DrawerContext } from "./Drawer";
 import { Events } from "./Events";
-import { Link } from "react-router-dom";
 
 export const Sidebar = () => {
   return (
@@ -55,21 +55,33 @@ const ProfileCard = () => {
   const ctx = useContext(DrawerContext);
   const { data: user } = useFetchUser("me");
 
-  if (!user) return;
-
   return (
     <Stack gap={4} align="center">
-      <Link to={`/profile/${user.id}`}>
-        <Avatar user={user} w={24} h={24} />
-      </Link>
+      {user ? (
+        <Link to={`/profile/${user.id}`}>
+          <Avatar user={user} w={24} h={24} />
+        </Link>
+      ) : (
+        <Box h={24} />
+      )}
       {ctx.isOpen && (
         <>
           <Stack gap={1} align="center">
-            <styled.h1 fontSize="Headline/H4" fontWeight="semibold">
-              {user.lastName} {user.firstName}
+            <styled.h1
+              fontSize="Headline/H4"
+              fontWeight="semibold"
+              textDecoration={{ _hover: "underline" }}
+              color="Grayscale/Black"
+            >
+              {user && (
+                <Link to={`/profile/${user.id}`}>
+                  {user.lastName} {user.firstName}
+                </Link>
+              )}
+              &nbsp;
             </styled.h1>
             <Box fontSize="Body/XS" color="Grayscale/Border">
-              {user.position}
+              {user?.position} &nbsp;
             </Box>
           </Stack>
           <Box
@@ -84,7 +96,7 @@ const ProfileCard = () => {
             borderColor="Corporate/Accent"
             textAlign="center"
           >
-            {user.status}
+            {user?.status} &nbsp;
           </Box>
         </>
       )}
