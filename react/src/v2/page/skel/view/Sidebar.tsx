@@ -1,0 +1,163 @@
+import * as R from "radashi";
+
+import { css } from "@styled-system/css";
+import { Box, BoxProps, Center, Stack, styled } from "@styled-system/jsx";
+
+import { resolveMediaPath } from "@/shared/utils";
+
+import { useFetchUser } from "@api/user";
+import { User } from "@api/user/types";
+
+import { CircProgress } from "@view/CircProgress";
+
+import { useContext } from "react";
+import { Drawer, DrawerContext } from "./Drawer";
+import { Events } from "./Events";
+import { Link } from "react-router-dom";
+
+export const Sidebar = () => {
+  return (
+    <aside>
+      <Drawer
+        side="right"
+        openedWidth="24rem"
+        closedWidth="5.25rem"
+        duration={0.3}
+        className={css({
+          py: 8,
+          px: 5,
+          w: "24rem",
+          h: "calc(100vh - 57px)",
+          minH: "52rem",
+          shadow: "Sidebar",
+          position: "sticky",
+          top: "57px",
+        })}
+      >
+        <SidebarWrapper />
+      </Drawer>
+    </aside>
+  );
+};
+
+const SidebarWrapper = () => {
+  const ctx = useContext(DrawerContext);
+
+  return (
+    <Stack gap={ctx.isOpen ? 16 : 4}>
+      <ProfileCard />
+      <Events />
+    </Stack>
+  );
+};
+
+const ProfileCard = () => {
+  const ctx = useContext(DrawerContext);
+  const { data: user } = useFetchUser("me");
+
+  if (!user) return;
+
+  return (
+    <Stack gap={4} align="center">
+      <Link to={`/profile/${user.id}`}>
+        <Avatar user={user} w={24} h={24} />
+      </Link>
+      {ctx.isOpen && (
+        <>
+          <Stack gap={1} align="center">
+            <styled.h1 fontSize="Headline/H4" fontWeight="semibold">
+              {user.lastName} {user.firstName}
+            </styled.h1>
+            <Box fontSize="Body/XS" color="Grayscale/Border">
+              {user.position}
+            </Box>
+          </Stack>
+          <Box
+            fontSize="Body/S"
+            py={1.5}
+            px={3}
+            w="full"
+            color="Corporate/Accent"
+            bg="Complementary/Blue/0.5"
+            borderRadius="full"
+            borderWidth="1px"
+            borderColor="Corporate/Accent"
+            textAlign="center"
+          >
+            {user.status}
+          </Box>
+        </>
+      )}
+    </Stack>
+  );
+};
+
+const Avatar = ({ user, ...rest }: { user: User } & BoxProps) => {
+  const ctx = useContext(DrawerContext);
+  const rating = user.avgRating ?? 0;
+
+  const src = user.photo ? resolveMediaPath(user.photo) : undefined;
+
+  if (!ctx.isOpen) {
+    return (
+      <styled.img
+        borderRadius="full"
+        width="2.75rem"
+        height="2.75rem"
+        objectFit="cover"
+        src={src}
+      />
+    );
+  }
+
+  return (
+    <Box position="relative" {...rest}>
+      <CircProgress
+        className={css({ color: "Corporate/Accent" })}
+        bgColor="#e0e0e0"
+        progress={rating / 5}
+        thickness={0.16}
+      />
+      <Center top="0" left="0" w="full" h="full" position="absolute">
+        <styled.img
+          borderRadius="full"
+          width="4.5rem"
+          height="4.5rem"
+          objectFit="cover"
+          src={src}
+        />
+        <RatingBadge rating={rating} />
+      </Center>
+    </Box>
+  );
+};
+
+const RatingBadge = ({ rating, ...rest }: { rating: number } & BoxProps) => {
+  const phi = (2 * Math.PI) / 11;
+  const x = 50 + 50 * Math.cos(phi);
+  const y = 50 + 50 * Math.sin(phi);
+
+  const s = R.round(rating, 1).toFixed(1).replace(".", ",");
+
+  return (
+    <Box
+      position="absolute"
+      transform="translate(-50%, -50%)"
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+      }}
+      bg="white"
+      fontSize="body/S"
+      color="Corporate/Accent"
+      borderWidth="3px"
+      borderColor="currentcolor"
+      borderRadius="full"
+      px={3}
+      py={1}
+      {...rest}
+    >
+      {s}
+    </Box>
+  );
+};
