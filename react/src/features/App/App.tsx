@@ -54,6 +54,8 @@ const CalendarPage = React.lazy(
   async () => import("@/features/Calendar/pages/CalendarPage"),
 );
 
+const SegmentsPage = React.lazy(async () => import("@page/segments"));
+
 const Chakra = () => (
   <ChakraProvider value={system}>
     <Outlet />
@@ -66,6 +68,7 @@ export const App = () => {
       <Routes>
         <Route element={<Skel />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="segments" element={<SegmentsPage />} />
           <Route element={<Chakra />}>
             <Route path="/bc/:userId?" element={<BusinessCardPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
