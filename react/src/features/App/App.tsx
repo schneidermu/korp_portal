@@ -1,6 +1,6 @@
 import React from "react";
 
-import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { HashRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import { ChakraProvider } from "@chakra-ui/react";
 
@@ -9,7 +9,6 @@ import { system } from "./theme";
 import NotFound from "@/features/NotFound/NotFound";
 import NextcloudPage from "@/features/Nextcloud/Nextcloud";
 
-import AuthLoader from "./parts/AuthLoader";
 import ProtectedPage from "./parts/ProtectedPage";
 
 import Skel from "@page/skel";
@@ -55,15 +54,19 @@ const CalendarPage = React.lazy(
   async () => import("@/features/Calendar/pages/CalendarPage"),
 );
 
+const Chakra = () => (
+  <ChakraProvider value={system}>
+    <Outlet />
+  </ChakraProvider>
+);
+
 export const App = () => {
   return (
-    <ChakraProvider value={system}>
-      <HashRouter>
-        <Routes>
-          <Route element={<AuthLoader />}>
-            <Route element={<Skel />}>
-              <Route path="/" element={<HomePage />} />
-            </Route>
+    <HashRouter>
+      <Routes>
+        <Route element={<Skel />}>
+          <Route path="/" element={<HomePage />} />
+          <Route element={<Chakra />}>
             <Route path="/bc/:userId?" element={<BusinessCardPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/nextcloud" element={<NextcloudPage />} />
@@ -91,8 +94,8 @@ export const App = () => {
             </Route>
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Route>
-        </Routes>
-      </HashRouter>
-    </ChakraProvider>
+        </Route>
+      </Routes>
+    </HashRouter>
   );
 };
