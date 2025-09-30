@@ -13,3 +13,7 @@ for i in $(seq 1 "$DB_COUNT"); do
 EOF
 
 done
+
+psql -v ON_ERROR_STOP=1 -U postgres <<EOF
+  ALTER USER django CREATEDB;
+EOF

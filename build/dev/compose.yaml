@@ -33,6 +33,7 @@ services:
 
   django:
     build: ../../django/
+    container_name: $COMPOSE_NAME-django
     stop_signal: SIGINT
     volumes:
       - ./volumes/media/:/media/
@@ -60,6 +61,20 @@ services:
       CHALLENGE_URL: $DJANGO_CHALLENGE_URL
       SCRIPT_NAME: $BACKEND_PREFIX
       DJANGO_PORT:
+
+  cron-importer:
+    build:
+      context: ../../
+      dockerfile: ./cron/Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../../django/scripts/:/app/scripts/
+    depends_on:
+      - django
+    environment:
+      NEWS_API_TOKEN:
+      DJANGO_CONTAINER_NAME: $COMPOSE_NAME-django
+      SCRIPT_NAME: $BACKEND_PREFIX
 
   liferay:
     image: liferay/portal:7.0.6-ga7
