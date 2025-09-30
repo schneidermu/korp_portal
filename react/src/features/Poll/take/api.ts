@@ -2,7 +2,7 @@ import useSWR from "swr";
 
 import { tokenFetch, useTokenFetcher } from "@/features/auth/hooks";
 import { useAuth } from "@/features/auth/slice";
-import { APIError } from "@/shared/utils/error";
+import { APIError } from "@api/common/errors";
 
 import { Answers, Poll } from "../types";
 

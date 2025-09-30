@@ -1,5 +1,5 @@
 import { tokenFetch } from "@/features/auth/hooks";
-import { APIError } from "@/shared/utils/error";
+import { APIError } from "@api/common/errors";
 
 import { index } from "@/shared/utils";
 import { NewPoll, NewQuestion, PollRaw } from "../types";

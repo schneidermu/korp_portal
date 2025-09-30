@@ -1,7 +1,7 @@
 import useSWR from "swr";
 
 import { useTokenFetcher } from "@/features/auth/hooks.ts";
-import { APIError } from "@/shared/utils/error.ts";
+import { APIError } from "@api/common/errors";
 
 import { RawUserAnswers } from "../take/api.ts";
 

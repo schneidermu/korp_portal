@@ -1,7 +1,7 @@
 import useSWR, { mutate } from "swr";
 
 import { tokenFetch, useTokenFetcher } from "@/features/auth/hooks.ts";
-import { APIError } from "@/shared/utils/error.ts";
+import { APIError } from "@api/common/errors";
 
 import { Poll, PollStats, PollStatsRaw, toPoll, toPollStats } from "./types.ts";
 
