@@ -32,6 +32,9 @@ importers:
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
+      radashi:
+        specifier: ^12.6.2
+        version: 12.6.2
       react:
         specifier: ^19.1.0
         version: 19.1.1
@@ -2414,6 +2417,10 @@ packages:
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+
+  radashi@12.6.2:
+    resolution: {integrity: sha512-43uD9P3oZ1nT9lgHr2P34K7aEIQh6ku2FDQsDhjaUpaj2sb3il6Xe8s8MS31uJmcbYl0v2Ul35V7OjMG8yrcDw==}
+    engines: {node: '>=16.0.0'}
 
   react-dom@19.1.1:
     resolution: {integrity: sha512-Dlq/5LAZgF0Gaz6yiqZCf6VCcZs1ghAJyrsu84Q/GT0gV+mCxbfmKNoGRKBYMJ8IEdGPqu49YWXD02GCknEDkw==}
@@ -5707,6 +5714,8 @@ snapshots:
       yargs: 15.4.1
 
   queue-microtask@1.2.3: {}
+
+  radashi@12.6.2: {}
 
   react-dom@19.1.1(react@19.1.1):
     dependencies:
