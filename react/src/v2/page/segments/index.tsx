@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 import * as R from "radashi";
 
 import { Box, BoxProps, Center, Grid, Stack, styled } from "@styled-system/jsx";
@@ -9,6 +11,16 @@ import { SegmentView } from "@view/SegmentView";
 
 export default function SegmentsPage() {
   const { data: segments } = useFetchSegments();
+  const refs = useRef<{ [key: string]: HTMLDivElement }>({});
+
+  const scrollToSection = (name: string) => {
+    if (refs.current[name]) {
+      refs.current[name].scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
 
   const grouped = R.group(segments ?? [], (s) => s.groupName);
 
@@ -17,28 +29,37 @@ export default function SegmentsPage() {
   return (
     <Stack gap={14}>
       <styled.h1 fontSize="Headline/H1">Сегменты</styled.h1>
-      <GroupsNav />
+      <GroupsNav scrollToSection={scrollToSection} />
       {R.alphabetical(Object.keys(grouped), (x) => x).map(
         (group) =>
           grouped[group] && (
-            <Section
-              key={grouped[group][0].groupId}
-              name={group}
-              segments={grouped[group] ?? []}
-            />
+            <Box
+              ref={(el) => {
+                if (el) {
+                  refs.current[group] = el;
+                }
+              }}
+            >
+              <Section
+                key={grouped[group][0].groupId}
+                name={group}
+                segments={grouped[group] ?? []}
+              />
+            </Box>
           ),
       )}
     </Stack>
   );
 }
 
-const GroupsNav = () => {
+const GroupsNav = ({
+  scrollToSection,
+}: {
+  scrollToSection: (name: string) => void;
+}) => {
   const { data: segments } = useFetchSegments();
 
-  const groups = R.alphabetical(
-    R.unique(segments?.map((s) => s.groupName) ?? []),
-    (x) => x,
-  );
+  const groups = R.unique(segments?.map((s) => s.groupName) ?? []);
 
   return (
     <styled.nav
@@ -51,18 +72,20 @@ const GroupsNav = () => {
     >
       {groups.map((g) => (
         <Box
+          key={g}
+          onClick={() => scrollToSection(g)}
+          cursor="pointer"
           py={4}
           _hover={{
             borderColor: "Corporate/Accent",
             borderBottomWidth: "3px",
-            paddingBottom: "-3px",
             borderTopWidth: 0,
           }}
           borderColor="Grayscale/SpacerLight"
           borderBottomWidth="1px"
           borderTopColor="transparent"
           borderTopWidth="2px"
-          mr="-1px"
+          mr="-2px"
         >
           <Center
             h="full"
@@ -89,7 +112,16 @@ const Section = ({
   segments: Segment[];
 } & Omit<BoxProps, "children">) => {
   return (
-    <styled.section className={stack({ gap: 9 })}>
+    <styled.section
+      className={stack({ gap: 9 })}
+      maxW={
+        segments.length === 2
+          ? "60rem"
+          : segments.length === 1
+            ? "30rem"
+            : undefined
+      }
+    >
       <styled.h1 fontSize="Headline/H2">{name}</styled.h1>
       <Grid gridTemplateColumns="repeat(auto-fit, minmax(22rem, 1fr))" gap={30}>
         {segments.map((s) => (
