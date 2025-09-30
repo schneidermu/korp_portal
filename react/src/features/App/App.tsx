@@ -12,6 +12,8 @@ import NextcloudPage from "@/features/Nextcloud/Nextcloud";
 import AuthLoader from "./parts/AuthLoader";
 import ProtectedPage from "./parts/ProtectedPage";
 
+import Skel from "@page/skel";
+
 const ProfilePage = React.lazy(
   async () => import("@/features/Profile/Profile"),
 );
@@ -48,7 +50,7 @@ const FormDashboardPage = React.lazy(
 const BusinessCardPage = React.lazy(
   async () => import("@/features/BusinessCard/BusinessCardPage"),
 );
-const HomePage = React.lazy(async () => import("@/features/Home/HomePage"));
+const HomePage = React.lazy(async () => import("@page/home"));
 const CalendarPage = React.lazy(
   async () => import("@/features/Calendar/pages/CalendarPage"),
 );
@@ -59,9 +61,10 @@ export const App = () => {
       <HashRouter>
         <Routes>
           <Route element={<AuthLoader />}>
+            <Route element={<Skel />}>
+              <Route path="/" element={<HomePage />} />
+            </Route>
             <Route path="/bc/:userId?" element={<BusinessCardPage />} />
-            <Route path="/" element={<HomePage />} />
-            <Route path="/home" element={<HomePage />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/nextcloud" element={<NextcloudPage />} />
             <Route path="/tree/:orgId?" element={<UserTreePage />} />
