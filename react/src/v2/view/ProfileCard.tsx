@@ -1,14 +1,12 @@
 import { Transition, motion } from "motion/react";
 
 import { css } from "@styled-system/css";
-import { Box, Center, styled } from "@styled-system/jsx";
+import { Box, styled } from "@styled-system/jsx";
 import { grid } from "@styled-system/patterns";
 
-import { resolveMediaPath } from "@/shared/utils";
-
 import { useFetchUser } from "@api/user";
-import { SaxUserBold } from "@meysam213/iconsax-react";
 import { fullNameShort } from "../api/user/utils";
+import { Avatar } from "./Avatar";
 import { RRLink } from "./RRLink";
 
 export const ProfileCard = ({
@@ -57,22 +55,7 @@ export const ProfileCard = ({
           transition={transition}
           className={css({ gridRow: "span 2" })}
         >
-          <Center bg="Corporate/Accent" borderRadius="full" w="full" h="full">
-            {user?.photo ? (
-              <styled.img
-                objectFit="cover"
-                w="full"
-                borderRadius="full"
-                h="full"
-                src={user?.photo ? resolveMediaPath(user.photo) : undefined}
-              />
-            ) : (
-              <SaxUserBold
-                color="white"
-                className={css({ width: 4, height: 4 })}
-              />
-            )}
-          </Center>
+          <Avatar user={user} w="full" h="full" />
         </motion.div>
         {isOpen && (
           <>
