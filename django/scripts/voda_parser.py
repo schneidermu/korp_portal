@@ -1,6 +1,7 @@
 import argparse
 import base64
 import json
+import re
 import time
 from datetime import date, timedelta
 from urllib.parse import urljoin
@@ -63,27 +64,43 @@ def get_article_details(article_url, image_url):
             article_url, headers=HEADERS, proxies=PROXIES, verify=False, timeout=15,
         )
         response.raise_for_status()
-        soup = BeautifulSoup(response.text, "lxml")
+
+        clean_html = re.sub(r">\s+<", "><", response.text)
+        soup = BeautifulSoup(clean_html, "lxml")
 
         text_container = soup.find("div", class_="content")
 
         if text_container:
-            paragraphs = text_container.find_all("p")
+            for tag in text_container.find_all(["time", "style", "script"]):
+                tag.decompose()
 
-            clean_paragraph_texts = []
-            for p in paragraphs:
-                p_text = p.get_text(strip=True)
+            for tag in text_container.find_all("a"):
+                href = tag.get("href", "")
+                if href and href.endswith((".docx", ".pdf")):
+                    tag.decompose()
 
-                if "Пресс-служба Росводресурсов" in p_text:
+            glued_text = text_container.get_text()
+
+            fixed_text = re.sub(r"([a-zа-яё\d./])([А-ЯЁ])", r"\1 \2", glued_text)
+            fixed_text = re.sub(r"(:)(«)", r"\1 \2", fixed_text)
+            fixed_text = re.sub(r"(»,)(–)", r"\1 \2", fixed_text)
+
+            normalized_text = re.sub(r"\s+", " ", fixed_text).strip()
+
+            signature_phrases = ["Пресс-служба Росводресурсов", "Пресс–служба Росводресурсов"]
+            for phrase in signature_phrases:
+                if phrase in normalized_text:
+                    stop_index = normalized_text.rfind(phrase)
+                    part_before = normalized_text[:stop_index].strip()
+
+                    date_match = re.search(r"(\d{2}\.\d{2}\.\d{4})$", part_before)
+                    if date_match:
+                        normalized_text = part_before[:date_match.start()].strip()
+                    else:
+                        normalized_text = part_before
                     break
-
-                if p_text:
-                    clean_paragraph_texts.append(p_text)
-
-            details["text"] = "\n\n".join(clean_paragraph_texts)
-
-            if not details["text"]:
-                details["text"] = "Текст статьи не найден (отсутствуют теги <p>)."
+            
+            details["text"] = normalized_text
 
         else:
             details["text"] = "Текст статьи не найден (отсутствует div.content)."
