@@ -825,9 +825,21 @@ class NewsViewSet(viewsets.ModelViewSet):
     serializer_class = NewsSerializer
 
     def get_queryset(self):
-        return News.objects.filter(
+        user = self.request.user
+        user_organization = user.organization if hasattr(user, "organization") else None
+
+        queryset = News.objects.filter(
             is_published=True, pub_date__lte=timezone.now(),
-        ).select_related("author").order_by("-pub_date")
+        ).select_related("author")
+        
+        if user_organization:
+            queryset = queryset.filter(
+                Q(organization__isnull=True) | Q(organization=user_organization),
+            )
+        else:
+            queryset = queryset.filter(organization__isnull=True)
+        
+        return queryset.distinct().order_by("-pub_date")
 
     def perform_create(self, serializer):
         """Автоматически устанавливает автора новости при создании."""
