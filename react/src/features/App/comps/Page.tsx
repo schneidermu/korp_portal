@@ -13,6 +13,8 @@ export const Page = ({
   children: ReactNode;
   sidebar?: ReactNode;
 }) => {
+  return children;
+
   return (
     <HStack maxW="90rem" w="full" mx="auto" px={6} pt="6" gap={16} align="top">
       <Box
