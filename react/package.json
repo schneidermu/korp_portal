@@ -15,6 +15,7 @@
     "@chakra-ui/charts": "^3.21.0",
     "@chakra-ui/react": "^3.21.0",
     "@emotion/react": "^11.14.0",
+    "@meysam213/iconsax-react": "^1.0.4",
     "@reduxjs/toolkit": "^2.8.2",
     "effect": "^3.15.2",
     "immer": "^10.1.1",

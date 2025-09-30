@@ -17,6 +17,9 @@ importers:
       '@emotion/react':
         specifier: ^11.14.0
         version: 11.14.0(@types/react@19.1.12)(react@19.1.1)
+      '@meysam213/iconsax-react':
+        specifier: ^1.0.4
+        version: 1.0.4(react@19.1.1)
       '@reduxjs/toolkit':
         specifier: ^2.8.2
         version: 2.9.0(react-redux@9.2.0(@types/react@19.1.12)(react@19.1.1)(redux@5.0.1))(react@19.1.1)
@@ -607,6 +610,11 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.30':
     resolution: {integrity: sha512-GQ7Nw5G2lTu/BtHTKfXhKHok2WGetd4XYcVKGx00SjAk8GMwgJM3zr6zORiPGuOE+/vkc90KtTosSSvaCjKb2Q==}
+
+  '@meysam213/iconsax-react@1.0.4':
+    resolution: {integrity: sha512-nmbZifxIaNF9wUimY9WhOMQfBX6Iu37Gv66yToWlHpfJbHXPqrYxP59lB0KUW8SEdp7wansCJ+9u9z1XF3n24w==}
+    peerDependencies:
+      react: '>= 16'
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -3557,6 +3565,10 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@meysam213/iconsax-react@1.0.4(react@19.1.1)':
+    dependencies:
+      react: 19.1.1
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
