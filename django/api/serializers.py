@@ -1,7 +1,12 @@
 import os.path
 
-from django.core.validators import EmailValidator, RegexValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from django.core.validators import (
+    EmailValidator,
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator,
+)
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -18,12 +23,15 @@ from employees.models import (
     Course,
     Diploma,
     Employee,
+    FavoriteSegment,
     Hobby,
     Idea,
     Organization,
     Performance,
     Rating,
     Reward,
+    Segment,
+    SegmentGroup,
     Sport,
     StructuralSubdivision,
     Training,
@@ -108,7 +116,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False)
     choices = ChoiceSerializer(many=True, required=False, allow_null=True, default=[])
     dependency_rule = QuestionDependencySerializer(
-        required=False, allow_null=True, default=None
+        required=False, allow_null=True, default=None,
     )
 
     class Meta:
@@ -136,32 +144,39 @@ class QuestionSerializer(serializers.ModelSerializer):
             ]
             if len(orders) != len(set(orders)):
                 raise serializers.ValidationError(
-                    "Порядок вариантов ответов в рамках одного вопроса должен быть уникальным."
+                    "Порядок вариантов ответов в рамках одного вопроса должен быть уникальным.",
                 )
         return choices_data
 
     def validate(self, data):
         question_type = data.get(
-            "question_type", getattr(self.instance, "question_type", None)
+            "question_type", getattr(self.instance, "question_type", None),
         )
         choices = data.get("choices")
         min_choices = data.get("min_choices")
         max_choices = data.get("max_choices")
         dependency_rule = data.get("dependency_rule")
-        allow_custom_answer = data.get("allow_custom_answer", getattr(self.instance, "allow_custom_answer", False) if self.instance else False)
+        allow_custom_answer = data.get(
+            "allow_custom_answer",
+            getattr(self.instance, "allow_custom_answer", False)
+            if self.instance
+            else False,
+        )
 
         if question_type in [
             Question.QuestionType.SINGLE_CHOICE,
             Question.QuestionType.MULTIPLE_CHOICE,
         ]:
             has_choices = choices is not None and len(choices) > 0
-            
+
             if self.instance and choices is None:
                 has_choices = self.instance.choices.exists()
 
             if not has_choices and not allow_custom_answer:
                 raise serializers.ValidationError(
-                    {"choices": "Для вопроса с выбором необходимо предоставить либо варианты ответа, либо разрешить опцию 'Другое' (свой вариант)."}
+                    {
+                        "choices": "Для вопроса с выбором необходимо предоставить либо варианты ответа, либо разрешить опцию 'Другое' (свой вариант).",
+                    },
                 )
 
             if question_type == Question.QuestionType.MULTIPLE_CHOICE:
@@ -172,34 +187,30 @@ class QuestionSerializer(serializers.ModelSerializer):
                 ):
                     raise serializers.ValidationError(
                         {
-                            "min_choices": "Минимальное количество не может быть больше максимального."
-                        }
+                            "min_choices": "Минимальное количество не может быть больше максимального.",
+                        },
                     )
-                if (
-                    choices
-                    and max_choices is not None
-                    and len(choices) < max_choices
-                ):
+                if choices and max_choices is not None and len(choices) < max_choices:
                     pass
                 if choices and min_choices is not None and len(choices) < min_choices:
                     raise serializers.ValidationError(
                         {
-                            "min_choices": f"Количество предоставленных вариантов ({len(choices)}) меньше минимально необходимого ({min_choices})."
-                        }
+                            "min_choices": f"Количество предоставленных вариантов ({len(choices)}) меньше минимально необходимого ({min_choices}).",
+                        },
                     )
 
         elif question_type == Question.QuestionType.FREE_TEXT:
             if choices and len(choices) > 0:
                 raise serializers.ValidationError(
                     {
-                        "choices": "Для вопросов со свободным текстовым ответом варианты ответов не указываются."
-                    }
+                        "choices": "Для вопросов со свободным текстовым ответом варианты ответов не указываются.",
+                    },
                 )
             if min_choices is not None or max_choices is not None:
                 raise serializers.ValidationError(
                     {
-                        "min_choices_max_choices": "Для вопросов со свободным текстовым ответом min/max вариантов не указываются."
-                    }
+                        "min_choices_max_choices": "Для вопросов со свободным текстовым ответом min/max вариантов не указываются.",
+                    },
                 )
 
         if dependency_rule:
@@ -214,15 +225,27 @@ class QuestionSerializer(serializers.ModelSerializer):
                 and int(trigger_question_id) == int(current_question_id)
             ):
                 raise serializers.ValidationError(
-                    {"dependency_rule": "Вопрос не может зависеть сам от себя."}
+                    {"dependency_rule": "Вопрос не может зависеть сам от себя."},
                 )
 
-        question_type = data.get("question_type", getattr(self.instance, "question_type", None))
-        allow_custom_answer = data.get("allow_custom_answer", getattr(self.instance, "allow_custom_answer", False) if self.instance else False)
+        question_type = data.get(
+            "question_type", getattr(self.instance, "question_type", None),
+        )
+        allow_custom_answer = data.get(
+            "allow_custom_answer",
+            getattr(self.instance, "allow_custom_answer", False)
+            if self.instance
+            else False,
+        )
 
-        if allow_custom_answer and question_type not in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+        if allow_custom_answer and question_type not in [
+            Question.QuestionType.SINGLE_CHOICE,
+            Question.QuestionType.MULTIPLE_CHOICE,
+        ]:
             raise serializers.ValidationError(
-                {"allow_custom_answer": f"Опция 'Разрешить свой вариант ответа' не применима к вопросам типа '{question_type}'."}
+                {
+                    "allow_custom_answer": f"Опция 'Разрешить свой вариант ответа' не применима к вопросам типа '{question_type}'.",
+                },
             )
         return data
 
@@ -231,16 +254,16 @@ class PollSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, required=False, default=[])
     author = serializers.PrimaryKeyRelatedField(read_only=True)
     organization = serializers.PrimaryKeyRelatedField(
-        queryset=Organization.objects.all(), many=True, required=False
+        queryset=Organization.objects.all(), many=True, required=False,
     )
     editors = serializers.PrimaryKeyRelatedField(
-        queryset=Employee.objects.all(), many=True, required=False
+        queryset=Employee.objects.all(), many=True, required=False,
     )
     stats_viewers = serializers.PrimaryKeyRelatedField(
-        queryset=Employee.objects.all(), many=True, required=False
+        queryset=Employee.objects.all(), many=True, required=False,
     )
     poll_group = serializers.PrimaryKeyRelatedField(
-        queryset=PollGroup.objects.all(), required=False, allow_null=True
+        queryset=PollGroup.objects.all(), required=False, allow_null=True,
     )
     submission_count = serializers.SerializerMethodField(read_only=True)
 
@@ -278,8 +301,8 @@ class PollSerializer(serializers.ModelSerializer):
         if len(question_orders_in_payload) != len(set(question_orders_in_payload)):
             raise serializers.ValidationError(
                 {
-                    "questions": "Порядок (order) вопросов в рамках одного запроса должен быть уникальным."
-                }
+                    "questions": "Порядок (order) вопросов в рамках одного запроса должен быть уникальным.",
+                },
             )
 
         questions_data_list_for_first_pass = [
@@ -298,7 +321,7 @@ class PollSerializer(serializers.ModelSerializer):
             question_order = q_data.get("order")
             if question_order is None:
                 raise serializers.ValidationError(
-                    {"questions": "Каждый вопрос должен иметь поле 'order'."}
+                    {"questions": "Каждый вопрос должен иметь поле 'order'."},
                 )
 
             choice_orders_in_question = [
@@ -309,13 +332,13 @@ class PollSerializer(serializers.ModelSerializer):
             if len(choice_orders_in_question) != len(set(choice_orders_in_question)):
                 raise serializers.ValidationError(
                     {
-                        "questions": f"Порядок (order) вариантов ответов для вопроса с order={question_order} должен быть уникальным."
-                    }
+                        "questions": f"Порядок (order) вариантов ответов для вопроса с order={question_order} должен быть уникальным.",
+                    },
                 )
 
             if question_id_from_payload:
                 question_instance = get_object_or_404(
-                    Question, id=question_id_from_payload, poll=poll_instance
+                    Question, id=question_id_from_payload, poll=poll_instance,
                 )
                 for attr, value in q_data.items():
                     if hasattr(question_instance, attr):
@@ -323,7 +346,7 @@ class PollSerializer(serializers.ModelSerializer):
                 question_instance.save()
             else:
                 question_instance = Question.objects.create(
-                    poll=poll_instance, **q_data
+                    poll=poll_instance, **q_data,
                 )
 
             processed_question_ids_for_poll.append(question_instance.id)
@@ -342,8 +365,8 @@ class PollSerializer(serializers.ModelSerializer):
                     if choice_order is None:
                         raise serializers.ValidationError(
                             {
-                                "questions": f"Каждый вариант ответа для вопроса с order={question_order} должен иметь поле 'order'."
-                            }
+                                "questions": f"Каждый вариант ответа для вопроса с order={question_order} должен иметь поле 'order'.",
+                            },
                         )
 
                     if choice_id_from_payload:
@@ -358,16 +381,16 @@ class PollSerializer(serializers.ModelSerializer):
                         choice_instance.save()
                     else:
                         choice_instance = Choice.objects.create(
-                            question=question_instance, **choice_item_data
+                            question=question_instance, **choice_item_data,
                         )
                     processed_choice_ids_for_question.append(choice_instance.id)
-                    created_choices_map[
-                        (question_order, choice_order)
-                    ] = choice_instance
+                    created_choices_map[(question_order, choice_order)] = (
+                        choice_instance
+                    )
 
                 if question_id_from_payload:
                     question_instance.choices.exclude(
-                        id__in=processed_choice_ids_for_question
+                        id__in=processed_choice_ids_for_question,
                     ).delete()
             else:
                 question_instance.choices.all().delete()
@@ -375,7 +398,7 @@ class PollSerializer(serializers.ModelSerializer):
         for q_data_original_for_deps in questions_data_list_original:
             question_order_for_deps = q_data_original_for_deps.get("order")
             dependent_question_instance = created_questions_map.get(
-                question_order_for_deps
+                question_order_for_deps,
             )
 
             if not dependent_question_instance:
@@ -397,21 +420,21 @@ class PollSerializer(serializers.ModelSerializer):
 
             if dependency_rule_payload:
                 trigger_question_order = dependency_rule_payload.get(
-                    "trigger_question_order"
+                    "trigger_question_order",
                 )
                 trigger_choice_order = dependency_rule_payload.get(
-                    "trigger_choice_order"
+                    "trigger_choice_order",
                 )
 
                 if trigger_question_order is not None:
                     trigger_question_instance = created_questions_map.get(
-                        trigger_question_order
+                        trigger_question_order,
                     )
                     if not trigger_question_instance:
                         raise serializers.ValidationError(
                             {
-                                "questions": f"[Order: {question_order_for_deps}] Вопрос-триггер с order={trigger_question_order} не найден среди созданных/обновленных вопросов."
-                            }
+                                "questions": f"[Order: {question_order_for_deps}] Вопрос-триггер с order={trigger_question_order} не найден среди созданных/обновленных вопросов.",
+                            },
                         )
 
                     if (
@@ -420,8 +443,8 @@ class PollSerializer(serializers.ModelSerializer):
                     ):
                         raise serializers.ValidationError(
                             {
-                                "questions": f"[Order: {question_order_for_deps}] Зависимый вопрос (order: {dependent_question_instance.order}) должен идти после вопроса-триггера (order: {trigger_question_instance.order}) по порядку."
-                            }
+                                "questions": f"[Order: {question_order_for_deps}] Зависимый вопрос (order: {dependent_question_instance.order}) должен идти после вопроса-триггера (order: {trigger_question_instance.order}) по порядку.",
+                            },
                         )
 
                     trigger_choice_instance = None
@@ -432,23 +455,23 @@ class PollSerializer(serializers.ModelSerializer):
                         if trigger_choice_order is None:
                             raise serializers.ValidationError(
                                 {
-                                    "questions": f"[Order: {question_order_for_deps}] Для вопроса-триггера (order={trigger_question_order}) типа 'выбор' необходимо указать 'trigger_choice_order'."
-                                }
+                                    "questions": f"[Order: {question_order_for_deps}] Для вопроса-триггера (order={trigger_question_order}) типа 'выбор' необходимо указать 'trigger_choice_order'.",
+                                },
                             )
                         trigger_choice_instance = created_choices_map.get(
-                            (trigger_question_order, trigger_choice_order)
+                            (trigger_question_order, trigger_choice_order),
                         )
                         if not trigger_choice_instance:
                             raise serializers.ValidationError(
                                 {
-                                    "questions": f"[Order: {question_order_for_deps}] Вариант-триггер (order={trigger_choice_order}) для вопроса-триггера (order={trigger_question_order}) не найден."
-                                }
+                                    "questions": f"[Order: {question_order_for_deps}] Вариант-триггер (order={trigger_choice_order}) для вопроса-триггера (order={trigger_question_order}) не найден.",
+                                },
                             )
                     elif trigger_choice_order is not None:
                         raise serializers.ValidationError(
                             {
-                                "questions": f"[Order: {question_order_for_deps}] Вопрос-триггер (order={trigger_question_order}) не является вопросом с выбором вариантов, 'trigger_choice_order' не должен быть указан."
-                            }
+                                "questions": f"[Order: {question_order_for_deps}] Вопрос-триггер (order={trigger_question_order}) не является вопросом с выбором вариантов, 'trigger_choice_order' не должен быть указан.",
+                            },
                         )
 
                     QuestionDependency.objects.create(
@@ -459,7 +482,7 @@ class PollSerializer(serializers.ModelSerializer):
 
         if poll_instance.pk:
             poll_instance.questions.exclude(
-                id__in=processed_question_ids_for_poll
+                id__in=processed_question_ids_for_poll,
             ).delete()
 
     @transaction.atomic
@@ -504,18 +527,18 @@ class PollSerializer(serializers.ModelSerializer):
 class AnswerCreateSerializer(serializers.Serializer):
     question_id = serializers.IntegerField()
     selected_choice_ids = serializers.ListField(
-        child=serializers.IntegerField(), required=False, allow_empty=True, default=[]
+        child=serializers.IntegerField(), required=False, allow_empty=True, default=[],
     )
     free_text_answer = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True, default=None
+        required=False, allow_blank=True, allow_null=True, default=None,
     )
-    custom_choice_text = serializers.CharField( 
-        required=False, allow_blank=True, allow_null=True, default=None
+    custom_choice_text = serializers.CharField(
+        required=False, allow_blank=True, allow_null=True, default=None,
     )
 
     phone_validator = RegexValidator(
-        regex=r'^\+?1?\d{9,15}$',
-        message="Введите корректный номер телефона (например, +79123456789)."
+        regex=r"^\+?1?\d{9,15}$",
+        message="Введите корректный номер телефона (например, +79123456789).",
     )
     email_validator = EmailValidator()
 
@@ -528,81 +551,141 @@ class AnswerCreateSerializer(serializers.Serializer):
         try:
             question = Question.objects.get(id=question_id)
         except Question.DoesNotExist:
-            raise serializers.ValidationError({"question_id": "Вопрос не найден."})
+            raise serializers.ValidationError({"question_id": "Вопрос не найден."}) from None
 
         if custom_choice_text:
             if not question.allow_custom_answer:
                 raise serializers.ValidationError(
-                    {"custom_choice_text": f"Для вопроса '{question.text}' не разрешен свой вариант ответа ('Другое')."}
+                    {
+                        "custom_choice_text": f"Для вопроса '{question.text}' не разрешен свой вариант ответа ('Другое').",
+                    },
                 )
-            if question.question_type not in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
-                 raise serializers.ValidationError(
-                    {"custom_choice_text": "Опция 'Другое' применима только к вопросам с выбором вариантов."}
-                )
-            if question.question_type == Question.QuestionType.SINGLE_CHOICE and selected_choice_ids:
+            if question.question_type not in [
+                Question.QuestionType.SINGLE_CHOICE,
+                Question.QuestionType.MULTIPLE_CHOICE,
+            ]:
                 raise serializers.ValidationError(
-                    {"selected_choice_ids": "Если указан свой вариант ответа ('Другое') для вопроса с одним выбором, другие стандартные варианты не должны быть выбраны.",
-                     "custom_choice_text": "Если указан свой вариант ответа ('Другое') для вопроса с одним выбором, другие стандартные варианты не должны быть выбраны."}
+                    {
+                        "custom_choice_text": "Опция 'Другое' применима только к вопросам с выбором вариантов.",
+                    },
+                )
+            if (
+                question.question_type == Question.QuestionType.SINGLE_CHOICE
+                and selected_choice_ids
+            ):
+                raise serializers.ValidationError(
+                    {
+                        "selected_choice_ids": "Если указан свой вариант ответа ('Другое') для вопроса с одним выбором, другие стандартные варианты не должны быть выбраны.",
+                        "custom_choice_text": "Если указан свой вариант ответа ('Другое') для вопроса с одним выбором, другие стандартные варианты не должны быть выбраны.",
+                    },
                 )
 
         total_options_selected = 0
-        if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+        if question.question_type in [
+            Question.QuestionType.SINGLE_CHOICE,
+            Question.QuestionType.MULTIPLE_CHOICE,
+        ]:
             total_options_selected = len(selected_choice_ids)
             if custom_choice_text and question.allow_custom_answer:
                 total_options_selected += 1
 
-        if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
-            if total_options_selected > 1 and question.question_type == Question.QuestionType.SINGLE_CHOICE:
+        if question.question_type in [
+            Question.QuestionType.SINGLE_CHOICE,
+            Question.QuestionType.MULTIPLE_CHOICE,
+        ]:
+            if (
+                total_options_selected > 1
+                and question.question_type == Question.QuestionType.SINGLE_CHOICE
+            ):
                 raise serializers.ValidationError(
-                    {"selected_choice_ids": "Для вопроса с одним вариантом ответа можно выбрать только одну опцию.",
-                     "custom_choice_text": "Для вопроса с одним вариантом ответа можно выбрать только одну опцию."}
+                    {
+                        "selected_choice_ids": "Для вопроса с одним вариантом ответа можно выбрать только одну опцию.",
+                        "custom_choice_text": "Для вопроса с одним вариантом ответа можно выбрать только одну опцию.",
+                    },
                 )
             if question.question_type == Question.QuestionType.MULTIPLE_CHOICE:
-                if question.min_choices and total_options_selected < question.min_choices:
+                if (
+                    question.min_choices
+                    and total_options_selected < question.min_choices
+                ):
                     raise serializers.ValidationError(
-                        {"selected_choice_ids": f"Необходимо выбрать минимум {question.min_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}.",
-                         "custom_choice_text": f"Необходимо выбрать минимум {question.min_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}."}
+                        {
+                            "selected_choice_ids": f"Необходимо выбрать минимум {question.min_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}.",
+                            "custom_choice_text": f"Необходимо выбрать минимум {question.min_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}.",
+                        },
                     )
-                if question.max_choices and total_options_selected > question.max_choices:
+                if (
+                    question.max_choices
+                    and total_options_selected > question.max_choices
+                ):
                     raise serializers.ValidationError(
-                        {"selected_choice_ids": f"Можно выбрать максимум {question.max_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}.",
-                         "custom_choice_text": f"Можно выбрать максимум {question.max_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}."}
+                        {
+                            "selected_choice_ids": f"Можно выбрать максимум {question.max_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}.",
+                            "custom_choice_text": f"Можно выбрать максимум {question.max_choices} опций (включая свой вариант, если указан). Выбрано: {total_options_selected}.",
+                        },
                     )
-        
+
         elif question.question_type == Question.QuestionType.DATE:
             if selected_choice_ids or custom_choice_text:
-                raise serializers.ValidationError({"selected_choice_ids": "Для вопросов типа 'Дата' варианты выбора не ожидаются."})
+                raise serializers.ValidationError(
+                    {
+                        "selected_choice_ids": "Для вопросов типа 'Дата' варианты выбора не ожидаются.",
+                    },
+                )
             if free_text_answer:
                 try:
                     serializers.DateField().to_internal_value(free_text_answer)
                 except ValidationError:
-                    raise serializers.ValidationError({"free_text_answer": "Введите корректную дату в формате ГГГГ-ММ-ДД."})
+                    raise serializers.ValidationError(
+                        {
+                            "free_text_answer": "Введите корректную дату в формате ГГГГ-ММ-ДД.",
+                        },
+                    ) from None
 
         elif question.question_type == Question.QuestionType.TELEPHONE:
             if selected_choice_ids or custom_choice_text:
-                raise serializers.ValidationError({"selected_choice_ids": "Для вопросов типа 'Телефон' варианты выбора не ожидаются."})
+                raise serializers.ValidationError(
+                    {
+                        "selected_choice_ids": "Для вопросов типа 'Телефон' варианты выбора не ожидаются.",
+                    },
+                )
             if free_text_answer:
                 try:
                     self.phone_validator(free_text_answer)
                 except ValidationError as e:
-                    raise serializers.ValidationError({"free_text_answer": e.messages})
+                    raise serializers.ValidationError({"free_text_answer": e.messages}) from None
 
         elif question.question_type == Question.QuestionType.MAIL:
             if selected_choice_ids or custom_choice_text:
-                raise serializers.ValidationError({"selected_choice_ids": "Для вопросов типа 'Почта' варианты выбора не ожидаются."})
+                raise serializers.ValidationError(
+                    {
+                        "selected_choice_ids": "Для вопросов типа 'Почта' варианты выбора не ожидаются.",
+                    },
+                )
             if free_text_answer:
                 try:
                     self.email_validator(free_text_answer)
                 except ValidationError:
-                    raise serializers.ValidationError({"free_text_answer": "Введите корректный адрес электронной почты."})
-        
+                    raise serializers.ValidationError(
+                        {
+                            "free_text_answer": "Введите корректный адрес электронной почты.",
+                        },
+                    ) from None
+
         elif question.question_type == Question.QuestionType.FREE_TEXT:
             if selected_choice_ids or custom_choice_text:
-                raise serializers.ValidationError({"selected_choice_ids": "Для вопросов со свободным текстом варианты выбора не ожидаются."})
+                raise serializers.ValidationError(
+                    {
+                        "selected_choice_ids": "Для вопросов со свободным текстом варианты выбора не ожидаются.",
+                    },
+                )
 
         if question.is_required:
             answered = False
-            if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+            if question.question_type in [
+                Question.QuestionType.SINGLE_CHOICE,
+                Question.QuestionType.MULTIPLE_CHOICE,
+            ]:
                 if total_options_selected > 0:
                     answered = True
             else:
@@ -610,14 +693,21 @@ class AnswerCreateSerializer(serializers.Serializer):
                     answered = True
 
             if not answered:
-                error_message = f"Ответ на обязательный вопрос '{question.text}' не предоставлен."
-                if question.question_type in [Question.QuestionType.SINGLE_CHOICE, Question.QuestionType.MULTIPLE_CHOICE]:
+                error_message = (
+                    f"Ответ на обязательный вопрос '{question.text}' не предоставлен."
+                )
+                if question.question_type in [
+                    Question.QuestionType.SINGLE_CHOICE,
+                    Question.QuestionType.MULTIPLE_CHOICE,
+                ]:
                     error_fields = {"selected_choice_ids": error_message}
                     if question.allow_custom_answer:
                         error_fields["custom_choice_text"] = error_message
                     raise serializers.ValidationError(error_fields)
                 else:
-                    raise serializers.ValidationError({"free_text_answer": error_message})
+                    raise serializers.ValidationError(
+                        {"free_text_answer": error_message},
+                    )
         return data
 
 
@@ -634,11 +724,11 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
     def validate_poll(self, poll_instance):
         if poll_instance.status != Poll.StatusChoices.PUBLISHED:
             raise serializers.ValidationError(
-                "Данный опрос не опубликован и не может быть пройден."
+                "Данный опрос не опубликован и не может быть пройден.",
             )
         if poll_instance.pub_date and poll_instance.pub_date > timezone.now():
             raise serializers.ValidationError(
-                "Данный опрос еще не доступен для прохождения."
+                "Данный опрос еще не доступен для прохождения.",
             )
         if (
             poll_instance.completion_date
@@ -652,17 +742,17 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
             if not poll_instance.is_public:
                 if not hasattr(user, "organization") or not user.organization:
                     raise serializers.ValidationError(
-                        "У вас нет организации для доступа к этому опросу."
+                        "У вас нет организации для доступа к этому опросу.",
                     )
                 if not poll_instance.organization.filter(
-                    id=user.organization.id
+                    id=user.organization.id,
                 ).exists():
                     raise serializers.ValidationError(
-                        "Данный опрос недоступен для вашей организации."
+                        "Данный опрос недоступен для вашей организации.",
                     )
         elif not poll_instance.is_public:
             raise serializers.ValidationError(
-                "Невозможно определить доступность непубличного опроса."
+                "Невозможно определить доступность непубличного опроса.",
             )
 
         return poll_instance
@@ -673,14 +763,14 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"poll": "Необходимо указать опрос."})
         try:
             poll_obj = Poll.objects.prefetch_related("questions__choices").get(
-                pk=poll_pk
+                pk=poll_pk,
             )
         except Poll.DoesNotExist:
-            raise serializers.ValidationError({"poll": "Указанный опрос не найден."})
+            raise serializers.ValidationError({"poll": "Указанный опрос не найден."}) from None
 
         if not answers_data and poll_obj.questions.filter(is_required=True).exists():
             raise serializers.ValidationError(
-                "Необходимо предоставить ответы на обязательные вопросы."
+                "Необходимо предоставить ответы на обязательные вопросы.",
             )
 
         poll_questions_map = {q.id: q for q in poll_obj.questions.all()}
@@ -690,7 +780,7 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
             q_id = answer_data.get("question_id")
             if not q_id or q_id not in poll_questions_map:
                 raise serializers.ValidationError(
-                    f"Ответ содержит вопрос с ID {q_id}, не принадлежащий данному опросу."
+                    f"Ответ содержит вопрос с ID {q_id}, не принадлежащий данному опросу.",
                 )
             answered_question_ids.add(q_id)
 
@@ -698,8 +788,8 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
             if question_instance.is_required and q_id not in answered_question_ids:
                 raise serializers.ValidationError(
                     {
-                        f"question_{q_id}": f"Ответ на обязательный вопрос '{question_instance.text}' не предоставлен."
-                    }
+                        f"question_{q_id}": f"Ответ на обязательный вопрос '{question_instance.text}' не предоставлен.",
+                    },
                 )
         return answers_data
 
@@ -720,7 +810,7 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
             and PollSubmission.objects.filter(poll=poll, user=user_to_assign).exists()
         ):
             raise serializers.ValidationError(
-                {"detail": "Вы уже проходили этот опрос."}
+                {"detail": "Вы уже проходили этот опрос."},
             )
 
         submission = PollSubmission.objects.create(poll=poll, user=user_to_assign)
@@ -732,19 +822,19 @@ class PollSubmissionCreateSerializer(serializers.ModelSerializer):
                 submission=submission,
                 question=question_instance,
                 free_text_answer=answer_data.get("free_text_answer"),
-                custom_choice_text=answer_data.get("custom_choice_text")
+                custom_choice_text=answer_data.get("custom_choice_text"),
             )
 
             selected_ids = answer_data.get("selected_choice_ids", [])
             if selected_ids:
                 valid_choices = Choice.objects.filter(
-                    id__in=selected_ids, question=question_instance
+                    id__in=selected_ids, question=question_instance,
                 )
                 if len(valid_choices) != len(selected_ids):
                     raise serializers.ValidationError(
                         {
-                            f"question_{question_instance.id}": "Один или несколько выбранных вариантов не принадлежат данному вопросу."
-                        }
+                            f"question_{question_instance.id}": "Один или несколько выбранных вариантов не принадлежат данному вопросу.",
+                        },
                     )
                 created_answer.selected_choices.set(valid_choices)
         return submission
@@ -768,7 +858,7 @@ class VoteCreateSerializer(serializers.Serializer):
 
         if not poll.is_multiple_choice and len(choice_ids) > 1:
             raise serializers.ValidationError(
-                {"error": "Можно выбрать только один вариант ответа."}
+                {"error": "Можно выбрать только один вариант ответа."},
             )
 
         for choice_id in choice_ids:
@@ -776,14 +866,14 @@ class VoteCreateSerializer(serializers.Serializer):
 
             if not choice_exists:
                 raise serializers.ValidationError(
-                    {"error": "Такого варианта ответа нет"}
+                    {"error": "Такого варианта ответа нет"},
                 )
 
         already_voted = Choice.objects.filter(poll_id=poll_id, voted=user).exists()
 
         if already_voted:
             raise serializers.ValidationError(
-                {"error": "Нельзя голосовать несколько раз"}
+                {"error": "Нельзя голосовать несколько раз"},
             )
 
         return data
@@ -815,7 +905,7 @@ class VoteDeleteSerializer(serializers.Serializer):
 
         if not choices:
             raise serializers.ValidationError(
-                {"error": "Вы не голосовали в данном опросе"}
+                {"error": "Вы не голосовали в данном опросе"},
             )
 
         return choices
@@ -825,11 +915,9 @@ class NewsSerializer(serializers.ModelSerializer):
     """Сериализатор для новостей"""
 
     attachments = AttachmentSerializer(many=True, required=False)
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
     organization = serializers.PrimaryKeyRelatedField(
-        queryset=Organization.objects.all(), 
-        many=True, 
-        required=False,
-        allow_null=True
+        queryset=Organization.objects.all(), many=True, required=False, allow_null=True,
     )
 
     class Meta:
@@ -837,6 +925,7 @@ class NewsSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
+            "author",
             "text",
             "attachments",
             "video",
@@ -858,8 +947,7 @@ class NewsSerializer(serializers.ModelSerializer):
         news_defaults = validated_data
 
         news_item, created = News.objects.get_or_create(
-            title=validated_data['title'],
-            defaults=news_defaults
+            title=validated_data["title"], defaults=news_defaults,
         )
 
         if created:
@@ -1314,7 +1402,7 @@ class ProfileSerializer(UserSerializer):
                     except TypeError as e:
                         # Handle cases where obj_data keys don't match model fields
                         print(
-                            f"Warning: Skipping object creation for {model_class.__name__} due to TypeError: {e}. Data: {obj_data}"
+                            f"Warning: Skipping object creation for {model_class.__name__} due to TypeError: {e}. Data: {obj_data}",
                         )
                         continue  # Skip this item
 
@@ -1344,7 +1432,7 @@ class ProfileSerializer(UserSerializer):
             characteristic_update_copy = characteristic_update_original.copy()
 
             characteristic, created = Characteristic.objects.get_or_create(
-                employee=instance
+                employee=instance,
             )
 
             # Get the names of fields managed by ATTRIBUTE_MODEL
@@ -1407,7 +1495,7 @@ class ProfileCreateSerializer(UserCreateSerializer):
     )
 
     structural_division = serializers.PrimaryKeyRelatedField(
-        required=True, queryset=StructuralSubdivision.objects.all()
+        required=True, queryset=StructuralSubdivision.objects.all(),
     )
 
     def create(self, validated_data):
@@ -1435,15 +1523,15 @@ class RatingPOSTSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rating
-        fields = ('rate', 'text')
+        fields = ("rate", "text")
         extra_kwargs = {
-            'rate': {
-                'required': True,
-                'validators': [
+            "rate": {
+                "required": True,
+                "validators": [
                     MinValueValidator(1, message="Оценка не может быть меньше 1."),
-                    MaxValueValidator(5, message="Оценка не может быть больше 5.")
-                ]
-            }
+                    MaxValueValidator(5, message="Оценка не может быть больше 5."),
+                ],
+            },
         }
 
 
@@ -1452,7 +1540,7 @@ class RatingPUTSerializer(RatingPOSTSerializer):
     Сериализатор для создания/обновления оценки.
     Валидирует только поля 'rate' и 'text', которые присылает клиент.
     """
-    pass
+
 
 
 class RatingDELETESerializer(serializers.ModelSerializer):
@@ -1469,7 +1557,7 @@ class RatingDELETESerializer(serializers.ModelSerializer):
 
         if not already_rated:
             raise serializers.ValidationError(
-                {"error": "Вы не оценивали данного сотрудника."}
+                {"error": "Вы не оценивали данного сотрудника."},
             )
 
         return data
@@ -1486,7 +1574,7 @@ class RatingListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rating
-        fields = ('id', 'user', 'rate', 'text', 'date')
+        fields = ("id", "user", "rate", "text", "date")
 
 
 class ProfileInStrucureSerializer(serializers.ModelSerializer):
@@ -1512,7 +1600,7 @@ class OrgStructureSerializer(serializers.ModelSerializer):
     supervisor = ProfileInStrucureSerializer(read_only=True)
 
     structural_division = serializers.SlugRelatedField(
-        read_only=True, slug_field="name"
+        read_only=True, slug_field="name",
     )
 
     class Meta:
@@ -1594,10 +1682,10 @@ class ProfileInOrganizationSerializer(UserSerializer):
     """Сериализатор для изменения орг. структуры"""
 
     organization = serializers.SlugRelatedField(
-        slug_field="name", queryset=Organization.objects.all(), required=False
+        slug_field="name", queryset=Organization.objects.all(), required=False,
     )
     structural_division = serializers.SlugRelatedField(
-        slug_field="name", queryset=StructuralSubdivision.objects.all()
+        slug_field="name", queryset=StructuralSubdivision.objects.all(),
     )
 
     class Meta(UserSerializer.Meta):
@@ -1688,43 +1776,47 @@ class UserInPollAnswersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ('id', 'username')
+        fields = ("id", "username")
 
 
 class AnswerDetailForUserSerializer(serializers.ModelSerializer):
     """Сериализатор для детального ответа пользователя на один вопрос."""
-    question_id = serializers.ReadOnlyField(source='question.id')
-    question_text = serializers.ReadOnlyField(source='question.text')
-    question_type = serializers.ReadOnlyField(source='question.question_type')
+
+    question_id = serializers.ReadOnlyField(source="question.id")
+    question_text = serializers.ReadOnlyField(source="question.text")
+    question_type = serializers.ReadOnlyField(source="question.question_type")
     selected_choices = ChoiceSerializer(many=True, read_only=True)
 
     class Meta:
         model = Answer
         fields = (
-            'question_id',
-            'question_text',
-            'question_type',
-            'selected_choices',
-            'free_text_answer',
-            'custom_choice_text'
+            "question_id",
+            "question_text",
+            "question_type",
+            "selected_choices",
+            "free_text_answer",
+            "custom_choice_text",
         )
+
 
 class PollSubmissionWithAnswersSerializer(serializers.ModelSerializer):
     """Сериализатор для одного прохождения опроса с ответами пользователя."""
-    user = UserInPollAnswersSerializer(read_only=True) # Может быть null для анонимных
-    answers = AnswerDetailForUserSerializer(many=True, read_only=True)
-    submitted_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%SZ", read_only=True)
 
+    user = UserInPollAnswersSerializer(read_only=True)  # Может быть null для анонимных
+    answers = AnswerDetailForUserSerializer(many=True, read_only=True)
+    submitted_at = serializers.DateTimeField(
+        format="%Y-%m-%dT%H:%M:%SZ", read_only=True,
+    )
 
     class Meta:
         model = PollSubmission
-        fields = ('user', 'submitted_at', 'answers')
+        fields = ("user", "submitted_at", "answers")
 
 
 class PollUserAnswersListSerializer(serializers.Serializer):
     poll_id = serializers.IntegerField()
     poll_name = serializers.CharField()
-    results = PollSubmissionWithAnswersSerializer(many=True) 
+    results = PollSubmissionWithAnswersSerializer(many=True)
     count = serializers.IntegerField()
     next = serializers.URLField(allow_null=True)
     previous = serializers.URLField(allow_null=True)
@@ -1734,13 +1826,63 @@ class IdeaSerializer(serializers.ModelSerializer):
     """
     Сериализатор для модели Idea.
     """
-    author_name = serializers.StringRelatedField(source='author', read_only=True)
+
+    author_name = serializers.StringRelatedField(source="author", read_only=True)
 
     class Meta:
         model = Idea
-        fields = ['id', 'text', 'created_at', 'author', 'author_name']
+        fields = [
+            "id",
+            "text",
+            "status",
+            "resolution",
+            "created_at",
+            "author",
+            "author_name",
+        ]
 
-        read_only_fields = ['author', 'created_at', 'author_name']
+        read_only_fields = ["author", "created_at", "author_name"]
+
+    def create(self, validated_data):
+        """
+        Создание идеи. Обычные пользователи не могут устанавливать статус и резолюцию.
+        """
+        user = self.context["request"].user
+
+        # Обычные пользователи не могут устанавливать статус и резолюцию при создании
+        if not user.is_staff:
+            validated_data.pop("status", None)
+            validated_data.pop("resolution", None)
+
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        Обновление идеи. Обычные пользователи могут изменять только свои идеи и только текст.
+        Администраторы могут изменять статус и резолюцию любых идей.
+        """
+        user = self.context["request"].user
+
+        # Если пользователь не является автором идеи и не администратор
+        if instance.author != user and not user.is_staff:
+            raise serializers.ValidationError(
+                "Вы можете редактировать только свои идеи.",
+            )
+
+        # Обычные пользователи могут изменять только текст своих идей
+        if instance.author == user and not user.is_staff:
+            if "status" in validated_data or "resolution" in validated_data:
+                raise serializers.ValidationError(
+                    "Вы можете изменять только текст своей идеи.",
+                )
+            instance.text = validated_data.get("text", instance.text)
+        else:
+            # Администраторы могут изменять все поля
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 class StructuralSubdivisionWriteSerializer(serializers.ModelSerializer):
@@ -1751,31 +1893,28 @@ class StructuralSubdivisionWriteSerializer(serializers.ModelSerializer):
     """
 
     positions = serializers.PrimaryKeyRelatedField(
-        queryset=Employee.objects.all(),
-        many=True,
-        required=False,
-        write_only=True
+        queryset=Employee.objects.all(), many=True, required=False, write_only=True,
     )
 
     class Meta:
         model = StructuralSubdivision
 
         fields = (
-            'id',
-            'name',
-            'organization',
-            'chief',
-            'supervisor',
-            'parent_structural_subdivision',
-            'positions'
+            "id",
+            "name",
+            "organization",
+            "chief",
+            "supervisor",
+            "parent_structural_subdivision",
+            "positions",
         )
-        read_only_fields = ('id',)
+        read_only_fields = ("id",)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if self.instance:
-            self.fields['organization'].read_only = True
+            self.fields["organization"].read_only = True
 
     @transaction.atomic
     def create(self, validated_data):
@@ -1783,7 +1922,7 @@ class StructuralSubdivisionWriteSerializer(serializers.ModelSerializer):
         Переопределяем метод создания.
         """
 
-        positions_data = validated_data.pop('positions', [])
+        positions_data = validated_data.pop("positions", [])
 
         subdivision = StructuralSubdivision.objects.create(**validated_data)
 
@@ -1794,8 +1933,7 @@ class StructuralSubdivisionWriteSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-
-        positions_data = validated_data.pop('positions', None)
+        positions_data = validated_data.pop("positions", None)
 
         updated_instance = super().update(instance, validated_data)
 
@@ -1805,8 +1943,9 @@ class StructuralSubdivisionWriteSerializer(serializers.ModelSerializer):
         return updated_instance
 
     def to_representation(self, instance):
-
-        read_serializer = StructuralSubdivisionReadSerializer(instance, context=self.context)
+        read_serializer = StructuralSubdivisionReadSerializer(
+            instance, context=self.context,
+        )
         return read_serializer.data
 
 
@@ -1819,11 +1958,113 @@ class StructuralSubdivisionReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = StructuralSubdivision
         fields = (
-            'id',
-            'name',
-            'organization',
-            'chief',
-            'supervisor',
-            'parent_structural_subdivision',
-            'positions',
+            "id",
+            "name",
+            "organization",
+            "chief",
+            "supervisor",
+            "parent_structural_subdivision",
+            "positions",
         )
+
+
+class SegmentSerializer(serializers.ModelSerializer):
+    """Сериализатор для сегментов."""
+    
+    supervisor_name = serializers.CharField(
+        source="supervisor.get_full_name", 
+        read_only=True,
+    )
+    segment_group_name = serializers.CharField(
+        source="segment_group.name",
+        read_only=True,
+    )
+    is_favorite = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Segment
+        fields = (
+            "id",
+            "name",
+            "status",
+            "segment_group",
+            "segment_group_name",
+            "supervisor",
+            "supervisor_name",
+            "supervisor_fallback",
+            "url",
+            "description",
+            "created_at",
+            "is_favorite",
+        )
+        read_only_fields = ("created_at",)
+    
+    def get_is_favorite(self, obj):
+        """Проверяет, является ли сегмент избранным для текущего пользователя."""
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return FavoriteSegment.objects.filter(
+                user=request.user, 
+                segment=obj,
+            ).exists()
+        return False
+
+
+class FavoriteSegmentSerializer(serializers.ModelSerializer):
+    """Сериализатор для избранных сегментов."""
+    
+    segment_name = serializers.CharField(source="segment.name", read_only=True)
+    
+    class Meta:
+        model = FavoriteSegment
+        fields = (
+            "id",
+            "segment",
+            "segment_name",
+            "created_at",
+        )
+        read_only_fields = ("created_at",)
+    
+    def validate(self, data):
+        """Проверка ограничений на количество избранных сегментов."""
+        user = self.context["request"].user
+        segment = data["segment"]
+        
+        # Проверка на дублирование
+        if FavoriteSegment.objects.filter(user=user, segment=segment).exists():
+            raise serializers.ValidationError(
+                "Этот сегмент уже добавлен в избранное.",
+            )
+        
+        # Проверка на лимит
+        from homepage.constants import MAX_FAVORITE_SEGMENTS
+        if user.favorite_segments.count() >= MAX_FAVORITE_SEGMENTS:
+            raise serializers.ValidationError(
+                f"Вы можете добавить в избранное максимум {MAX_FAVORITE_SEGMENTS} сегментов.",
+            )
+        
+        return data
+    
+    def create(self, validated_data):
+        """Создание избранного сегмента с привязкой к пользователю."""
+        validated_data["user"] = self.context["request"].user
+        return super().create(validated_data)
+
+
+class SegmentGroupSerializer(serializers.ModelSerializer):
+    """Сериализатор для групп сегментов."""
+
+    segments_count = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = SegmentGroup
+        fields = (
+            "id",
+            "name",
+            "description",
+            "segments_count",
+        )
+
+    def get_segments_count(self, obj):
+        """Возвращает количество сегментов в группе."""
+        return obj.segments.count()

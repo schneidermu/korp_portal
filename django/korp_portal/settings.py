@@ -87,10 +87,7 @@ LOGGING = {
             "level": "ERROR",
             "class": "django.utils.log.AdminEmailHandler",
         },
-        "stream_to_console": {
-            "level": "DEBUG",
-            "class": "logging.StreamHandler"
-        },
+        "stream_to_console": {"level": "DEBUG", "class": "logging.StreamHandler"},
         "api_file": {
             "level": "INFO",
             "class": "logging.handlers.RotatingFileHandler",
@@ -222,7 +219,7 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD", ""),
         "HOST": os.getenv("DB_HOST", "localhost"),
         "PORT": os.getenv("DB_PORT", 5432),
-    }
+    },
 }
 
 AUTH_USER_MODEL = "employees.Employee"

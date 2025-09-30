@@ -5,8 +5,12 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Avg
 
-from homepage.constants import (CHARFIELD_LENGTH, OFFICE_NUMBER_LENGTH,
-                                PHONE_NUMBER_LENGTH)
+from homepage.constants import (
+    CHARFIELD_LENGTH,
+    MAX_FAVORITE_SEGMENTS,
+    OFFICE_NUMBER_LENGTH,
+    PHONE_NUMBER_LENGTH,
+)
 
 
 def return_name(instance, filename):
@@ -36,6 +40,9 @@ SEX = (
 
 class UploadedFile(models.Model):
     file = models.FileField()
+
+    def __str__(self):
+        return super().__str__()
 
 
 class Employee(AbstractUser):
@@ -89,7 +96,7 @@ class Employee(AbstractUser):
         verbose_name="Номер телефона",
         blank=True,
         null=True,
-        max_length=PHONE_NUMBER_LENGTH
+        max_length=PHONE_NUMBER_LENGTH,
     )
 
     agreed_with_data_processing = models.BooleanField(
@@ -102,13 +109,10 @@ class Employee(AbstractUser):
         verbose_name="Внутренний номер телефона",
         blank=True,
         null=True,
-        max_length=PHONE_NUMBER_LENGTH
+        max_length=PHONE_NUMBER_LENGTH,
     )
     office = models.CharField(
-        verbose_name="Кабинет",
-        blank=True,
-        null=True,
-        max_length=OFFICE_NUMBER_LENGTH
+        verbose_name="Кабинет", blank=True, null=True, max_length=OFFICE_NUMBER_LENGTH,
     )
 
     job_title = models.CharField(
@@ -152,7 +156,7 @@ class Employee(AbstractUser):
     )
 
     avatar = models.CharField(
-        verbose_name="Аватар", null=True, blank=True, default=None
+        verbose_name="Аватар", null=True, blank=True, default=None,
     )
 
     @property
@@ -169,7 +173,7 @@ class Employee(AbstractUser):
                 name_part
                 for name_part in (self.surname, self.name, self.patronym)
                 if name_part is not None
-            ]
+            ],
         )
 
         if not name:
@@ -244,12 +248,9 @@ class Rating(models.Model):
         verbose_name="Комментарий",
         help_text="Текст, поясняющий оценку (необязательно)",
         blank=True,
-        null=True
+        null=True,
     )
-    date = models.DateTimeField(
-        verbose_name="Дата оценки",
-        auto_now_add=True
-    )
+    date = models.DateTimeField(verbose_name="Дата оценки", auto_now_add=True)
     rate = models.PositiveSmallIntegerField(
         choices=((1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")),
     )
@@ -266,12 +267,12 @@ class Rating(models.Model):
         verbose_name="Кто оценивает",
     )
 
-    def __str__(self):
-        return f"{self.employee} оценил {self.user} на {self.rate}"
-
     class Meta:
         verbose_name = "запись оценки"
         verbose_name_plural = "Записи оценок"
+
+    def __str__(self):
+        return f"{self.employee} оценил {self.user} на {self.rate}"
 
 
 class Characteristic(models.Model):
@@ -287,9 +288,7 @@ class Characteristic(models.Model):
     # Курсы через class Course
 
     experience = models.CharField(
-        verbose_name="Стаж работы",
-        blank=True,
-        max_length=CHARFIELD_LENGTH
+        verbose_name="Стаж работы", blank=True, max_length=CHARFIELD_LENGTH,
     )
 
     # Карьерный рост через class Career
@@ -315,9 +314,7 @@ class Characteristic(models.Model):
     # Диплом через class Diploma
 
     about = models.TextField(
-        verbose_name="Обо мне",
-        blank=True,
-        max_length=CHARFIELD_LENGTH*4
+        verbose_name="Обо мне", blank=True, max_length=CHARFIELD_LENGTH * 4,
     )
 
     class Meta:
@@ -332,7 +329,7 @@ class Course(AbstractWithPhotoNameModel):
     """Модель курса."""
 
     year = models.IntegerField(
-        verbose_name="Год прохождения курса", blank=True, null=True
+        verbose_name="Год прохождения курса", blank=True, null=True,
     )
     month = models.IntegerField(
         verbose_name="Месяц прохождения курса",
@@ -361,7 +358,7 @@ class Career(AbstractNameModel):
     )
 
     year_finish = models.IntegerField(
-        verbose_name="Год ухода из должности", blank=True, null=True
+        verbose_name="Год ухода из должности", blank=True, null=True,
     )
     month_finish = models.IntegerField(
         verbose_name="Месяц ухода из должности",
@@ -393,7 +390,7 @@ class Competence(AbstractNameModel):
     is_important = models.BooleanField(
         verbose_name="Важный навык",
         default=False,
-        help_text="Указывает, была ли эта компетенция определена администратором как важный навык."
+        help_text="Указывает, была ли эта компетенция определена администратором как важный навык.",
     )
 
     class Meta:
@@ -405,7 +402,7 @@ class Diploma(AbstractWithPhotoNameModel):
     """Модель диплома."""
 
     year = models.IntegerField(
-        verbose_name="Год получения диплома", blank=True, null=True
+        verbose_name="Год получения диплома", blank=True, null=True,
     )
     month = models.IntegerField(
         verbose_name="Месяц получения диплома",
@@ -423,7 +420,7 @@ class University(AbstractWithPhotoNameModel):
     """Модель университета."""
 
     year = models.IntegerField(
-        verbose_name="Год окончания университета", blank=True, null=True
+        verbose_name="Год окончания университета", blank=True, null=True,
     )
     month = models.IntegerField(
         verbose_name="Месяц окончания университета",
@@ -433,9 +430,7 @@ class University(AbstractWithPhotoNameModel):
     )
 
     faculty = models.CharField(
-        verbose_name="Факультет",
-        blank=True,
-        max_length=CHARFIELD_LENGTH
+        verbose_name="Факультет", blank=True, max_length=CHARFIELD_LENGTH,
     )
 
     class Meta:
@@ -447,7 +442,7 @@ class Training(AbstractWithPhotoNameModel):
     """Модель повышения квалификации."""
 
     year = models.IntegerField(
-        verbose_name="Год повышения квалификации", blank=True, null=True
+        verbose_name="Год повышения квалификации", blank=True, null=True,
     )
 
     class Meta:
@@ -533,12 +528,12 @@ class Organization(models.Model):
         null=True,
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = "запись организации"
         verbose_name_plural = "записи организаций"
+
+    def __str__(self):
+        return self.name
 
 
 class StructuralSubdivision(models.Model):
@@ -595,23 +590,179 @@ class Idea(models.Model):
     """
     Модель для хранения идеи. Содержит текст, автора и дату создания.
     """
+
     author = models.ForeignKey(
         Employee,
         on_delete=models.CASCADE,
-        related_name='ideas',
+        related_name="ideas",
         verbose_name="Автор",
-        editable=False
+        editable=False,
     )
     text = models.TextField(verbose_name="Текст идеи")
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Дата создания"
+    STATUS_CHOICES = [
+        ("Получено", "Получено"),
+        ("Одобрено", "Одобрено"),
+        ("Отклонено", "Отклонено"),
+        ("На рассмотрении", "На рассмотрении"),
+    ]
+    status = models.CharField(
+        verbose_name="Статус",
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_CHOICES[0][0],
     )
+    resolution = models.TextField(
+        verbose_name="Решение",
+        blank=True,
+        null=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
         verbose_name = "Идея"
         verbose_name_plural = "Идеи"
 
     def __str__(self):
-        return f'Идея от {self.author} ({self.created_at.strftime("%Y-%m-%d")})'
+        return f"Идея от {self.author} ({self.created_at.strftime('%Y-%m-%d')})"
+
+
+class SegmentGroup(models.Model):
+    """Модель группы сегментов."""
+
+    name = models.CharField(
+        verbose_name="Наименование группы",
+        max_length=CHARFIELD_LENGTH,
+    )
+
+    description = models.TextField(
+        verbose_name="Описание группы",
+        blank=True,
+        default="",
+    )
+
+    class Meta:
+        verbose_name = "Группа сегментов"
+        verbose_name_plural = "Группы сегментов"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name if self.name else "Пусто"
+
+
+class Segment(models.Model):
+    """Модель сегмента."""
+
+    STATUS_CHOICES = [
+        ("В разработке", "В разработке"),
+        ("Активно", "Активно"),
+        ("Архив", "Архив"),
+    ]
+
+    name = models.CharField(
+        verbose_name="Название",
+        max_length=CHARFIELD_LENGTH,
+    )
+
+    status = models.CharField(
+        verbose_name="Статус",
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_CHOICES[0][0],
+    )
+
+    segment_group = models.ForeignKey(
+        SegmentGroup,
+        verbose_name="Группа сегмента",
+        on_delete=models.SET_NULL,
+        related_name="segments",
+        null=True,
+        blank=True,
+    )
+
+    supervisor = models.ForeignKey(
+        Employee,
+        verbose_name="Ответственный",
+        on_delete=models.SET_NULL,
+        related_name="supervised_segments",
+        null=True,
+        blank=True,
+    )
+
+    supervisor_fallback = models.CharField(
+        verbose_name="Ответственный (текст)",
+        max_length=CHARFIELD_LENGTH,
+        blank=True,
+        default="",
+        help_text="Используется, если ответственного нет в системе",
+    )
+
+    url = models.URLField(
+        verbose_name="Ссылка",
+        blank=True,
+        default="",
+    )
+
+    description = models.TextField(
+        verbose_name="Описание",
+        blank=True,
+        default="",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания",
+    )
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Сегмент"
+        verbose_name_plural = "Сегменты"
+
+    def __str__(self):
+        return self.name
+
+
+class FavoriteSegment(models.Model):
+    """Модель избранного сегмента пользователя."""
+
+    user = models.ForeignKey(
+        Employee,
+        verbose_name="Пользователь",
+        on_delete=models.CASCADE,
+        related_name="favorite_segments",
+    )
+
+    segment = models.ForeignKey(
+        Segment,
+        verbose_name="Сегмент",
+        on_delete=models.CASCADE,
+        related_name="favorited_by",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата добавления в избранное",
+    )
+
+    class Meta:
+        unique_together = ("user", "segment")
+        ordering = ["-created_at"]
+        verbose_name = "Избранный сегмент"
+        verbose_name_plural = "Избранные сегменты"
+
+    def __str__(self):
+        return f"{self.user} - {self.segment}"
+
+    def clean(self):
+        """Проверка на количество избранных сегментов."""
+        from django.core.exceptions import ValidationError
+        
+        if (
+            self.user
+            and self.user.favorite_segments.count() >= MAX_FAVORITE_SEGMENTS
+            and not self.pk
+        ):
+            raise ValidationError(
+                f"Пользователь может иметь максимум {MAX_FAVORITE_SEGMENTS} избранных сегментов.",
+            )

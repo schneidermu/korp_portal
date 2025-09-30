@@ -1,12 +1,11 @@
-import logging
 import os
 
 import ldap
 import psycopg2
 import requests
-from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 from django_auth_ldap.backend import LDAPBackend, _LDAPUser, _report_error, logger
+
 from employees.models import Employee
 
 url = os.getenv("CHALLENGE_URL", "0")
@@ -49,7 +48,7 @@ class _CustomLDAPUser(_LDAPUser):
             logger.debug("Authentication failed for %s: %s", self._username, e)
         except ldap.LDAPError as e:
             _report_error(
-                type(self.backend), "authenticate", self._user, self._request, e
+                type(self.backend), "authenticate", self._user, self._request, e,
             )
         except Exception as e:
             logger.warning("%s while authenticating %s", e, self._username)
@@ -68,7 +67,7 @@ class CustomLDAPBackend(LDAPBackend):
 
         if password or self.settings.PERMIT_EMPTY_PASSWORD:
             ldap_user = _CustomLDAPUser(
-                self, username=username.strip(), request=request
+                self, username=username.strip(), request=request,
             )
             user = self.authenticate_ldap_user(ldap_user, password, cookies)
         else:

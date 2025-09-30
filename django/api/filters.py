@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django_filters import DateFilter
 from django_filters.rest_framework import FilterSet, NumberFilter
+
 from employees.models import Competence, Idea
 
 
@@ -22,7 +23,7 @@ class CompetenceFilter(FilterSet):
             return queryset
 
         return queryset.filter(
-            Q(is_important=True) | Q(characteristic_count__gte=min_count)
+            Q(is_important=True) | Q(characteristic_count__gte=min_count),
         )
 
 
@@ -30,18 +31,15 @@ class IdeaFilter(FilterSet):
     """
     Набор фильтров для модели Idea.
     """
+
     start_date = DateFilter(
-        field_name="created_at",
-        lookup_expr='gte',
-        label="Дата создания (от)"
+        field_name="created_at", lookup_expr="gte", label="Дата создания (от)",
     )
 
     end_date = DateFilter(
-        field_name="created_at",
-        lookup_expr='lte',
-        label="Дата создания (до)"
+        field_name="created_at", lookup_expr="lte", label="Дата создания (до)",
     )
 
     class Meta:
         model = Idea
-        fields = ['author']
+        fields = ["author", "status"]

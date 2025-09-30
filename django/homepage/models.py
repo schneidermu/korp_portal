@@ -2,6 +2,7 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from employees.models import Employee, Organization
+
 from .constants import CHARFIELD_LENGTH
 
 
@@ -38,19 +39,22 @@ class Attachment(models.Model):
         verbose_name = "объект вложения"
         verbose_name_plural = "объекты вложений"
 
+    def __str__(self):
+        return super().__str__()
+
 
 class PollGroup(models.Model):
     name = models.CharField(
-        max_length=CHARFIELD_LENGTH, verbose_name="Наименование группы"
+        max_length=CHARFIELD_LENGTH, verbose_name="Наименование группы",
     )
     description = models.TextField(blank=True, verbose_name="Описание группы")
-
-    def __str__(self):
-        return self.name if self.name else "Пусто"
 
     class Meta:
         verbose_name = "Группа опросов"
         verbose_name_plural = "Группы опросов"
+
+    def __str__(self):
+        return self.name if self.name else "Пусто"
 
 
 class News(Published):
@@ -58,8 +62,16 @@ class News(Published):
 
     title = models.CharField(max_length=CHARFIELD_LENGTH, verbose_name="Заголовок")
 
+    author = models.ForeignKey(
+        Employee,
+        verbose_name="Автор",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="authored_news",
+    )
+
     organization = models.ManyToManyField(
-        Organization, verbose_name="Организация", null=True, default=None
+        Organization, verbose_name="Организация", null=True, default=None,
     )
 
     text = models.TextField(verbose_name="Текст", blank=True)
@@ -72,8 +84,8 @@ class News(Published):
         default=None,
         validators=[
             FileExtensionValidator(
-                allowed_extensions=["MOV", "avi", "mp4", "webm", "mkv"]
-            )
+                allowed_extensions=["MOV", "avi", "mp4", "webm", "mkv"],
+            ),
         ],
     )
 
@@ -85,12 +97,12 @@ class News(Published):
         ),
     )
 
-    def __str__(self):
-        return self.title if self.title else "Пусто"
-
     class Meta:
         verbose_name = "объект новости"
         verbose_name_plural = 'объекты "Новости"'
+
+    def __str__(self):
+        return self.title if self.title else "Пусто"
 
 
 class Poll(Published):
@@ -104,7 +116,7 @@ class Poll(Published):
         FORM = "form", "Форма"
 
     name = models.CharField(
-        max_length=CHARFIELD_LENGTH, verbose_name="Наименование опроса", null=True
+        max_length=CHARFIELD_LENGTH, verbose_name="Наименование опроса", null=True,
     )
     description = models.TextField(blank=True, verbose_name="Описание опроса")
 
@@ -179,13 +191,13 @@ class Poll(Published):
         verbose_name="Просмотр статистики (доступ на просмотр статистики)",
     )
 
-    def __str__(self):
-        return self.name if self.name else "Пусто"
-
     class Meta:
         verbose_name = 'Объект "Опрос"'
         verbose_name_plural = 'Объекты "Опросы"'
         ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.name if self.name else "Пусто"
 
 
 class Question(models.Model):
@@ -207,7 +219,7 @@ class Question(models.Model):
         EMAIL = "email", "Почта"
 
     poll = models.ForeignKey(
-        Poll, on_delete=models.CASCADE, related_name="questions", verbose_name="Опрос"
+        Poll, on_delete=models.CASCADE, related_name="questions", verbose_name="Опрос",
     )
     text = models.TextField(verbose_name="Текст вопроса")
     question_type = models.CharField(
@@ -228,7 +240,7 @@ class Question(models.Model):
     is_required = models.BooleanField(default=True, verbose_name="Обязательный вопрос")
 
     min_choices = models.PositiveIntegerField(
-        null=True, blank=True, verbose_name="Минимальное количество выбранных вариантов"
+        null=True, blank=True, verbose_name="Минимальное количество выбранных вариантов",
     )
     max_choices = models.PositiveIntegerField(
         null=True,
@@ -238,8 +250,13 @@ class Question(models.Model):
     allow_custom_answer = models.BooleanField(
         default=False,
         verbose_name="Разрешить свой вариант ответа ('Другое')",
-        help_text="Если отмечено, пользователь сможет вписать свой вариант (для типов 'Один вариант' и 'Несколько вариантов')."
+        help_text="Если отмечено, пользователь сможет вписать свой вариант (для типов 'Один вариант' и 'Несколько вариантов').",
     )
+
+    class Meta:
+        verbose_name = "Вопрос"
+        verbose_name_plural = "Вопросы"
+        ordering = ["poll", "order"]
 
     def __str__(self):
         return (
@@ -247,11 +264,6 @@ class Question(models.Model):
             if self.text
             else "Пустой вопрос"
         )
-
-    class Meta:
-        verbose_name = "Вопрос"
-        verbose_name_plural = "Вопросы"
-        ordering = ["poll", "order"]
 
 
 class Choice(models.Model):
@@ -265,10 +277,15 @@ class Choice(models.Model):
         null=True,
     )
     choice_text = models.CharField(
-        verbose_name="Текст варианта ответа", max_length=CHARFIELD_LENGTH
+        verbose_name="Текст варианта ответа", max_length=CHARFIELD_LENGTH,
     )
 
     order = models.PositiveIntegerField(default=0, verbose_name="Порядок варианта")
+
+    class Meta:
+        verbose_name = "Вариант ответа"
+        verbose_name_plural = "Варианты ответа"
+        ordering = ["question", "order"]
 
     def __str__(self):
         question_text = "[Вопрос не указан]"
@@ -276,11 +293,6 @@ class Choice(models.Model):
             question_text = f"'{self.question.text[:30]}...'"
 
         return f"Вариант '{self.choice_text}' для вопроса {question_text}"
-
-    class Meta:
-        verbose_name = "Вариант ответа"
-        verbose_name_plural = "Варианты ответа"
-        ordering = ["question", "order"]
 
 
 class QuestionDependency(models.Model):
@@ -313,6 +325,9 @@ class QuestionDependency(models.Model):
         verbose_name = "Условие отображения вопроса"
         verbose_name_plural = "Условия отображения вопросов"
 
+    def __str__(self):
+        return f"{self.dependent_question} {self.trigger_question}"
+
 
 class PollSubmission(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="submissions")
@@ -324,8 +339,13 @@ class PollSubmission(models.Model):
         blank=True,
     )
     submitted_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="Время отправки"
+        auto_now_add=True, verbose_name="Время отправки",
     )
+    
+    class Meta:
+        verbose_name = "Прохождение опроса"
+        verbose_name_plural = "Прохождения опросов"
+        unique_together = [["poll", "user"]]
 
     def __str__(self):
         user_info = self.user.get_full_name() if self.user else "Аноним"
@@ -335,31 +355,31 @@ class PollSubmission(models.Model):
             else "Заполните имя опроса"
         )
 
-    class Meta:
-        verbose_name = "Прохождение опроса"
-        verbose_name_plural = "Прохождения опросов"
-        unique_together = [["poll", "user"]]
-
 
 class Answer(models.Model):
     submission = models.ForeignKey(
-        PollSubmission, on_delete=models.CASCADE, related_name="answers"
+        PollSubmission, on_delete=models.CASCADE, related_name="answers",
     )
     question = models.ForeignKey(
-        Question, on_delete=models.CASCADE, related_name="answers"
+        Question, on_delete=models.CASCADE, related_name="answers",
     )
 
     selected_choices = models.ManyToManyField(
-        Choice, blank=True, related_name="chosen_in_answers"
+        Choice, blank=True, related_name="chosen_in_answers",
     )
 
     free_text_answer = models.TextField(blank=True, null=True)
 
     custom_choice_text = models.TextField(
-        blank=True, null=True,
+        blank=True,
+        null=True,
         verbose_name="Текст своего варианта ответа ('Другое')",
-        help_text="Заполняется, если пользователь выбрал опцию 'Другое' и вписал свой вариант."
+        help_text="Заполняется, если пользователь выбрал опцию 'Другое' и вписал свой вариант.",
     )
+
+    class Meta:
+        verbose_name = "Ответ на вопрос"
+        verbose_name_plural = "Ответы на вопросы"
 
     def __str__(self):
         if self.question.question_type in [
@@ -379,10 +399,6 @@ class Answer(models.Model):
             )
         return f"Ответ на вопрос ID {self.question.id}"
 
-    class Meta:
-        verbose_name = "Ответ на вопрос"
-        verbose_name_plural = "Ответы на вопросы"
-
 
 class Video(Published):
     """Модель для обучающего видео."""
@@ -401,19 +417,19 @@ class Video(Published):
         upload_to="educational_videos/",
         validators=[
             FileExtensionValidator(
-                allowed_extensions=["MOV", "avi", "mp4", "webm", "mkv"]
-            )
+                allowed_extensions=["MOV", "avi", "mp4", "webm", "mkv"],
+            ),
         ],
     )
     pub_date = models.DateTimeField(verbose_name="Дата публикации")
-
-    def __str__(self):
-        return self.name
 
     class Meta:
         verbose_name = "Видео"
         verbose_name_plural = "Видео"
         ordering = ["-pub_date"]
+
+    def __str__(self):
+        return self.name
 
 
 class Course(Published):
@@ -436,13 +452,13 @@ class Course(Published):
     )
     pub_date = models.DateTimeField(verbose_name="Дата публикации")
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = "Курс"
         verbose_name_plural = "Курсы"
         ordering = ["-pub_date"]
+
+    def __str__(self):
+        return self.name
 
 
 class CourseVideo(models.Model):
@@ -450,15 +466,16 @@ class CourseVideo(models.Model):
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name="Курс")
     video = models.ForeignKey(Video, on_delete=models.CASCADE, verbose_name="Видео")
-    order = models.PositiveIntegerField(
-        default=0, verbose_name="Порядок в курсе"
-    )
+    order = models.PositiveIntegerField(default=0, verbose_name="Порядок в курсе")
 
     class Meta:
         verbose_name = "Видео в курсе"
         verbose_name_plural = "Видео в курсах"
         ordering = ["order"]
         unique_together = ("course", "video")
+
+    def __str__(self):
+        return f"Видео {self.video} курса {self.course}"
 
 
 class Comment(models.Model):
@@ -479,20 +496,20 @@ class Comment(models.Model):
     text = models.TextField(verbose_name="Текст комментария")
     pub_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата публикации")
 
-    def __str__(self):
-        return f"Комментарий от {self.user} к видео '{self.video.name}'"
-
     class Meta:
         verbose_name = "Комментарий к видео"
         verbose_name_plural = "Комментарии к видео"
         ordering = ["-pub_date"]
+
+    def __str__(self):
+        return f"Комментарий от {self.user} к видео '{self.video.name}'"
 
 
 class VideoView(models.Model):
     """Модель для отслеживания просмотров видео."""
 
     video = models.ForeignKey(
-        Video, on_delete=models.CASCADE, related_name="views", verbose_name="Видео"
+        Video, on_delete=models.CASCADE, related_name="views", verbose_name="Видео",
     )
     user = models.ForeignKey(
         Employee,
@@ -501,23 +518,23 @@ class VideoView(models.Model):
         verbose_name="Пользователь",
     )
     viewed_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="Дата и время просмотра"
+        auto_now_add=True, verbose_name="Дата и время просмотра",
     )
-
-    def __str__(self):
-        return f"Просмотр видео '{self.video.name}' пользователем {self.user}"
 
     class Meta:
         verbose_name = "Просмотр видео"
         verbose_name_plural = "Просмотры видео"
         ordering = ["-viewed_at"]
 
+    def __str__(self):
+        return f"Просмотр видео '{self.video.name}' пользователем {self.user}"
+
 
 class Like(models.Model):
     """Модель для отслеживания лайков к видео."""
 
     video = models.ForeignKey(
-        Video, on_delete=models.CASCADE, related_name="likes", verbose_name="Видео"
+        Video, on_delete=models.CASCADE, related_name="likes", verbose_name="Видео",
     )
     user = models.ForeignKey(
         Employee,
@@ -527,11 +544,11 @@ class Like(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата лайка")
 
-    def __str__(self):
-        return f"Лайк от {self.user} к видео '{self.video.name}'"
-
     class Meta:
         verbose_name = "Лайк"
         verbose_name_plural = "Лайки"
         ordering = ["-created_at"]
         unique_together = ("video", "user")
+
+    def __str__(self):
+        return f"Лайк от {self.user} к видео '{self.video.name}'"

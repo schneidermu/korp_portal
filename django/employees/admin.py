@@ -9,11 +9,14 @@ from .models import (
     Course,
     Diploma,
     Employee,
+    FavoriteSegment,
     Hobby,
     Idea,
     Organization,
     Performance,
     Rating,
+    Segment,
+    SegmentGroup,
     Reward,
     Sport,
     StructuralSubdivision,
@@ -43,7 +46,7 @@ class EmployeeAdmin(UserAdmin):
                     "status",
                     "avatar",
                     "agreed_with_data_processing",
-                )
+                ),
             },
         ),
     )
@@ -131,7 +134,7 @@ class CharacteristicAdmin(admin.ModelAdmin):
         DiplomaInline,
         UniversityInline,
     )
-    exclude = ('competences',)
+    exclude = ("competences",)
 
 
 class CharacteristicLinkInline(admin.TabularInline):
@@ -163,20 +166,62 @@ class StructuralSubdivisionAdmin(admin.ModelAdmin):
 class CareerAdmin(admin.ModelAdmin):
     pass
 
+@admin.register(SegmentGroup)
+class SegmentGroupAdmin(admin.ModelAdmin):
+    """
+    Настройки для отображения модели SegmentGroup в админ-панели.
+    """
+    list_display = ("name", "segments_count", "description")
+    search_fields = ("name", "description")
+    ordering = ("name",)
+    
+    def segments_count(self, obj):
+        """Возвращает количество сегментов в группе."""
+        return obj.segments.count()
+    
+    segments_count.short_description = "Количество сегментов"
+
+
+@admin.register(Segment)
+class SegmentAdmin(admin.ModelAdmin):
+    """
+    Настройки для отображения модели Segment в админ-панели.
+    """
+    list_display = ("name", "status", "segment_group", "supervisor", "supervisor_fallback", "created_at")
+    list_filter = ("status", "segment_group", "created_at")
+    search_fields = ("name", "description", "supervisor_fallback")
+    ordering = ("name",)
+    fieldsets = (
+        ("Основная информация", {
+            "fields": ("name", "status", "segment_group"),
+        }),
+        ("Ответственные", {
+            "fields": ("supervisor", "supervisor_fallback"),
+        }),
+        ("Дополнительная информация", {
+            "fields": ("url", "description"),
+        }),
+    )
+    readonly_fields = ("created_at",)
+
+@admin.register(FavoriteSegment)
+class FavoriteSegmentAdmin(admin.ModelAdmin):
+    pass
 
 @admin.register(Idea)
 class IdeaAdmin(admin.ModelAdmin):
     """
     Настройки для отображения модели Idea в админ-панели.
     """
-    list_display = ('short_text', 'author', 'created_at')
-    search_fields = ('text', 'author__name', 'author__surname')
-    list_filter = ('created_at',)
-    readonly_fields = ('author', 'created_at')
-    fields = ('author', 'created_at', 'text')
+
+    list_display = ("short_text", "author", "created_at")
+    search_fields = ("text", "author__name", "author__surname")
+    list_filter = ("created_at",)
+    readonly_fields = ("author", "created_at")
+    fields = ("author", "created_at", "text")
 
     def short_text(self, obj):
         """Возвращает укороченный текст идеи для отображения в списке."""
-        return obj.text[:80] + '...' if len(obj.text) > 80 else obj.text
+        return obj.text[:80] + "..." if len(obj.text) > 80 else obj.text
 
-    short_text.short_description = 'Текст идеи'
+    short_text.short_description = "Текст идеи"
