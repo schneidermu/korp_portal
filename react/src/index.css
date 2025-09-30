@@ -27,3 +27,16 @@ html {
 a.active {
   text-decoration: underline;
 }
+
+/* overwrite Liferay styles */
+#wrapper {
+  padding: 0 0 0 50px !important;
+}
+
+#wrapper .portlet-content {
+  padding: 0;
+}
+
+#wrapper #column-1 {
+  padding: 0;
+}
