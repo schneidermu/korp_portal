@@ -75,6 +75,9 @@ importers:
       '@chakra-ui/cli':
         specifier: ^3.21.0
         version: 3.26.0(@chakra-ui/react@3.26.0(@emotion/react@11.14.0(@types/react@19.1.12)(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1))
+      '@csstools/postcss-cascade-layers':
+        specifier: ^5.0.2
+        version: 5.0.2(postcss@8.5.6)
       '@eslint/js':
         specifier: ^9.27.0
         version: 9.34.0
@@ -3311,6 +3314,12 @@ snapshots:
     dependencies:
       '@csstools/selector-specificity': 5.0.0(postcss-selector-parser@7.1.0)
       postcss: 8.4.49
+      postcss-selector-parser: 7.1.0
+
+  '@csstools/postcss-cascade-layers@5.0.2(postcss@8.5.6)':
+    dependencies:
+      '@csstools/selector-specificity': 5.0.0(postcss-selector-parser@7.1.0)
+      postcss: 8.5.6
       postcss-selector-parser: 7.1.0
 
   '@csstools/selector-specificity@5.0.0(postcss-selector-parser@7.1.0)':
