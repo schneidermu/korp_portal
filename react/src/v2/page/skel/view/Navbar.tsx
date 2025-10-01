@@ -23,57 +23,7 @@ import { ProfileCard } from "@view/ProfileCard";
 import { Modal } from "@/v2/view/Modal";
 import { Drawer, DrawerContext } from "./Drawer";
 
-const links = [
-  {
-    name: "Домашняя страница",
-    to: "/",
-    match: /^\/$/,
-    icon: SaxHomeOutline,
-  },
-  {
-    name: "Наша жизнь",
-    to: "/feed",
-    match: /^\/feed$/,
-    icon: SaxArchiveBookOutline,
-  },
-  {
-    name: "Орг. структура",
-    to: "/tree",
-    match: /^\/tree\/?.*$/,
-    icon: Sax3DcubeOutline,
-  },
-  {
-    name: "Облако",
-    to: "/nextcloud",
-    match: /^\/nextcloud$/,
-    icon: SaxFolderCloudOutline,
-  },
-  {
-    name: "Опросы",
-    to: "/polls/dashboard",
-    /* TODO: restrict actions to only certain groups */
-    actionLink: "/polls/create",
-    match: /^\/polls\/?.*/,
-    icon: SaxMessageQuestionOutline,
-  },
-  {
-    name: "Заявки",
-    to: "/forms/dashboard",
-    match: /^\/forms\/?.*/,
-    icon: SaxMessageAdd1Outline,
-  },
-  {
-    name: "Сегменты",
-    to: "/segments",
-    match: /^\/segments\/?.*/,
-    icon: Sax3SquareOutline,
-  },
-];
-
 export const Navbar = () => {
-  /* TODO: count polls */
-  const counts: { [key: string]: number } = { Опросы: 2 };
-
   return (
     <nav>
       <Drawer
@@ -95,10 +45,50 @@ export const Navbar = () => {
         })}
       >
         <Stack gap={3}>
-          {links.map((link) => (
-            // TODO: do manually
-            <NavItem key={link.to} link={link} count={counts[link.name]} />
-          ))}
+          <NavItem
+            name="Домашняя страница"
+            to="/"
+            match={/^\/$/}
+            icon={SaxHomeOutline}
+          />
+          <NavItem
+            name="Наша жизнь"
+            to="/feed"
+            match={/^\/feed$/}
+            icon={SaxArchiveBookOutline}
+          />
+          <NavItem
+            name="Орг. структура"
+            to="/tree"
+            match={/^\/tree\/?.*$/}
+            icon={Sax3DcubeOutline}
+          />
+          <NavItem
+            name="Облако"
+            to="/nextcloud"
+            match={/^\/nextcloud$/}
+            icon={SaxFolderCloudOutline}
+          />
+          <NavItem
+            name="Опросы"
+            to="/polls/dashboard"
+            // TODO: restrict actions to only certain groups
+            actionLink={"/polls/create"}
+            match={/^\/polls\/?.*/}
+            icon={SaxMessageQuestionOutline}
+          />
+          <NavItem
+            name="Заявки"
+            to="/forms/dashboard"
+            match={/^\/forms\/?.*/}
+            icon={SaxMessageAdd1Outline}
+          />
+          <NavItem
+            name="Сегменты"
+            to="/segments"
+            match={/^\/segments\/?.*/}
+            icon={Sax3SquareOutline}
+          />
         </Stack>
         <Stack gap={3}>
           {/*
@@ -177,19 +167,27 @@ export const SubmitIdea = () => {
 };
 
 const NavItem = ({
-  link: l,
+  name,
+  to,
+  match,
+  icon,
+  actionLink,
   count,
 }: {
-  link: (typeof links)[number];
+  name: string;
+  to: string;
+  match: RegExp;
+  icon: typeof Sax3DcubeOutline;
+  actionLink?: string;
   count?: number;
 }) => {
   const ctx = useContext(DrawerContext);
   const location = useLocation();
 
-  const matched = location.pathname.match(l.match);
+  const matched = location.pathname.match(match);
 
   return (
-    <Link to={l.to} key={l.name}>
+    <Link to={to}>
       <HStack
         transition="all 0.2s"
         p={3}
@@ -202,27 +200,30 @@ const NavItem = ({
           base: matched ? "white" : "Grayscale/Black",
           _hover: !matched ? "Corporate/Accent" : undefined,
         }}
-        // borderRadius="8px" /* FIXME */
         borderRadius="full"
         lineHeight="1.25"
         fontWeight="light"
       >
-        <l.icon className={css({ w: 5, h: 5 })} />
+        {icon({ className: css({ w: 5, h: 5 }) })}
         {ctx.isOpen && !ctx.isAnimating && (
           <>
-            <Box>{l.name}</Box>
+            <Box>{name}</Box>
             <Box flexGrow="1" />
-            {l.actionLink && (
-              <Link
-                to={l.actionLink}
-                className={css({
-                  h: 5 /* NOTE: dunno why the Link adds height pixels otherwise */,
-                })}
-              >
-                <IconButton color={!matched ? "Grayscale/Border" : "white"}>
-                  <SaxAddCircleOutline className={css({ w: 5, h: 5 })} />
-                </IconButton>
-              </Link>
+            {actionLink && (
+              <Box w={5} h={5} position="relative">
+                <Link to={actionLink}>
+                  <IconButton
+                    color={!matched ? "Grayscale/Border" : "white"}
+                    position="absolute"
+                    top="0"
+                    left="0"
+                    w="full"
+                    h="full"
+                  >
+                    <SaxAddCircleOutline className={css({ w: 5, h: 5 })} />
+                  </IconButton>
+                </Link>
+              </Box>
             )}
             {count !== undefined && (
               <Center
