@@ -21,6 +21,7 @@ export default defineConfig({
           "Body/M": { value: "1rem" /* 16px */ },
           "Body/L": { value: "1.125rem" /* 18px */ },
           "Headline/H4": { value: "1.125rem" /* 18px */ },
+          "Headline/H3": { value: "1.5rem" /* 24px */ },
           "Headline/H2": { value: "2rem" /* 32px */ },
           "Headline/H1": { value: "2.25rem" /* 36px */ },
         },

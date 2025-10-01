@@ -8,6 +8,8 @@ import * as pollList from "@/features/Poll/list/slice";
 import * as userTree from "@/features/UserTree/slice";
 import * as calendar from "@/features/Calendar/slice";
 
+import * as idea from "@page/skel/view/Idea/slice";
+
 export const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
@@ -16,6 +18,7 @@ export const store = configureStore({
     [pollList.NAME]: pollList.slice.reducer,
     [userTree.NAME]: userTree.slice.reducer,
     [calendar.NAME]: calendar.slice.reducer,
+    [idea.NAME]: idea.slice.reducer,
   },
 });
 

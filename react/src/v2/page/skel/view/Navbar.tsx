@@ -1,9 +1,9 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { css } from "@styled-system/css";
-import { Box, Center, HStack, Stack, styled } from "@styled-system/jsx";
+import { Box, Center, HStack, Stack } from "@styled-system/jsx";
 import { stack } from "@styled-system/patterns";
 
 import {
@@ -17,11 +17,12 @@ import {
   SaxMessageQuestionOutline,
 } from "@meysam213/iconsax-react";
 
-import { Button, IconButton } from "@view/Button";
+import { IconButton } from "@view/Button";
 import { ProfileCard } from "@view/ProfileCard";
 
-import { Modal } from "@/v2/view/Modal";
-import { Drawer, DrawerContext } from "./Drawer";
+import { Drawer } from "./Drawer";
+import { DrawerContext } from "./Drawer/context";
+import { IdeaPrompt } from "./Idea";
 
 export const Navbar = () => {
   return (
@@ -91,8 +92,8 @@ export const Navbar = () => {
           />
         </Stack>
         <Stack gap={3}>
+          <IdeaPrompt />
           {/*
-          <SubmitIdea />
           <NavItem
             link={{
               to: "/",
@@ -122,50 +123,6 @@ const ProfileCardCtx = () => {
   );
 };
 
-const IdeaForm = () => {
-  return (
-    <styled.form
-      borderRadius="25px"
-      /* FIXME */ className={stack({})}
-    ></styled.form>
-  );
-};
-
-export const SubmitIdea = () => {
-  const ctx = useContext(DrawerContext);
-  const [isOpen, setIsOpen] = useState(false);
-
-  if (!ctx.isOpen || ctx.isAnimating) return;
-
-  return (
-    <styled.article
-      className={stack({ gap: 4 })}
-      borderColor="Corporate/Accent"
-      borderWidth="1px"
-      color="Grayscale/Black"
-      borderRadius="24px" /* FIXME */
-      p={6}
-    >
-      <Stack gap={3} textAlign="center">
-        <styled.h1 fontWeight="semibold" fontSize="Body/M">
-          У Вас есть идеи?
-        </styled.h1>
-        <styled.p fontSize="Body/XS">
-          Предложите идею по развитию внутреннего контура, и мы обязательно её
-          реализуем
-        </styled.p>
-      </Stack>
-      {/* TODO: icons */}
-      <Button display="flex" onClick={() => setIsOpen(true)}>
-        Предложить идею
-      </Button>
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
-        <IdeaForm />
-      </Modal>
-    </styled.article>
-  );
-};
-
 const NavItem = ({
   name,
   to,
@@ -183,6 +140,7 @@ const NavItem = ({
 }) => {
   const ctx = useContext(DrawerContext);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const matched = location.pathname.match(match);
 
@@ -210,20 +168,16 @@ const NavItem = ({
             <Box>{name}</Box>
             <Box flexGrow="1" />
             {actionLink && (
-              <Box w={5} h={5} position="relative">
-                <Link to={actionLink}>
-                  <IconButton
-                    color={!matched ? "Grayscale/Border" : "white"}
-                    position="absolute"
-                    top="0"
-                    left="0"
-                    w="full"
-                    h="full"
-                  >
-                    <SaxAddCircleOutline className={css({ w: 5, h: 5 })} />
-                  </IconButton>
-                </Link>
-              </Box>
+              <IconButton
+                color={!matched ? "Grayscale/Border" : "white"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  navigate(actionLink);
+                }}
+              >
+                <SaxAddCircleOutline className={css({ w: 5, h: 5 })} />
+              </IconButton>
             )}
             {count !== undefined && (
               <Center
