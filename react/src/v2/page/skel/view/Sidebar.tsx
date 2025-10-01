@@ -9,10 +9,11 @@ import { Box, BoxProps, Center, Stack, styled } from "@styled-system/jsx";
 
 import { useFetchUser } from "@api/user";
 import { User } from "@api/user/types";
-
-import { Avatar } from "@/v2/view/Avatar";
+import { Avatar } from "@view/Avatar";
 import { CircProgress } from "@view/CircProgress";
-import { Drawer, DrawerContext } from "./Drawer";
+
+import { Drawer } from "./Drawer";
+import { DrawerContext } from "./Drawer/context";
 import { Events } from "./Events";
 
 export const Sidebar = () => {
