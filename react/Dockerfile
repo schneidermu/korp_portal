@@ -31,8 +31,6 @@ ENTRYPOINT [ "bin/portlet.sh" ]
 
 FROM node AS dev
 
-USER 1000
-
 ENTRYPOINT [ "pnpm", "run", "dev" ]
 
 EXPOSE 3000
