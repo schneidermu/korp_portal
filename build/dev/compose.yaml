@@ -139,7 +139,7 @@ services:
   caddy:
     image: caddy:2.10-alpine
     ports:
-      - 80:80
+      - $PORT:80
     volumes:
       - ./caddy/:/etc/caddy/
       - caddy_data:/data
