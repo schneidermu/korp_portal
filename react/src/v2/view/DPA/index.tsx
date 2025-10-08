@@ -1,11 +1,14 @@
 import { useState } from "react";
 
-import { Box, Center, Flex, FlexProps, HStack, Link } from "@chakra-ui/react";
+import { Box, Center, Flex, FlexProps, HStack } from "@styled-system/jsx";
+
 import { LuCheck } from "react-icons/lu";
 
 import { DPA_TERMS_URL } from "@/app/const";
 
-import { useAgreeDPA } from "../services";
+import { Button } from "@view/Button";
+
+import { useAgreeDPA } from "./hooks";
 
 const OneshotCheckbox = ({
   onCheck,
@@ -65,21 +68,18 @@ export const DPA = () => {
       fontSize="lg"
       bg="white"
       borderWidth={1}
-      borderColor="blue.2"
-      borderRadius="2"
-      align="top"
+      borderColor="Corporate/Accent"
+      borderRadius="10px"
+      alignItems="top"
     >
       <OneshotCheckbox mt="1" onCheck={check} />
       <Box>
         я даю согласие на обработку{" "}
-        <Link
-          href={DPA_TERMS_URL}
-          target="_blank"
-          textDecoration="underline"
-          color="blue.2"
-        >
-          персональных данных
-        </Link>
+        <a href={DPA_TERMS_URL} target="_blank">
+          <Button variant="text" textDecoration="underline">
+            персональных данных
+          </Button>
+        </a>
       </Box>
     </HStack>
   );
