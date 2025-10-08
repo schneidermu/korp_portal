@@ -508,7 +508,8 @@ polls, choices, poll_orgs, poll_votes = gen_polls()
 
 # === generate ===
 
-print("""
+print(
+    """
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -519,7 +520,8 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
-""")
+"""
+)
 
 print(
     gen_table("employees_organization", [{"id": id, **d} for id, d in orgs.items()]),
@@ -589,10 +591,10 @@ print(
             )
         ],
     ),
-    gen_table(
-        "employees_rating",
-        [{"id": i, **r} for i, r in enumerate(ratings, start=1)],
-    ),
+    # gen_table(
+    #     "employees_rating",
+    #     [{"id": i, **r} for i, r in enumerate(ratings, start=1)],
+    # ),
     # gen_table("homepage_poll", polls),
     # gen_table("homepage_choice", flatten([chs for chs in choices.values()])),
     # gen_table("homepage_poll_organization", poll_orgs),
