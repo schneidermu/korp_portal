@@ -140,7 +140,6 @@ services:
     image: caddy:2.10-alpine
     ports:
       - 80:80
-      - 2019:2019
     volumes:
       - ./caddy/:/etc/caddy/
       - caddy_data:/data
