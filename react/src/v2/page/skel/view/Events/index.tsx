@@ -111,7 +111,7 @@ const Calendar = ({
         gap={0}
       >
         {WEEKDAYS_NAMES.map((w) => (
-          <Box>{w}</Box>
+          <Box key={w}>{w}</Box>
         ))}
       </Grid>
       <Grid
