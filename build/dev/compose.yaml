@@ -19,7 +19,7 @@ services:
       start_interval: 1s
       start_period: 60s
     environment:
-      POSTGRES_PASSWORD: password # FIXME
+      POSTGRES_PASSWORD:
       DB_COUNT: 3
       DB_1_USER: $DB_USER_DJANGO
       DB_1_NAME: $DB_NAME_DJANGO
