@@ -25,7 +25,7 @@
 
 - docker, alpine
 - [vite](https://vite.dev/), build tool
-- [yarn](https://yarnpkg.com/), package manager
+- [pnpm](https://pnpm.io/), package manager
 - [eslint](https://eslint.org/), linter
 - [prettier](https://prettier.io/), formatter
 
@@ -36,9 +36,7 @@
 - [redux](https://redux.js.org/), state management
 - [react-router](https://reactrouter.com/), routing
 - [immer](https://immerjs.github.io/immer/), immutability helper
-- [clsx](https://github.com/lukeed/clsx), react `className` utility
-- [yahoo/react-stickynode](https://github.com/yahoo/react-stickynode), sticky component
-- [tailwindcss](https://tailwindcss.com/), CSS framework
+- [panda-css](https://panda-css.com/), CSS framework
 
 ## Formatting
 
@@ -54,4 +52,4 @@ Imports are grouped (that is, separated from other groups by an empty line) as f
 Code style:
 
 - Arrow functions are used whenever possible.
-- No default exports.
+- No default exports except for pages.
