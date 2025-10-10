@@ -50,9 +50,6 @@ const BusinessCardPage = React.lazy(
   async () => import("@/features/BusinessCard/BusinessCardPage"),
 );
 const HomePage = React.lazy(async () => import("@page/home"));
-const CalendarPage = React.lazy(
-  async () => import("@/features/Calendar/pages/CalendarPage"),
-);
 
 const SegmentsPage = React.lazy(async () => import("@page/segments"));
 
@@ -71,7 +68,6 @@ export const App = () => {
           <Route path="segments" element={<SegmentsPage />} />
           <Route element={<Chakra />}>
             <Route path="/bc/:userId?" element={<BusinessCardPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/nextcloud" element={<NextcloudPage />} />
             <Route path="/tree/:orgId?" element={<UserTreePage />} />
             <Route path="/profile/:userId?" element={<ProfilePage />} />

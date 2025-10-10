@@ -6,7 +6,6 @@ import * as pollTake from "@/features/Poll/take/slice";
 import * as pollEdit from "@/features/Poll/edit/slice";
 import * as pollList from "@/features/Poll/list/slice";
 import * as userTree from "@/features/UserTree/slice";
-import * as calendar from "@/features/Calendar/slice";
 
 import * as idea from "@page/skel/view/Idea/slice";
 
@@ -17,7 +16,6 @@ export const store = configureStore({
     [pollEdit.NAME]: pollEdit.slice.reducer,
     [pollList.NAME]: pollList.slice.reducer,
     [userTree.NAME]: userTree.slice.reducer,
-    [calendar.NAME]: calendar.slice.reducer,
     [idea.NAME]: idea.slice.reducer,
   },
 });
