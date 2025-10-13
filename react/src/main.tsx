@@ -8,7 +8,7 @@ import { SWRConfig } from "swr";
 import { store } from "@/app/store";
 import { swrConfig } from "./app/swrConfig";
 
-import { App } from "@/features/App/App";
+import { App } from "@app/index";
 
 import "./index.css";
 

@@ -6,17 +6,9 @@ import { css } from "@styled-system/css";
 import { Box, Center, HStack, Stack } from "@styled-system/jsx";
 import { stack } from "@styled-system/patterns";
 
-import {
-  Sax3DcubeOutline,
-  Sax3SquareOutline,
-  SaxAddCircleOutline,
-  SaxArchiveBookOutline,
-  SaxFolderCloudOutline,
-  SaxHomeOutline,
-  SaxMessageAdd1Outline,
-  SaxMessageQuestionOutline,
-} from "@meysam213/iconsax-react";
+import { SaxAddCircleOutline } from "@meysam213/iconsax-react";
 
+import { NAVITEMS } from "@app/routes";
 import { IconButton } from "@view/Button";
 import { ProfileCard } from "@view/ProfileCard";
 
@@ -46,64 +38,19 @@ export const Navbar = () => {
         })}
       >
         <Stack gap={3}>
-          <NavItem
-            name="Домашняя страница"
-            to="/"
-            match={/^\/$/}
-            icon={SaxHomeOutline}
-          />
-          <NavItem
-            name="Наша жизнь"
-            to="/feed"
-            match={/^\/feed$/}
-            icon={SaxArchiveBookOutline}
-          />
-          <NavItem
-            name="Орг. структура"
-            to="/tree"
-            match={/^\/tree\/?.*$/}
-            icon={Sax3DcubeOutline}
-          />
-          <NavItem
-            name="Облако"
-            to="/nextcloud"
-            match={/^\/nextcloud$/}
-            icon={SaxFolderCloudOutline}
-          />
-          <NavItem
-            name="Опросы"
-            to="/polls/dashboard"
-            // TODO: restrict actions to only certain groups
-            actionLink={"/polls/create"}
-            match={/^\/polls\/?.*/}
-            icon={SaxMessageQuestionOutline}
-          />
-          <NavItem
-            name="Заявки"
-            to="/forms/dashboard"
-            match={/^\/forms\/?.*/}
-            icon={SaxMessageAdd1Outline}
-          />
-          <NavItem
-            name="Сегменты"
-            to="/segments"
-            match={/^\/segments\/?.*/}
-            icon={Sax3SquareOutline}
-          />
+          {NAVITEMS.map((n, i) => (
+            <NavItem
+              key={i}
+              to={n.link}
+              name={n.name}
+              match={n.matcher}
+              actionLink={n.action}
+              icon={n.icon}
+            />
+          ))}
         </Stack>
         <Stack gap={3}>
           <IdeaPrompt />
-          {/*
-          <NavItem
-            link={{
-              to: "/",
-              name: "Уведомления",
-              icon: SaxNotificationOutline,
-              match: /^$/,
-            }}
-            count={3}
-          />
-          */}
           <ProfileCardCtx />
         </Stack>
       </Drawer>
@@ -127,14 +74,14 @@ const NavItem = ({
   name,
   to,
   match,
-  icon,
+  icon: Icon,
   actionLink,
   count,
 }: {
   name: string;
   to: string;
   match: RegExp;
-  icon: typeof Sax3DcubeOutline;
+  icon: React.FC<React.SVGProps<SVGSVGElement>>;
   actionLink?: string;
   count?: number;
 }) => {
@@ -162,7 +109,7 @@ const NavItem = ({
         lineHeight="1.25"
         fontWeight="light"
       >
-        {icon({ className: css({ w: 5, h: 5 }) })}
+        <Icon className={css({ w: 5, h: 5 })} />
         {ctx.isOpen && !ctx.isAnimating && (
           <>
             <Box>{name}</Box>
