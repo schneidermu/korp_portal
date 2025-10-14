@@ -7,6 +7,7 @@ import { stack } from "@styled-system/patterns";
 
 import { useFetchSegments } from "@api/segment";
 import { Segment } from "@api/segment/types";
+import { Breadcrumbs } from "@view/Breadcrumbs";
 import { SegmentView } from "@view/SegmentView";
 
 export default function SegmentsPage() {
@@ -28,7 +29,10 @@ export default function SegmentsPage() {
 
   return (
     <Stack gap={14}>
-      <styled.h1 fontSize="Headline/H1">Сегменты</styled.h1>
+      <Stack gap={2}>
+        <Breadcrumbs />
+        <styled.h1 fontSize="Headline/H1">Сегменты</styled.h1>
+      </Stack>
       <GroupsNav scrollToSection={scrollToSection} />
       {R.alphabetical(Object.keys(grouped), (x) => x).map(
         (group) =>

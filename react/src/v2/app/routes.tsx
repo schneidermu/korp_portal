@@ -67,6 +67,10 @@ interface Link {
     // TODO: use groups to restrict actions
     groups?: string[];
   };
+  crumb?: {
+    matcher: RegExp;
+    name: string;
+  };
 }
 
 type LinkKey =
@@ -89,6 +93,8 @@ type LinkKey =
   | "segments"
   | "404";
 
+// NOTE: order is important (for breadcrumbs)
+
 export const LINK: Record<LinkKey, Link> = {
   home: {
     link: "/",
@@ -100,6 +106,10 @@ export const LINK: Record<LinkKey, Link> = {
       matcher: /^\/?$/,
       name: "Домашняя страница",
       icon: SaxHomeOutline,
+    },
+    crumb: {
+      matcher: /^\/?/,
+      name: "Главная страница",
     },
   },
 
@@ -270,6 +280,10 @@ export const LINK: Record<LinkKey, Link> = {
       name: "Сегменты",
       icon: Sax3SquareOutline,
     },
+    crumb: {
+      matcher: /^\/segments/,
+      name: "Сегменты",
+    },
   },
 
   404: {
@@ -287,4 +301,8 @@ export const ROUTES = Object.values(LINK).flatMap((l) =>
 
 export const NAVITEMS = Object.values(LINK).flatMap((l) =>
   l.nav ? [{ link: l.link, ...l.nav }] : [],
+);
+
+export const CRUMBS = Object.values(LINK).flatMap((l) =>
+  l.crumb ? [{ link: l.link, ...l.crumb }] : [],
 );
