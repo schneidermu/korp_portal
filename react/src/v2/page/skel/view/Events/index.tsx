@@ -172,7 +172,7 @@ const EventView = ({
         <SaxCakeOutline className={css({ w: 5, h: 5 })} />
       </Box>
       <Box>{name}</Box>
-      <Box>{formatDate(date)}</Box>
+      <Box>{formatDate(date, { month: "short", weekday: "short" })}</Box>
     </Grid>
   );
 };

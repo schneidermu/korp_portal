@@ -1,10 +1,15 @@
 import { Temporal } from "temporal-polyfill";
 
-export const formatDate = (date: Temporal.PlainDate) => {
-  return date.toLocaleString("ru-RU", {
+export const parseAPIDate = (date: string): Temporal.PlainDate =>
+  Temporal.PlainDateTime.from(date.slice(0, -1)).toPlainDate();
+
+export const formatDate = (
+  date: Temporal.PlainDate,
+  opts: Intl.DateTimeFormatOptions = {},
+) =>
+  date.toLocaleString("ru-RU", {
     year: "numeric",
-    month: "short",
+    month: "2-digit",
     day: "2-digit",
-    weekday: "short",
+    ...opts,
   });
-};

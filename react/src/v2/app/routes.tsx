@@ -26,7 +26,10 @@ const BusinessCardPage = lazy(
   () => import("@/features/BusinessCard/BusinessCardPage"),
 );
 
-const FeedPage = lazy(() => import("@/features/Feed/Feed"));
+const NewsFeedPage = lazy(() => import("@page/news/feed"));
+const NewsViewPage = lazy(() => import("@page/news/view"));
+// const NewsCreatePage = lazy(() => import("@page/news/create"));
+
 const PostNewsForm = lazy(() => import("@/features/NewsEditor/NewsEditor"));
 
 const PollsDashboardPage = lazy(
@@ -76,6 +79,7 @@ interface Link {
 type LinkKey =
   | "home"
   | "news"
+  | "newsView"
   | "newsPost"
   | "cloud"
   | "tree"
@@ -114,16 +118,30 @@ export const LINK: Record<LinkKey, Link> = {
   },
 
   news: {
-    link: "/feed",
+    link: "/news/feed",
     route: {
-      path: "/feed",
-      element: FeedPage,
-      chakra: true,
+      path: "/news/feed",
+      element: NewsFeedPage,
     },
     nav: {
-      matcher: /^\/feed\/?|\/post-news\/?$/,
+      matcher: /^\/news(\/?|\/.*)$/,
       name: "Наша жизнь",
       icon: SaxArchiveBookOutline,
+    },
+    crumb: {
+      matcher: /^\/news(\/?|\/.*)$/,
+      name: "Наша жизнь",
+    },
+  },
+  newsView: {
+    link: "/news/view",
+    route: {
+      path: "/news/view/:newsId",
+      element: NewsViewPage,
+    },
+    crumb: {
+      matcher: /^\/news\/view\/[1-9][0-9]*$/,
+      name: "Новость",
     },
   },
   newsPost: {

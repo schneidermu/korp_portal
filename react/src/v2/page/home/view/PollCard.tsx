@@ -1,5 +1,3 @@
-import { Temporal } from "temporal-polyfill";
-
 import { Link } from "react-router-dom";
 
 import { css } from "@styled-system/css";
@@ -12,8 +10,7 @@ import { SaxMessageQuestionBold } from "@meysam213/iconsax-react";
 
 import { useFetchUser } from "@api/user";
 import { fullNameShort } from "@api/user/utils";
-
-import { formatDate } from "@util/date";
+import { formatDate, parseAPIDate } from "@util/date";
 
 const Cover = () => {
   return (
@@ -61,11 +58,10 @@ export const PollCard = ({ poll }: { poll: Poll }) => {
         <Box fontSize="Body/S">{user && fullNameShort(user)}</Box>
         <Box fontSize="Body/XS" color="Grayscale/Border">
           {poll.publishedAt &&
-            formatDate(
-              Temporal.PlainDateTime.from(
-                poll.publishedAt.slice(0, -1),
-              ).toPlainDate(),
-            )}
+            formatDate(parseAPIDate(poll.publishedAt), {
+              month: "short",
+              weekday: "short",
+            })}
         </Box>
       </Box>
     </styled.article>
