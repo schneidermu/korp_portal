@@ -28,6 +28,9 @@ docker compose exec django python manage.py migrate
 # generate & load dummy django data
 ../dummy/load.sh
 
+# start news importer
+docker compose --profile news up -d
+
 # generate dynamic css
 docker compose exec vite pnpm panda
 ```

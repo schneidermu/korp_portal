@@ -62,10 +62,11 @@ services:
       SCRIPT_NAME: $BACKEND_PREFIX
       DJANGO_PORT:
 
-  cron-importer:
+  news:
     build:
       context: ../../
       dockerfile: ./cron/Dockerfile
+    profiles: [news]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../../django/scripts/:/app/scripts/
