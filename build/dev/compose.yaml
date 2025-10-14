@@ -97,6 +97,7 @@ services:
     build:
       context: ../../react/
       target: dev
+    profiles: [vite]
     volumes:
       - /app/node_modules
       - ../../react:/app

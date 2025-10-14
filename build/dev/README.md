@@ -16,7 +16,7 @@ mkdir -p volumes/logs volumes/media volumes/deploy
 # unpack dummy media
 tar -C volumes -xpvf /path/to/dummy-media.tar.bz2
 
-# start vite & django
+# start django
 docker compose up -d
 
 # generate django admin static files
@@ -30,6 +30,9 @@ docker compose exec django python manage.py migrate
 
 # start news importer
 docker compose --profile news up -d
+
+# start vite
+docker compose --profile vite up -d
 
 # generate dynamic css
 docker compose exec vite pnpm panda
