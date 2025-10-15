@@ -56,7 +56,7 @@ def get_article_details(article_url, image_url):
     """
     Функция для получения чистого текста статьи.
     """
-    details = {"text": "", "base64_image": None}
+    details = {"text": "", "base64_image": None, "error": False}
 
     try:
         print(f"  -> Запрос на страницу статьи: {article_url}", file=sys.stderr)
@@ -103,11 +103,14 @@ def get_article_details(article_url, image_url):
             details["text"] = normalized_text
 
         else:
+            print("  [!] Текст статьи не найден (отсутствует div.content).", file=sys.stderr)
             details["text"] = "Текст статьи не найден (отсутствует div.content)."
+            details["error"] = True
 
     except requests.RequestException as e:
         print(f"  [!] Ошибка при получении текста статьи: {e}", file=sys.stderr)
         details["text"] = f"Не удалось загрузить текст: {e}"
+        details["error"] = True
 
     if image_url:
         try:
@@ -175,6 +178,12 @@ def parse_voda_gov(base_url, start_date, end_date):
 
             print(f"\nОбработка новости: '{title}'", file=sys.stderr)
             details = get_article_details(article_url, image_url)
+            
+            # Пропустить новость, если произошла ошибка при загрузке текста
+            if details["error"]:
+                print(f"  [!] Пропуск новости '{title}' из-за ошибки загрузки текста", file=sys.stderr)
+                continue
+            
             iso_date = format_date_to_iso(date_str)
 
             attachments = []
