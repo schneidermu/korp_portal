@@ -155,11 +155,6 @@ class Poll(Published):
         help_text="Если опрос не публичный, он будет доступен сотрудникам указанных организаций.",
     )
 
-    is_public = models.BooleanField(
-        default=False,
-        verbose_name="Публичный опрос",
-        help_text="Если отмечено, опрос доступен всем пользователям портала, независимо от организации.",
-    )
     is_anonymous = models.BooleanField(default=False, verbose_name="Анонимный опрос")
 
     pub_date = models.DateTimeField(

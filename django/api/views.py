@@ -102,7 +102,6 @@ class PollViewset(viewsets.ModelViewSet):
         "kind": ["exact"],
         "poll_group__id": ["exact"],
         "organization__id": ["exact"],
-        "is_public": ["exact"],
         "is_anonymous": ["exact"],
         "author__username": ["exact", "icontains"],
     }
@@ -127,6 +126,8 @@ class PollViewset(viewsets.ModelViewSet):
                 )
             )
 
+        user_organization = user.organization if hasattr(user, "organization") else None
+
         published_polls = (
             Poll.objects.filter(status=Poll.StatusChoices.PUBLISHED, pub_date__lte=now)
             .exclude(completion_date__isnull=False, completion_date__lte=now)
@@ -134,17 +135,14 @@ class PollViewset(viewsets.ModelViewSet):
             .prefetch_related("organization", "questions")
         )
 
-        if user.is_authenticated:
-            organization_q = Q()
-            if hasattr(user, "organization") and user.organization:
-                organization_q = Q(organization=user.organization)
-
+        if user_organization:
             accessible_polls = published_polls.filter(
-                Q(is_public=True) | organization_q,
-            ).distinct()
-            return accessible_polls
+                Q(organization__isnull=True) | Q(organization=user_organization),
+            )
         else:
-            return published_polls.filter(is_public=True).distinct()
+            accessible_polls = published_polls.filter(organization__isnull=True)
+
+        return accessible_polls.distinct()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -217,15 +215,14 @@ class PollViewset(viewsets.ModelViewSet):
                 can_submit = False
                 error_message = "Вы уже проходили этот опрос."
 
-        if can_submit and not poll.is_public:
-            if not (
-                request.user.is_authenticated
-                and hasattr(request.user, "organization")
-                and request.user.organization
-                and poll.organization.filter(id=request.user.organization.id).exists()
-            ):
-                can_submit = False
-                error_message = "Данный опрос недоступен для вашей организации."
+        if can_submit:
+            user_organization = request.user.organization if hasattr(request.user, "organization") else None
+            poll_has_organizations = poll.organization.exists()
+            
+            if poll_has_organizations:
+                if not user_organization or not poll.organization.filter(id=user_organization.id).exists():
+                    can_submit = False
+                    error_message = "Данный опрос недоступен для вашей организации."
 
         if not can_submit:
             return Response({"detail": error_message}, status=status.HTTP_403_FORBIDDEN)

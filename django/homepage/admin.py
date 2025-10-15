@@ -196,14 +196,12 @@ class PollAdmin(admin.ModelAdmin):
         "status",
         "kind",
         "poll_group",
-        "is_public",
         "pub_date",
         "completion_date",
         "created_at",
     )
     list_filter = (
         "status",
-        "is_public",
         "is_anonymous",
         "kind",
         "author",
@@ -233,7 +231,7 @@ class PollAdmin(admin.ModelAdmin):
             "Доступность и аудитория",
             {
                 "classes": ("collapse",),
-                "fields": ("organization", "is_public", "is_anonymous"),
+                "fields": ("organization", "is_anonymous"),
             },
         ),
         (

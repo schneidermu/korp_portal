@@ -464,14 +464,22 @@ class NewsViewSetTests(APITestCase):
     """
 
     def setUp(self):
+        self.organization = Organization.objects.create(name="Test Organization")
+        
+        self.structural_division = StructuralSubdivision.objects.create(
+            name="Test Division",
+            organization=self.organization,
+        )
+        
         self.user = Employee.objects.create_user(
             username="testuser", password="password123",
         )
+
+        self.user.structural_division = self.structural_division
+        self.user.save()
+        
         self.client.force_authenticate(user=self.user)
 
-        self.organization = Organization.objects.create(name="Test Organization")
-
-        # Create published news (fix many-to-many relationship)
         self.published_news = News.objects.create(
             title="Published News",
             text="This is published news content",
@@ -480,7 +488,6 @@ class NewsViewSetTests(APITestCase):
         )
         self.published_news.organization.set([self.organization])
 
-        # Create unpublished news
         self.unpublished_news = News.objects.create(
             title="Unpublished News",
             text="This is unpublished news content",
@@ -540,16 +547,49 @@ class NewsViewSetTests(APITestCase):
         )
 
     def test_filter_news_by_organization(self):
-        """Тест: Фильтрация новостей по организации."""
-        url = f"/api/news/?organization__id={self.organization.pk}"
+        """Тест: Пользователь видит только новости своей организации или без организации."""
+        # Create news with no organization (should be visible to all users)
+        News.objects.create(
+            title="News Without Organization",
+            text="This news has no organization",
+            is_published=True,
+            pub_date=timezone.now() - timedelta(hours=1),
+        )
+        # Don't set any organization
+        
+        # Create news with different organization (should NOT be visible)
+        other_org = Organization.objects.create(name="Other Organization")
+        news_other_org = News.objects.create(
+            title="News Other Organization",
+            text="This news is for another organization",
+            is_published=True,
+            pub_date=timezone.now() - timedelta(hours=1),
+        )
+        news_other_org.organization.set([other_org])
+        
+        url = "/api/news/"
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
         # Check if paginated or direct list
         if "results" in response.data:
-            self.assertEqual(len(response.data["results"]), 1)
+            news_list = response.data["results"]
         else:
-            self.assertEqual(len(response.data), 1)
+            news_list = response.data
+            
+        # User should see: published_news (their org) + news_no_org (no org)
+        # Should NOT see: unpublished_news (not published) + news_other_org (different org)
+        self.assertEqual(
+            len(news_list), 
+            2, 
+            f"Ожидалось 2 новости (своя организация + без организации), получено: {len(news_list)}",
+        )
+        
+        titles = [news["title"] for news in news_list]
+        self.assertIn("Published News", titles)
+        self.assertIn("News Without Organization", titles)
+        self.assertNotIn("News Other Organization", titles)
 
 
 @override_settings(
