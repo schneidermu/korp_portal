@@ -48,6 +48,9 @@ export const PollView = ({
     userId,
   );
   const mode = useSliceSelector((state) => state.mode);
+  const replacePoll = useSliceSelector(
+    (state) => "poll" in state && state.poll.id !== pollId,
+  );
   const auth = useAuth();
   const { user } = useFetchUser(O.some(auth.userId));
 
@@ -88,6 +91,8 @@ export const PollView = ({
   ]);
 
   if (!poll || !answers || !mode || !user) return;
+
+  if (mode !== "submitted" && replacePoll) return;
 
   if (error) {
     console.error(error);
