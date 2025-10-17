@@ -175,17 +175,21 @@ export default function UserTreePage() {
             setOrgId={(orgId) => navigate(`/tree/${orgId}`)}
           />
         </PageHeading>
-        <Box
-          h="800px"
-          overflow="auto"
-          ref={viewRef}
-          onMouseDown={onMouseDown}
-          borderWidth={2}
-          borderRadius="2"
-        >
-          <Flex minW="full" w="fit" h="fit" p="10" justify="center">
-            {treeState && <UserTreeView tree={treeState} />}
-          </Flex>
+        <Box position="relative">
+          <Box
+            position="absolute"
+            w="full"
+            h="800px"
+            overflow="auto"
+            ref={viewRef}
+            onMouseDown={onMouseDown}
+            borderWidth={2}
+            borderRadius="2"
+          >
+            <Flex minW="full" w="fit" h="fit" p="10" justify="center">
+              {treeState && <UserTreeView tree={treeState} />}
+            </Flex>
+          </Box>
         </Box>
       </Stack>
       <UnitNodeEditorDialog />
