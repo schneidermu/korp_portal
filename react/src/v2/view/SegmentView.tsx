@@ -85,7 +85,7 @@ export const SegmentView = ({ full, segment: s, ...rest }: SegmentProps) => {
               gap={2}
               justifySelf="end"
             >
-              <span>Подробнее</span>
+              <span>Перейти</span>
               <SaxArrowRightLinear
                 className={css({ w: "1.125rem", h: "1.125rem" })}
               />
