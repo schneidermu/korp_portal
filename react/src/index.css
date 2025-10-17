@@ -41,6 +41,14 @@ a.active {
   padding: 0;
 }
 
+#wrapper .row {
+  margin: 0;
+}
+
+#ControlMenu + #wrapper {
+  padding-left: 50px !important;
+}
+
 h1,
 h2,
 h3,
