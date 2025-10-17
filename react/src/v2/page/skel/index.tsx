@@ -24,7 +24,7 @@ export default function Skel() {
       {isDev && <LiferayHeader />}
       {isDev && <Box bg="#D9D9D9" />}
       <Navbar />
-      <Stack w="full" mx="auto" px={6} py={8} gap={9}>
+      <Stack w="full" maxW="90rem" mx="auto" px={6} py={8} gap={9}>
         <Outlet />
       </Stack>
       <Sidebar />
