@@ -22,7 +22,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { ACCEPT_IMAGES, MAX_IMG_SIZE } from "@/app/const";
 
-import { ImgGrid } from "@/features/Feed/comps/ImgGrid";
+import { ImgGrid } from "@/features/NewsEditor/parts/ImgGrid";
 import { Button } from "@/shared/comps/Button";
 import { publishNews } from "./services";
 import { useAuth } from "@/features/auth/slice.ts";

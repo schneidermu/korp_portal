@@ -13,8 +13,8 @@ import { LuX } from "react-icons/lu";
 
 import { resolveMediaPath } from "@/shared/utils";
 
-import { SlideButtonLeft, SlideButtonRight } from "../parts/SlideButtons";
-import { Overlay } from "../parts/Overlay";
+import { SlideButtonLeft, SlideButtonRight } from "./SlideButtons";
+import { Overlay } from "./Overlay";
 
 const OverlayImg = ({
   imgs,
