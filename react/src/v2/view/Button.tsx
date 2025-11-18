@@ -122,6 +122,7 @@ const BaseButton: typeof ButtonPrimary = ({ size, ...rest }) => {
   return (
     <styled.button
       cursor="pointer"
+      type="button"
       // transition="all 0.2s"
       fontSize={size === "L" ? "18px" : size === "M" ? "16px" : "14px"}
       {...rest}
