@@ -2,12 +2,13 @@ import useSWR from "swr";
 
 import * as R from "radashi";
 
-import { useTokenFetcher } from "@/features/auth/hooks";
+import { tokenFetch, useTokenFetcher } from "@/features/auth/hooks";
+import { AuthState } from "@/features/auth/slice";
 
 import { APIError } from "@api/common/errors";
 import { Paged } from "@api/common/types";
 
-import { News, NewsRaw, toNews } from "./types";
+import { News, NewsCreateInfo, NewsRaw, toNews } from "./types";
 
 export const useFetchNews = (id: number | null) => {
   const fetcher = useTokenFetcher();
@@ -52,4 +53,30 @@ export const useFetchNewsPage = ({
         pageCount: Math.ceil(page.count / size),
       })),
   );
+};
+
+export const publishNews = async (
+  { token, orgId }: Pick<AuthState, "token" | "orgId">,
+  { title, text, datetime, imgs }: NewsCreateInfo,
+) => {
+  const res = await tokenFetch(token, "/news/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title,
+      text,
+      organization: [orgId],
+      pub_date: datetime,
+      attachments: imgs.map((img) => ({
+        image: img.dataURL.slice("data:".length),
+      })),
+    }),
+  });
+  if (res.status !== 201) {
+    throw new Error(`error publishing news: ${res.status} ${res.statusText}`);
+  }
+  const news: NewsRaw = await res.json();
+  return news;
 };

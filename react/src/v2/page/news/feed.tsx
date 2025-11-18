@@ -39,7 +39,7 @@ const Header = () => {
       <Breadcrumbs />
       <Box gridRow="span 2">
         <ShowProtected groups={[GROUP.news.create]}>
-          <Button size="L" onClick={() => navigate(LINK.newsPost.link)}>
+          <Button size="L" onClick={() => navigate(LINK.newsCreate.link)}>
             Создать новость
           </Button>
         </ShowProtected>

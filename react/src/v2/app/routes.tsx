@@ -28,9 +28,7 @@ const BusinessCardPage = lazy(
 
 const NewsFeedPage = lazy(() => import("@page/news/feed"));
 const NewsViewPage = lazy(() => import("@page/news/view"));
-// const NewsCreatePage = lazy(() => import("@page/news/create"));
-
-const PostNewsForm = lazy(() => import("@/features/NewsEditor/NewsEditor"));
+const NewsCreatePage = lazy(() => import("@page/news/create"));
 
 const PollsDashboardPage = lazy(
   () => import("@/features/Poll/list/PollsDashboardPage"),
@@ -80,7 +78,7 @@ type LinkKey =
   | "home"
   | "news"
   | "newsView"
-  | "newsPost"
+  | "newsCreate"
   | "cloud"
   | "tree"
   | "profile"
@@ -144,13 +142,16 @@ export const LINK: Record<LinkKey, Link> = {
       name: "Новость",
     },
   },
-  newsPost: {
-    link: "/post-news",
+  newsCreate: {
+    link: "/news/create",
     route: {
-      path: "/post-news",
-      element: PostNewsForm,
-      chakra: true,
+      path: "/news/create",
+      element: NewsCreatePage,
       groups: [GROUP.news.create],
+    },
+    crumb: {
+      matcher: /^\/news\/create$/,
+      name: "Создание новости",
     },
   },
 

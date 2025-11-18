@@ -8,6 +8,7 @@ import * as pollList from "@/features/Poll/list/slice";
 import * as userTree from "@/features/UserTree/slice";
 
 import * as idea from "@page/skel/view/Idea/slice";
+import * as newsCreate from "@page/news/create/slice";
 
 console.log("configure store");
 
@@ -22,6 +23,7 @@ export const store = configureStore({
     [pollList.NAME]: pollList.slice.reducer,
     [userTree.NAME]: userTree.slice.reducer,
     [idea.NAME]: idea.slice.reducer,
+    [newsCreate.NAME]: newsCreate.slice.reducer,
   },
 });
 

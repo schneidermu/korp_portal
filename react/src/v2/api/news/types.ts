@@ -1,5 +1,7 @@
 import * as R from "radashi";
 
+import { Attachment } from "../common/types";
+
 export interface News {
   id: number;
   pubDate: string;
@@ -30,3 +32,10 @@ export const toNews = (r: NewsRaw): News => ({
   orgs: r.organization,
   pubDate: r.pub_date,
 });
+
+export interface NewsCreateInfo {
+  title: string;
+  datetime: string;
+  text: string;
+  imgs: Attachment[];
+}

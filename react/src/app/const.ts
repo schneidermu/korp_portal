@@ -60,3 +60,6 @@ export const USER_TREE_COLORS = [
 
 // The maximum size of an image to upload (10 MiB).
 export const MAX_IMG_SIZE = 10 * 1024 * 1024;
+
+/// The total maximum size of images to attach to a news publication.
+export const NEWS_MAX_IMGS_SIZE = 10 * 1024 * 1024; // 10 MiB
