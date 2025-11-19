@@ -5,12 +5,23 @@ import { DropzoneOptions, useDropzone } from "react-dropzone";
 import { Box, BoxProps, Grid, HStack, Stack, styled } from "@styled-system/jsx";
 import { stack } from "@styled-system/patterns";
 
-import { ACCEPT_IMAGES } from "@/app/const";
+import { ACCEPT_IMAGES, MAX_IMG_SIZE } from "@/app/const";
 import { Breadcrumbs } from "@view/Breadcrumbs";
 import { Button } from "@view/Button";
 
-import { LuArrowBigDownDash, LuCloudUpload } from "react-icons/lu";
+import { SaxPaperclip2Linear } from "@meysam213/iconsax-react";
 import { css } from "@styled-system/css";
+import { LuArrowBigDownDash, LuCloudUpload } from "react-icons/lu";
+import { useState } from "react";
+
+const fileToDataURL = async (f: File): Promise<string | null> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () =>
+      resolve(typeof reader.result === "string" ? reader.result : null);
+    reader.readAsDataURL(f);
+  });
+};
 
 export default function NewsCreatePage() {
   return (
@@ -25,57 +36,94 @@ export default function NewsCreatePage() {
           Создание новости
         </styled.h1>
       </Stack>
-      <styled.form
-        className={stack({ gap: 6 })}
-        p={6}
-        borderRadius="24px" // TODO
-        borderWidth="1px"
-        borderColor="Grayscale/SpacerLight"
-      >
-        <styled.h2
-          fontSize="Headline/H4"
-          fontWeight="semibold"
-          color="Grayscale/Black"
-        >
-          Основная информация
-        </styled.h2>
-        <Grid columnGap={6} gridTemplateColumns="6fr 5fr">
-          <Stack gap={4}>
-            <Input name="title" label="Заголовок новости" />
-            <Input name="organization" label="Организация" />
-            <Input
-              name="datetime"
-              label="Дата и время публикации"
-              type="datetime-local"
-            />
-            <Label label="Текст новости">
-              <styled.textarea
-                name="text"
-                p={4}
-                borderWidth="1px"
-                borderColor="Grayscale/SpacerLight"
-                borderRadius="15px"
-                w="full"
-                fontSize="Body/S"
-                rows={4}
-              />
-            </Label>
-          </Stack>
-          <Stack gap={5}>
-            <Label label="Фотографии">
-              <NewsDropzone h={64} onDrop={() => {}} />
-            </Label>
-            <Stack gap={3}>файлы</Stack>
-          </Stack>
-        </Grid>
-        <HStack gap={4} justify="end">
-          <Button variant="text">Сохранить как черновик</Button>
-          <Button type="submit">Опубликовать новость</Button>
-        </HStack>
-      </styled.form>
+      <NewsForm />
     </Stack>
   );
 }
+
+const NewsForm = () => {
+  const [imgs, setImgs] = useState<{ name: string; blobURL: string }[]>([]);
+
+  return (
+    <styled.form
+      className={stack({ gap: 6 })}
+      p={6}
+      borderRadius="24px" // TODO
+      borderWidth="1px"
+      borderColor="Grayscale/SpacerLight"
+    >
+      <styled.h2
+        fontSize="Headline/H4"
+        fontWeight="semibold"
+        color="Grayscale/Black"
+      >
+        Основная информация
+      </styled.h2>
+      <Grid columnGap={6} gridTemplateColumns="6fr 5fr">
+        <Stack gap={4}>
+          <Input name="title" label="Заголовок новости" />
+          {/* <Input name="organization" label="Организация" /> */}
+          <Input
+            name="datetime"
+            label="Дата и время публикации"
+            type="datetime-local"
+          />
+          <Label label="Текст новости">
+            <styled.textarea
+              name="text"
+              p={4}
+              borderWidth="1px"
+              borderColor="Grayscale/SpacerLight"
+              borderRadius="15px"
+              w="full"
+              fontSize="Body/S"
+              rows={6}
+            />
+          </Label>
+        </Stack>
+        <Stack gap={5}>
+          <Label label="Фотографии">
+            <NewsDropzone
+              h={64}
+              onDrop={async (imgs: File[]) => {
+                const encoded = await Promise.all(
+                  imgs
+                    .filter((img) => img.size <= MAX_IMG_SIZE)
+                    .map(async (img) => ({
+                      name: img.name,
+                      blobURL: (await fileToDataURL(img)) ?? "",
+                    })),
+                );
+                setImgs((prev) => [
+                  ...prev,
+                  ...encoded.filter((v) => v.blobURL !== ""),
+                ]);
+              }}
+            />
+          </Label>
+          <Stack gap={3}>
+            {imgs.map((img) => (
+              <HStack>
+                <styled.img
+                  objectPosition="center"
+                  objectFit="cover"
+                  src={img.blobURL}
+                  w={10}
+                  h={10}
+                />
+                <styled.span>{img.name}</styled.span>
+              </HStack>
+            ))}
+          </Stack>
+        </Stack>
+      </Grid>
+      <HStack gap={4} justify="end">
+        <Button variant="text">Сохранить как черновик</Button>
+        <Button type="submit">Опубликовать новость</Button>
+      </HStack>
+    </styled.form>
+  );
+};
 
 const Label = ({
   label,
@@ -114,7 +162,7 @@ const Input = ({
 const NewsDropzone = ({
   onDrop,
   ...rest
-}: { onDrop: DropzoneOptions["onDrop"] } & BoxProps) => {
+}: { onDrop: DropzoneOptions["onDrop"] } & Omit<BoxProps, "onDrop">) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   // Fixes weird size prop types mismatch.
@@ -127,7 +175,9 @@ const NewsDropzone = ({
       borderColor="Grayscale/Border"
       borderStyle="dashed"
       w="full"
-      overflow="hidden"
+      py={9}
+      px={5}
+      lineHeight={1.5}
       {...rest}
       {...getRootProps()}
     >
@@ -135,7 +185,6 @@ const NewsDropzone = ({
         w="full"
         align="center"
         py="3"
-        bg="gray.5"
         userSelect="none"
         cursor="pointer"
         color="blue.2"
@@ -151,11 +200,13 @@ const NewsDropzone = ({
           {/* </Icon> */}
         </Box>
         <styled.input {...inputProps} accept={ACCEPT_IMAGES.join(",")} />
-        <Box>
-          <styled.span fontWeight="bold">Выберите</styled.span> или переместите
-          файлы для загрузки
+        <Box textAlign="center">
+          Перетащите файлы сюда <br /> или
         </Box>
-        <Box fontSize="sm">Максимальный размер — 10 МБ</Box>
+        <Button size="S" display="flex" alignItems="center" gap={2}>
+          <SaxPaperclip2Linear className={css({ h: "full" })} /> Выберите файл
+        </Button>
+        <Box fontSize="sm">Максимальный размер файлов: 10 МБ</Box>
       </Stack>
     </Box>
   );
