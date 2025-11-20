@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 # - other members of the unit are subordinates
 # - boss's boss is its parent unit's boss (if there's a parent unit)
 #
+# - unit boss overwrites are applied before user boss overwrites
+#
 # Sample input data:
 """
 {
@@ -26,19 +28,33 @@ logger = logging.getLogger(__name__)
   "users": [
     {
       "unit": "Руководство",
-      "name": "ФИО 1",
+      "surname": "Фамилия 1",
+      "name": "Имя 1",
+      "patronym": "Отчество 1",
       "position": "Руководитель",
       "phone": "88005553555",
-      "inner_phone": "12-34",
-      "office": "123"
+      "inner_phone": "1234",
+      "office": "123а к2"
     },
     {
       "unit": "Управление",
-      "name": "ФИО 2",
+      "surname": "Фамилия 2",
+      "name": "Имя 2",
+      "patronym": "Отчество 2",
       "position": "Начальник управления",
       "phone": null,
       "inner_phone": null,
       "office": null
+    },
+    {
+      "unit": "Отдел",
+      "surname": "Фамилия 3",
+      "name": "Имя 3",
+      "patronym": null,
+      "position": "Начальник отдела",
+      "phone": ["88005553556", "88005553557"],
+      "inner_phone": ["1235", "1236", "1237"],
+      "office": ["456", "789"]
     }
   ],
   "units": [
@@ -50,7 +66,13 @@ logger = logging.getLogger(__name__)
       "parent": "Руководство",
       "name": "Управление"
     }
-  ]
+  ],
+  "unit_boss_overwrite": {
+    "<unit>": "<new_boss>"
+  },
+  "user_boss_overwrite": {
+    "<user>": "<new_boss>"
+  }
 }
 """
 
@@ -59,7 +81,8 @@ def run():
     data = json.load(sys.stdin)
 
     org, created = Organization.objects.update_or_create(
-        name=data["org"]["name"], address=data["org"]["address"],
+        name=data["org"]["name"],
+        address=data["org"]["address"],
     )
     print("{} org: {}".format("Created" if created else "Updated", org.name))
 
@@ -75,53 +98,68 @@ def run():
         unit2ss[name] = ss
         print(
             "{} unit '{}', parent '{}'".format(
-                "Created" if created else "Updated", unit["name"], unit["parent"],
+                "Created" if created else "Updated",
+                unit["name"],
+                unit["parent"],
             ),
         )
 
     unit2boss = {}
     for user in data["users"]:
         unit = user["unit"]
-        surname, name, *rest = user["name"].split()
-        if len(rest) > 1:
-            raise ValueError("Bad full name for:", user)
-        patronym = rest[0] if len(rest) > 0 else None
 
-        matches = Employee.objects.filter(surname=surname, name=name, patronym=patronym)
+        fullname = user["surname"] + " " + user["name"]
+        matches = Employee.objects.filter(
+            surname=user["surname"], name=user["name"], patronym=user["patronym"]
+        )
         if matches.count() == 0:
-            logger.warning("No match found for: %s", user["name"])
+            logger.warning("No match found for: %s (%s)", fullname, user["unit"])
             continue
         elif matches.count() > 1:
             logger.warning(
-                "Too many (%d) matches found for: %s", matches.count(), user["name"],
+                "Too many (%d) matches found for: %s (%s), using the first match",
+                matches.count(),
+                fullname,
+                user["unit"],
             )
-            continue
 
         if unit not in unit2ss:
-            logger.warning("Unknown unit '%s' for: %s", unit, user["name"])
+            logger.warning(
+                "Unknown unit '%s' for: %s",
+                unit,
+                fullname,
+            )
             continue
 
         boss = None
         if unit not in unit2boss:
             unit2boss[unit] = matches[0]
             parent_unit = unit2ss[unit].parent_structural_subdivision
-            if parent_unit is not None:
+            if parent_unit is None:
+                pass
+            elif parent_unit.name in unit2boss:
+                boss = unit2boss[parent_unit.name]
+            else:
+                parent_unit = unit2ss[parent_unit.name].parent_structural_subdivision
                 boss = unit2boss[parent_unit.name]
         else:
             boss = unit2boss[unit]
 
-        matches.update(
+        phone = user["phone"][0] if type(user["phone"]) is list else user["phone"]
+        office = user["office"][0] if type(user["office"]) is list else user["office"]
+
+        matches.filter(id=matches[0].id).update(
             structural_division=unit2ss[unit],
-            telephone_number=user["phone"],
+            telephone_number=phone,
             inner_telephone_number=user["inner_phone"],
-            office=user["office"],
+            office=office,
             job_title=user["position"],
             chief_id=None if boss is None else boss.id,
         )
 
         print(
             "Updated user {}, unit {}, boss {}".format(
-                user["name"],
+                fullname,
                 user["unit"],
                 None if boss is None else f"{boss.surname} {boss.name}",
             ),

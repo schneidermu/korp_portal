@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { produce } from "immer";
 
-import { trimExtention } from "@/shared/utils";
+import { trimExtension } from "@/shared/utils";
 
 import { UpdateUserFn, User, userBlobURLs } from "./types";
 
@@ -13,7 +13,7 @@ const revokeUnusedURLs = (oldUser: User, user: User) => {
     if (s2.has(url)) {
       continue;
     }
-    URL.revokeObjectURL(trimExtention(url));
+    URL.revokeObjectURL(trimExtension(url));
   }
 };
 

@@ -8,9 +8,20 @@ export default defineConfig(({ mode }) => {
   const conf = {
     base: "/vite/",
     plugins: [react(), tsconfigPaths()],
+    test: {
+      globals: true,
+      environment: "jsdom",
+      setupFiles: "./src/tests.ts",
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        "@styled-system": path.resolve(__dirname, "./styled-system/"),
+        "@app": path.resolve(__dirname, "./src/v2/app"),
+        "@api": path.resolve(__dirname, "./src/v2/api"),
+        "@view": path.resolve(__dirname, "./src/v2/view"),
+        "@util": path.resolve(__dirname, "./src/v2/util"),
+        "@page": path.resolve(__dirname, "./src/v2/page"),
       },
     },
   };
@@ -20,13 +31,5 @@ export default defineConfig(({ mode }) => {
   return {
     ...conf,
     base: "/o/korp-portal-portlet/dist/",
-    build: {
-      rollupOptions: {
-        output: {
-          entryFileNames: "index.js",
-          assetFileNames: "[name].[ext]",
-        },
-      },
-    },
   };
 });

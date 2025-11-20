@@ -1,3 +1,5 @@
+import logging
+
 import base64
 import logging
 
@@ -1097,6 +1099,7 @@ class ValidateNextCloudView(APIView):
     permission_classes = ()  # Allow any by default
 
     def get(self, request):
+        logging.warn(request)
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
         unauthorized = Response(
             status=status.HTTP_401_UNAUTHORIZED,
@@ -1104,12 +1107,17 @@ class ValidateNextCloudView(APIView):
         )
 
         if not auth_header.startswith("Basic "):
-            return unauthorized
+            return Response(
+                {},
+                status=status.HTTP_200_OK,
+                headers={"WWW-Authenticate": 'Basic realm="Nextcloud"'},
+            )
 
         try:
             encoded = auth_header.split(" ", 1)[1]
             decoded = base64.b64decode(encoded).decode("utf-8")
             email, token_key = decoded.split(":", 1)
+            logging.warn(email, token_key)
         except Exception:
             return unauthorized
 

@@ -30,3 +30,15 @@ export const useFetchOrgs = () => {
       .then((raws) => raws.map(toOrganization)),
   );
 };
+
+export const useFetchOrg = (orgId: number | null) => {
+  const tokenFetch = useTokenFetcher();
+
+  const key = orgId !== null ? `/organization/${orgId}/` : null;
+
+  return useSWR<Organization>(key, (path: string) =>
+    tokenFetch(path)
+      .then((res) => res.json())
+      .then(toOrganization),
+  );
+};

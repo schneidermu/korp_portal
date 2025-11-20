@@ -1,9 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 html {
   overflow-y: scroll;
+}
+
+:root {
+  font-size: 16px;
 }
 
 .korp-portal-portlet {
@@ -18,8 +18,42 @@ html {
   color: inherit;
 }
 
-.korp-portal-portlet label,
-.korp-portal-portlet table {
+:where(.korp-portal-portlet) label,
+:where(.korp-portal-portlet) table {
   font: inherit;
   color: inherit;
+}
+
+a.active {
+  text-decoration: underline;
+}
+
+/* overwrite Liferay styles */
+#wrapper {
+  padding: 0 0 0 50px !important;
+}
+
+#wrapper .portlet-content {
+  padding: 0;
+}
+
+#wrapper #column-1 {
+  padding: 0;
+}
+
+#wrapper .row {
+  margin: 0;
+}
+
+#ControlMenu + #wrapper {
+  padding-left: 50px !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
 }

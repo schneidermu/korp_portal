@@ -14,4 +14,3 @@ gunicorn==22.0.0
 openpyxl
 pillow==10.3.0
 psycopg2-binary==2.9.3
-whitenoise==6.9.0
