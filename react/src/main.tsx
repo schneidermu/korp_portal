@@ -5,12 +5,15 @@ import { enableMapSet } from "immer";
 import { Provider } from "react-redux";
 import { SWRConfig } from "swr";
 
-import { store } from "@/app/store.ts";
+import { store } from "@/app/store";
 import { swrConfig } from "./app/swrConfig";
 
-import { App } from "@/features/App/App";
+import { App } from "@app/index";
 
 import "./index.css";
+
+import "@styled-system/styles.css";
+import "@app/index.css";
 
 enableMapSet();
 

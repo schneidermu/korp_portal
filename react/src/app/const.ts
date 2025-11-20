@@ -1,4 +1,5 @@
 export const BACKEND_PREFIX = import.meta.env.VITE_BACKEND_PREFIX;
+export const NEXTCLOUD_PREFIX = import.meta.env.VITE_NEXTCLOUD_PREFIX;
 
 export const BACKEND_API_PREFIX = BACKEND_PREFIX + "/api";
 
@@ -32,6 +33,11 @@ export const ACCEPT_DOCUMENTS = [
 export const DPA_CLOSE_DELAY: number = 1000;
 
 /**
+ * The delay, in milliseconds, used for debouncing filtering queries.
+ */
+export const QUERY_DEBOUNCE_DELAY: number = 400;
+
+/**
  * The URL pointing to the full terms of the Data Processing Agreement (DPA).
  *
  * * DPA = согласие на обработку персональных данных
@@ -41,3 +47,16 @@ export const DPA_TERMS_URL: string =
   "/media/doc/Положение_о_защите_и_обработке_персональных_данных.pdf";
 
 export const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+/**
+ * User hierarchy tree bg and border color palette.
+ */
+export const USER_TREE_COLORS = [
+  { bg: "#DDEAFC", border: "#4D71BE" },
+  { bg: "#F7FEF7", border: "#5AC75C" },
+  { bg: "#FFFCFA", border: "#FF7B02" },
+  { bg: "#FFFEF2", border: "#F1DC1E" },
+];
+
+// The maximum size of an image to upload (10 MiB).
+export const MAX_IMG_SIZE = 10 * 1024 * 1024;

@@ -1,0 +1,7 @@
+/.vite/
+/.pnpm-store/
+/dist/
+/node_modules/
+/styled-system/
+
+/*.tsbuildinfo

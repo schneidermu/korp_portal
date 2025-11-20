@@ -1,6 +1,10 @@
+/art/*
+!/art/.keep
+
 /.vite/
-/.yarn/
+/.pnpm-store/
 /dist/
 /node_modules/
+/styled-system/
 
 /*.tsbuildinfo

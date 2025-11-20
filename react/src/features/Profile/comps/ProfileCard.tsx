@@ -1,7 +1,19 @@
-import clsx from "clsx/lite";
-import { Link } from "react-router-dom";
+import React from "react";
 
-import { ACCEPT_IMAGES } from "@/app/const";
+import { Option as O } from "effect";
+
+import {
+  AspectRatio,
+  Box,
+  createListCollection,
+  Flex,
+  Grid,
+  HStack,
+  Icon,
+  Stack,
+  StackProps,
+  Text,
+} from "@chakra-ui/react";
 
 import {
   UpdateUserFn,
@@ -10,255 +22,243 @@ import {
   UserStatus,
 } from "@/features/user/types";
 import {
-  formatDateOfBirth,
   formatMobilePhone,
-  fullNameLong,
-  MonomorphFields,
+  NBSP,
   noop,
   stripPhoneNumber,
-  userPhotoPath,
 } from "@/shared/utils";
 
+import { UserSkills } from "@/features/Skills/Skills";
 import { Rating } from "@/features/rating/comps/Rating";
-import { Icon } from "@/shared/comps/Icon";
-import { Picture } from "@/shared/comps/Picture";
+import { Avatar, AvatarEditable } from "@/features/user/comps/Avatar";
 
-import {
-  EditableProperty,
-  FileInput,
-  PropertyInput,
-  PropertySelect,
-} from "../parts/parts";
+import { Field } from "../parts/Field";
+import { FieldValue } from "../parts/FieldValue";
+import { Input } from "../parts/Input";
+import { Section } from "../parts/Section";
+import { Select } from "../parts/Select";
+import { Subsection } from "../parts/Subsection";
+import { Link } from "react-router-dom";
+import { LuDownload } from "react-icons/lu";
 
-import atIcon from "@/assets/at.svg";
-import awardIcon from "@/assets/award.svg";
-import brightnessIcon from "@/assets/brightness.svg";
-import giftIcon from "@/assets/gift.svg";
-import peopleIcon from "@/assets/people.svg";
-import personIcon from "@/assets/person.svg";
-import phoneIcon from "@/assets/phone.svg";
-import pinIcon from "@/assets/pin.svg";
+const INFO_FIELDS = [
+  "lastName",
+  "firstName",
+  "patronym",
+  "status",
+  "dateOfBirth",
+  "phoneNumber",
+  "email",
+  "position",
+  "serviceRank",
+  "unit",
+  "organization",
+] as const;
 
-const Avatar = ({
-  user,
-  updateUser,
-  editing,
-}: {
-  user: User;
-  updateUser: UpdateUserFn;
-  editing: boolean;
-}) => {
-  return (
-    <Link
-      to={`/profile/${user.id}`}
-      className="shrink-0 rounded-photo overflow-hidden relative"
-    >
-      <Picture width="260px" height="100%" url={userPhotoPath(user)} />
-      {editing && (
-        <div className="w-full absolute bottom-0 text-[16px] bg-[#D9D9D9C0]">
-          <label
-            className="block w-full py-3 hover:underline text-center cursor-pointer select-none"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <FileInput
-              accept={ACCEPT_IMAGES}
-              onUpload={(url) => updateUser({ ...user, photo: url })}
-            />
-            Загрузить фото
-          </label>
-          <hr className="text-[#cecece]" />
-          <button
-            onClick={(event) => {
-              event.stopPropagation();
-              updateUser({ ...user, photo: null });
-            }}
-            className="w-full py-3 hover:underline select-none"
-            type="button"
-          >
-            Удалить фото
-          </button>
-        </div>
-      )}
-    </Link>
-  );
-};
+type Info = Pick<User, (typeof INFO_FIELDS)[number]>;
 
-export const InfoGrid = ({
-  user,
-  editing = false,
-  updateUser = noop,
-}: {
-  user: User;
-  editing?: boolean;
-  updateUser?: UpdateUserFn;
-}) => {
-  const changeField =
-    (key: MonomorphFields<User, string | null>) => (value: string) => {
-      let v: string | null = value;
-      if (key === "dateOfBirth" && !value) {
-        v = null;
+export const InfoGrid = React.memo(
+  function InfoGrid({
+    info,
+    editing,
+    updateUser,
+  }: {
+    info: Info;
+    editing: boolean;
+    updateUser: UpdateUserFn;
+  }) {
+    const changePhoneNumber = (phone: string) => {
+      const phoneValue = stripPhoneNumber(phone);
+      const prettyPhone = formatMobilePhone(phoneValue);
+      if (prettyPhone === phoneValue) {
+        updateUser((user) => (user.phoneNumber = phone));
+      } else {
+        updateUser((user) => (user.phoneNumber = prettyPhone));
       }
-      updateUser({ ...user, [key]: v });
     };
 
-  const field = ({
-    name,
-    icon,
-    field,
-    type = "text",
-    pattern,
-  }: {
-    name: string;
-    icon: string;
-    field: MonomorphFields<User, string | null>;
-    type?: string;
-    pattern?: string;
-    wrap?: boolean;
-  }) => (
-    <EditableProperty key={field} icon={icon} name={name} wrap={!editing}>
-      <PropertyInput
-        type={type}
-        pattern={pattern}
-        editing={editing}
-        value={user[field] ?? ""}
-        theme="py-[6px] px-[10px]"
-        text={
-          field === "dateOfBirth" && user[field]
-            ? formatDateOfBirth(new Date(user[field]))
-            : undefined
-        }
-        handleChange={changeField(field)}
-      />
-    </EditableProperty>
-  );
+    return (
+      <Grid w="full" templateColumns="repeat(3, 1fr)" columnGap="9" rowGap="5">
+        <Field label="Фамилия" editing={editing}>
+          <FieldValue editing={editing}>
+            <Text w="full">{info.lastName}</Text>
+          </FieldValue>
+        </Field>
 
-  const changePhoneNumber = (phone: string) => {
-    const phoneValue = stripPhoneNumber(phone);
-    const prettyPhone = formatMobilePhone(phoneValue);
-    if (prettyPhone === phoneValue) {
-      updateUser({ ...user, phoneNumber: phone });
-    } else {
-      updateUser({ ...user, phoneNumber: prettyPhone });
-    }
-  };
+        <Field label="Имя" editing={editing}>
+          <FieldValue editing={editing}>
+            <Text w="full">{info.firstName}</Text>
+          </FieldValue>
+        </Field>
 
-  return (
-    <div
-      className={clsx(
-        "grid grid-flow-col grid-rows-[repeat(5,45px)] grid-cols-2",
-        "gap-y-[15px] gap-x-[1em]",
-      )}
-    >
-      <EditableProperty key="status" name="Статус" icon={brightnessIcon}>
-        <PropertySelect
-          editing={editing}
-          value={user.status}
-          options={USER_STATUS.map((status) => [status, status])}
-          handleSelect={(value) => {
-            updateUser({ ...user, status: value as UserStatus });
-          }}
-        ></PropertySelect>
-      </EditableProperty>
-      {[
-        field({
-          field: "dateOfBirth",
-          name: "Дата рождения",
-          icon: giftIcon,
-          type: "date",
-        }),
-        <EditableProperty key="phoneNumber" icon={phoneIcon} name="Телефон">
-          <PropertyInput
+        <Field label="Отчество" editing={editing}>
+          <FieldValue editing={editing}>
+            <Text w="full">{O.getOrUndefined(info.patronym)}</Text>
+          </FieldValue>
+        </Field>
+
+        <Field label="Статус" editing={editing}>
+          <Select
+            h="100%"
             editing={editing}
-            value={user.phoneNumber}
-            theme="py-[6px] px-[10px]"
-            text={formatMobilePhone(user.phoneNumber)}
-            handleChange={changePhoneNumber}
+            borderWidth={0}
+            value={[info.status]}
+            onValueChange={({ value }) =>
+              updateUser((user) => (user.status = value[0] as UserStatus))
+            }
+            collection={createListCollection({
+              items: (USER_STATUS as readonly string[]).map((status) => ({
+                value: status,
+                label: status,
+              })),
+            })}
           />
-        </EditableProperty>,
-        <EditableProperty key="email" name="Почта" icon={atIcon}>
-          {user.email}
-        </EditableProperty>,
-        field({
-          field: "position",
-          name: "Должность",
-          icon: peopleIcon,
-        }),
-        field({
-          field: "serviceRank",
-          name: "Классный чин",
-          icon: awardIcon,
-        }),
-      ]}
-      <EditableProperty
-        key="organization"
-        name="Организация"
-        icon={pinIcon}
-        wrap={!editing}
-      >
-        {!editing && user.organization !== null ? (
-          <Link
-            to={`/list?org=${user.organization.id}`}
-            className="hover:underline"
-          >
-            {user.organization.name}
-          </Link>
-        ) : (
-          user.organization?.name
-        )}
-      </EditableProperty>
-      <div className="row-span-3">
-        <EditableProperty
-          key="unit"
-          name="Структурное подразделение"
-          icon={peopleIcon}
-          wrap
-        >
-          {!editing && user.organization !== null && user.unit !== null ? (
-            <Link
-              to={`/list?org=${user.organization.id}&q=${user.unit.name}`}
-              className="hover:underline"
-            >
-              {user.unit.name}
-            </Link>
-          ) : (
-            user.unit?.name
-          )}
-        </EditableProperty>
-      </div>
-    </div>
-  );
-};
+        </Field>
 
-export const ProfileCard = ({
-  user,
-  editing = false,
-  updateUser = noop,
-}: {
+        <Field label="Дата рождения" editing={editing}>
+          <Input
+            type="date"
+            editing={editing}
+            value={O.getOrElse(info.dateOfBirth, () => "")}
+            onChange={({ target: { value } }) =>
+              updateUser(
+                (user) => (user.dateOfBirth = O.fromNullable(value || null)),
+              )
+            }
+          />
+        </Field>
+
+        <Field label="Телефон" editing={editing}>
+          <Input
+            editing={editing}
+            maxLength={20}
+            value={formatMobilePhone(info.phoneNumber)}
+            onChange={({ target: { value } }) => changePhoneNumber(value)}
+          />
+        </Field>
+
+        <Field label="Почта" editing={editing}>
+          <FieldValue editing={editing}>
+            <Text w="full">{info.email}</Text>
+          </FieldValue>
+        </Field>
+
+        <Field label="Должность" editing={editing}>
+          <Input
+            editing={editing}
+            maxLength={100}
+            value={info.position}
+            onChange={({ target: { value } }) =>
+              updateUser((user) => (user.position = value))
+            }
+          />
+        </Field>
+
+        <Field label="Классный чин" editing={editing}>
+          <Input
+            editing={editing}
+            maxLength={20}
+            value={info.serviceRank}
+            onChange={({ target: { value } }) =>
+              updateUser((user) => (user.serviceRank = value))
+            }
+          />
+        </Field>
+
+        <Field
+          label="Структурное подразделение"
+          editing={editing}
+          gridColumn="span 2"
+        >
+          <FieldValue editing={editing}>
+            <Text w="full">{O.getOrNull(info.unit)?.name || NBSP}</Text>
+          </FieldValue>
+        </Field>
+
+        <Field label="Организация" editing={editing}>
+          <FieldValue editing={editing}>
+            <Text w="full">{O.getOrNull(info.organization)?.name || NBSP}</Text>
+          </FieldValue>
+        </Field>
+      </Grid>
+    );
+  },
+  (prev, next) =>
+    prev.editing === next.editing &&
+    prev.updateUser === next.updateUser &&
+    INFO_FIELDS.every((field) => prev.info[field] === next.info[field]),
+);
+
+interface ProfileCardProps extends StackProps {
   user: User;
   editing?: boolean;
   updateUser?: UpdateUserFn;
-}) => {
+  title?: string;
+  highlightSkills?: string[];
+}
+
+export const ProfileCard = React.memo(function ProfileCard({
+  user,
+  editing = false,
+  updateUser = noop,
+  title,
+  highlightSkills,
+  ...rest
+}: ProfileCardProps) {
   return (
-    <section className="-ml-[20px] flex flex-col gap-[20px]">
-      <div className="flex gap-[64px] h-[340px]">
-        <Avatar editing={editing} user={user} updateUser={updateUser} />
+    <Section {...rest} position="relative">
+      <HStack
+        position="absolute"
+        top="4%"
+        right="3%"
+        gap={1}
+        cursor="pointer"
+        color="blue.1"
+        _hover={{ textDecoration: "underline" }}
+        zIndex={1}
+      >
+        <Link to={`/bc/${user.id}`} target="_blank">
+          Визитка
+        </Link>
+        <Icon>
+          <LuDownload />
+        </Icon>
+      </HStack>
+      <Subsection title={title}>
+        <Flex>
+          <Stack gap="6" mt="4" flexShrink="0" w={{ lg: 64, xl: 72 }}>
+            <Flex justify="center" mr="16">
+              <AspectRatio ratio={1} w={{ lg: 44, xl: 52 }}>
+                {editing ? (
+                  <AvatarEditable
+                    w="full"
+                    h="full"
+                    user={user}
+                    onUpload={(src) =>
+                      updateUser((user) => (user.photo = O.some(src)))
+                    }
+                  />
+                ) : (
+                  <Avatar user={user} w="full" h="full" />
+                )}
+              </AspectRatio>
+            </Flex>
+            <Box ml="8">
+              <Rating user={user} />
+            </Box>
+          </Stack>
 
-        <div className="w-full flex flex-col justify-between">
-          <div className="flex">
-            <Icon src={personIcon} width="33px" />
-            <Link
-              to={"/profile/" + user.id}
-              className="ml-[28px] text-[30px] hover:underline"
-            >
-              <h2>{fullNameLong(user)}</h2>
-            </Link>
-          </div>
-
-          <InfoGrid user={user} editing={editing} updateUser={updateUser} />
-        </div>
-      </div>
-
-      <Rating user={user} />
-    </section>
+          <InfoGrid info={user} editing={editing} updateUser={updateUser} />
+        </Flex>
+        {(editing || user.skills.length > 0) && (
+          <UserSkills
+            editing={editing}
+            skills={user.skills}
+            updateUser={updateUser}
+            highlightSkills={highlightSkills}
+          />
+        )}
+      </Subsection>
+    </Section>
   );
-};
+});

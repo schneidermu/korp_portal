@@ -17,7 +17,12 @@ const liferayFetchEmail = async (): Promise<string> => {
     .then(({ emailAddress }: { emailAddress: string }) => emailAddress);
 };
 
-export const useLogin = () => {
+export interface Credentials {
+  email: string;
+  password: string;
+}
+
+export const useLogin = (credentials?: Credentials) => {
   const auth = useAuth();
   const dispatch = useAppDispatch();
 
@@ -30,15 +35,19 @@ export const useLogin = () => {
       const pauth =
         import.meta.env.VITE_LIFERAY_EMBED === "true"
           ? Liferay.authToken
-          : import.meta.env.VITE_PAUTH;
+          : import.meta.env.VITE_PAUTH || credentials?.password || "";
 
       const email =
         import.meta.env.VITE_LIFERAY_EMBED === "true"
           ? await liferayFetchEmail()
-          : import.meta.env.VITE_EMAIL;
+          : import.meta.env.VITE_EMAIL || credentials?.email || "";
+
+      if (!pauth || !email) {
+        return;
+      }
 
       const { auth_token: token }: { auth_token: string } = await fetch(
-        `${BACKEND_API_PREFIX}/auth/token/login`,
+        `${BACKEND_API_PREFIX}/auth/token/login/`,
         {
           method: "POST",
           credentials: "include",
@@ -47,7 +56,12 @@ export const useLogin = () => {
             "Content-Type": "application/json",
           },
         },
-      ).then((res) => res.json());
+      ).then((res) => {
+        if (res.status !== 200) {
+          throw new Error("bad login");
+        }
+        return res.json();
+      });
 
       return fetch(`${BACKEND_API_PREFIX}/colleagues/me/`, {
         headers: {
@@ -59,10 +73,12 @@ export const useLogin = () => {
           ({
             id: userId,
             is_superuser: isAdmin,
+            user_groups_display: groups,
             organization,
           }: {
             id: string;
             is_superuser: boolean;
+            user_groups_display: string[];
             organization: null | { id: number };
           }) => {
             dispatch(
@@ -71,13 +87,14 @@ export const useLogin = () => {
                 email,
                 token,
                 isAdmin,
+                groups,
                 orgId: organization?.id ?? null,
               }),
             );
           },
         );
     })();
-  }, [dispatch, auth.isLoggedIn]);
+  }, [dispatch, auth.isLoggedIn, credentials]);
 
   return auth;
 };

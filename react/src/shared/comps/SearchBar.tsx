@@ -1,82 +1,39 @@
-import clsx from "clsx/lite";
+import { Input, InputGroup, InputGroupProps } from "@chakra-ui/react";
+import { LuSearch } from "react-icons/lu";
 
-import { Icon } from "./Icon";
+import { useDebounceState } from "@/shared/hooks/useDebounce";
 
-import crossIcon from "@/assets/cross.svg";
-import searchIcon from "@/assets/search.svg";
-
-const QueryTerm = ({
-  term,
-  handleClick,
+export const SearchBar = function SearchBar({
+  debounceDelay,
+  onDebounce,
+  ...rest
 }: {
-  term: string;
-  handleClick?: () => void;
-}) => {
-  return (
-    <div
-      className="flex gap-1 cursor-pointer bg-light-gray px-3 py-1 rounded"
-      onClick={handleClick}
-    >
-      <span>{term}</span>
-      <Icon src={crossIcon} width="0.8em" height="0.8em" />
-    </div>
+  debounceDelay: number;
+  onDebounce: (q: string) => void;
+} & Omit<InputGroupProps, "children">) {
+  const [query, setQuery] = useDebounceState<string>(
+    "",
+    debounceDelay,
+    onDebounce,
   );
-};
-
-export const SearchBar = ({
-  query,
-  setQuery,
-}: {
-  query: string[];
-  setQuery: (query: string[]) => void;
-}) => {
-  const enterTerm = () => {
-    setQuery([...query, ""]);
-  };
 
   return (
-    <div>
-      <div
-        className={clsx(
-          "px-[44px] py-[8px]",
-          "flex items-center gap-[16px]",
-          "rounded border-[4px] border-light-gray",
-        )}
-      >
-        <button onClick={enterTerm}>
-          <Icon src={searchIcon} width="40px" height="40px" />
-        </button>
-        <input
-          autoFocus
-          className={clsx(
-            "w-full text-[30px]",
-            "placeholder:text-medium-gray placeholder:font-medium",
-            "focus:outline-none",
-          )}
-          type="search"
-          placeholder="Поиск..."
-          value={query[query.length - 1] || ""}
-          onChange={({ target: { value } }) =>
-            setQuery([...query.slice(0, -1), value])
-          }
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              enterTerm();
-            }
-          }}
-        />
-      </div>
-      <div className="flex flex-wrap gap-2 ml-4 mt-2">
-        {query.slice(0, -1).map((term, i) => (
-          <QueryTerm
-            key={term}
-            term={term}
-            handleClick={() =>
-              setQuery([...query.slice(0, i), ...query.slice(i + 1)])
-            }
-          />
-        ))}
-      </div>
-    </div>
+    <InputGroup
+      h="fit"
+      startElement={<LuSearch />}
+      borderWidth={1}
+      borderRadius="small"
+      borderColor="gray.1"
+      // _focusVisible={{outline: "blue.4"}}
+      {...rest}
+    >
+      <Input
+        placeholder="Поиск..."
+        value={query}
+        outlineColor="blue.2"
+        _focusVisible={{ borderColor: "blue.2" }}
+        onChange={({ target }) => setQuery(target.value)}
+      />
+    </InputGroup>
   );
 };

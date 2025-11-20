@@ -1,23 +1,23 @@
-import React, { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import clsx from "clsx/lite";
+import { Checkbox, Flex, Show, Stack, Text } from "@chakra-ui/react";
 
-import { useUserState } from "@/features/user/hooks";
-import {
-  cmpUsers,
-  useFetchUser,
-  useFetchUsers,
-} from "@/features/user/services";
+import { QUERY_DEBOUNCE_DELAY, USERS_PAGE_LIMIT } from "@/app/const";
+import { cmpUsers, useFetchUsers } from "@/features/user/services";
 import { filterUsers, User } from "@/features/user/types";
-import {
-  useIntSearchParam,
-  useQuerySearchParam,
-} from "@/shared/hooks/useSearchParam";
+import { useIntSearchParam } from "@/shared/hooks/useSearchParam";
 
-import { AnimatePage, PageSkel } from "@/features/App/comps/PageSkel";
-import { OrgPicker } from "@/features/org/comps/OrgPicker";
+import { Page } from "@/features/App/comps/Page";
 import { ProfileCard } from "@/features/Profile/comps/ProfileCard";
+import { Skills } from "@/features/Skills/Skills";
+
+import { useReachBottom } from "@/shared/hooks/useReachBottom";
 import { SearchBar } from "@/shared/comps/SearchBar";
+import { ruOnNum } from "@/shared/utils/lang.ts";
+import { useIntParam } from "@/shared/hooks/useIntParam.ts";
+import { useNavigate } from "react-router-dom";
+import { PageHeading } from "@/features/App/comps/PageHeading.tsx";
+import { OrgPicker, UnitPicker } from "@/features/org/comps/OrgPicker";
 
 const FILTER_FIELDS = new Set<keyof User>([
   "unit",
@@ -27,68 +27,128 @@ const FILTER_FIELDS = new Set<keyof User>([
   "email",
   "phoneNumber",
   "serviceRank",
+  "office",
 ]);
 
-const UserCard = React.memo(function UserCard({ userId }: { userId: string }) {
-  const { user } = useFetchUser(userId);
-  const [userState, updateUserState] = useUserState(user);
+// /list/ -> orgId=null, users with an org
+// /list/0 -> orgId=0, users with no org
+// /list/{id} -> orgId={id}, users with org {id}
 
-  if (!user || !userState) {
-    return undefined;
-  }
+export default function UserList() {
+  const navigate = useNavigate();
+  const orgId = useIntParam("orgId");
+  const [unitId, setUnitId] = useIntSearchParam("unitId");
+  const [query, setQuery] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
+  const [requireEverySkill, setRequireEverySkill] = useState(false);
+  const {
+    data: { isLoading, users, totalUsers },
+  } = useFetchUsers({ orgId, unitId, sort: true, query });
+  const [numPages, setNumPages] = useState(1);
 
-  return (
-    <div
-      className={clsx(
-        "pt-[52px] pr-[25px] pb-[92px] pl-[36px]",
-        "border-[3px] border-light-gray rounded",
-      )}
-    >
-      <ProfileCard user={userState} updateUser={updateUserState} />
-    </div>
-  );
-});
+  useReachBottom(() => {
+    if (users.size > numPages * USERS_PAGE_LIMIT) {
+      setNumPages(numPages + 1);
+      return true;
+    }
+    return false;
+  });
 
-export const UserList = () => {
-  const [orgId, setOrgId] = useIntSearchParam("org");
-  const [query, setQuery] = useQuerySearchParam("q");
+  useEffect(() => setNumPages(1), [orgId, unitId, query, setNumPages]);
 
-  const { data: allUsers } = useFetchUsers(orgId);
-
-  const users = useMemo(() => {
-    if (!allUsers || orgId === null) {
+  const filteredUsers = useMemo(() => {
+    if (!users) {
       return [];
     }
-    let users = [...allUsers.values()];
-    for (const term of query) {
-      users = filterUsers(users, term, FILTER_FIELDS);
-    }
-    users = users.sort(cmpUsers);
-    return users;
-  }, [allUsers, query, orgId]);
 
-  const id = query.slice(0, -1).join("+");
+    let filteredUsers = filterUsers([...users.values()], query, FILTER_FIELDS);
+    if (skills.length > 0) {
+      filteredUsers = filteredUsers.filter((user) => {
+        const userSkills = user.skills.map((skill) => skill.toLowerCase());
+        const matchSkills = skills.map((s) => s.toLowerCase());
+        if (requireEverySkill) {
+          return matchSkills.every((matchSkill) =>
+            userSkills.some((userSkill) => userSkill.includes(matchSkill)),
+          );
+        } else {
+          return matchSkills.some((matchSkill) =>
+            userSkills.some((userSkill) => userSkill.includes(matchSkill)),
+          );
+        }
+      });
+    }
+    filteredUsers.sort(cmpUsers);
+
+    return filteredUsers;
+  }, [users, query, skills, requireEverySkill]);
+
+  const l =
+    query === "" && skills.length === 0 ? totalUsers : filteredUsers.length;
+  const countText = ruOnNum(l, {
+    zero: isLoading
+      ? "Идёт поиск..."
+      : !orgId && query.length < 3
+        ? "Введите хотя бы 3 символа в поиск"
+        : "Не нашлось ни одного человека",
+    one: `Нашёлся ${l} человек`,
+    x234: `Нашлось ${l} человека`,
+    other: `Нашлось ${l} человек`,
+  });
 
   return (
-    <AnimatePage id={id}>
-      <SearchBar query={query} setQuery={setQuery} />
-      <div className="h-[45px]"></div>
-      <PageSkel
-        title="Список сотрудников"
-        heading="Список сотрудников"
-        id={id}
-        slot={
-          <div className="basis-1/4">
-            <OrgPicker orgId={orgId} setOrgId={setOrgId} />
-          </div>
-        }
-      >
-        <div className="flex flex-col gap-[56px] mr-[36px] ml-[64px] pb-[60px]">
-          {users.map((user) => (
-            <UserCard key={user.id} userId={user.id} />
-          ))}
-        </div>
-      </PageSkel>
-    </AnimatePage>
+    <Page>
+      <Stack gap="7">
+        <PageHeading>
+          <Stack w="full">
+            <OrgPicker
+              title="Список сотрудников"
+              orgId={orgId}
+              setOrgId={(orgId) =>
+                navigate(orgId === null ? "/list/" : `/list/${orgId}`)
+              }
+            />
+            <Show when={orgId}>
+              <UnitPicker orgId={orgId} unitId={unitId} setUnitId={setUnitId} />
+            </Show>
+          </Stack>
+        </PageHeading>
+
+        <SearchBar debounceDelay={QUERY_DEBOUNCE_DELAY} onDebounce={setQuery} />
+        <Flex justify="space-between" align="start" gap="8">
+          <Show
+            when={
+              orgId !== 0 &&
+              (orgId !== null || (query.length >= 3 && users.size > 0))
+            }
+          >
+            <Skills
+              editing
+              flexGrow="1"
+              placeholder="Поиск навыка"
+              skills={skills}
+              setSkills={setSkills}
+            />
+          </Show>
+          <Show when={skills.length >= 2}>
+            <Checkbox.Root
+              flexShrink="0"
+              variant="outline"
+              checked={requireEverySkill}
+              onCheckedChange={({ checked }) => setRequireEverySkill(!!checked)}
+            >
+              <Checkbox.HiddenInput />
+              <Checkbox.Control borderWidth={1} borderColor="gray.2">
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              <Checkbox.Label>Нужен каждый навык</Checkbox.Label>
+            </Checkbox.Root>
+          </Show>
+        </Flex>
+        <Text>{countText}</Text>
+        {filteredUsers.slice(0, numPages * USERS_PAGE_LIMIT).map((user) => (
+          <ProfileCard key={user.id} user={user} highlightSkills={skills} />
+        ))}
+      </Stack>
+    </Page>
   );
-};
+}

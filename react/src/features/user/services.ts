@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
+import { Option as O, Option } from "effect";
 import { produce } from "immer";
 import useSWR, { mutate } from "swr";
 import useSWRInfinite from "swr/infinite";
@@ -7,11 +8,15 @@ import useSWRInfinite from "swr/infinite";
 import { USERS_PAGE_LIMIT } from "@/app/const";
 
 import { tokenFetch, useTokenFetcher } from "@/features/auth/hooks";
-import { Paged } from "@/shared/types";
-import { fileExtention, fullNameLong, trimExtention } from "@/shared/utils";
+import { Paged } from "@api/common/types";
+import {
+  fileExtension,
+  fullNameLong,
+  sorted,
+  trimExtension,
+} from "@/shared/utils";
 import { User, UserStatus } from "./types";
-
-import { Option } from "effect";
+import { AuthState, useAuth } from "../auth/slice";
 
 export const UserNotFoundError = new Error("User not found");
 
@@ -23,6 +28,7 @@ type UserData = {
   surname: string | null;
   name: string | null;
   patronym: string | null;
+  sex: "Мужской" | "Женский" | "Не указан" | null;
   status: UserStatus | null;
   birth_date: string | null;
   telephone_number: string | null;
@@ -72,6 +78,7 @@ type UserData = {
     }[];
     trainings: {
       name: string;
+      year: number | null;
       file?: string | null; // URI
     }[];
     volunteers: {
@@ -91,27 +98,33 @@ const toUser = (data: UserData): User => {
     isAdmin: data.is_superuser,
     lastName: data.surname ?? "?",
     firstName: data.name ?? "?",
-    patronym: data.patronym,
+    patronym: O.fromNullable(data.patronym),
+    sex:
+      data.sex === "Мужской"
+        ? "male"
+        : data.sex === "Женский"
+          ? "female"
+          : null,
     status: data.status ?? "На рабочем месте",
-    dateOfBirth: data.birth_date,
+    dateOfBirth: O.fromNullable(data.birth_date),
     phoneNumber: data.telephone_number ?? "",
     innerPhoneNumber: data.inner_telephone_number ?? "",
     office: data.office ?? "",
-    workExperience: char?.experience ?? null,
+    workExperience: O.fromNullable(char?.experience),
     about: char?.about ?? "",
-    skills: char?.competences[0]?.name ?? null,
-    photo: data.avatar ?? null,
+    skills: sorted(char?.competences.map(({ name }) => name) ?? []),
+    photo: O.fromNullable(data.avatar),
     position: data.job_title ?? "",
     serviceRank: data.class_rank ?? "",
-    bossId: data.chief,
-    unit: unit
-      ? {
-          id: unit.id,
-          name: unit.name,
-          parentId: unit.parent_structural_subdivision,
-        }
-      : null,
-    organization: data.organization || null,
+    bossId: O.fromNullable(data.chief),
+    unit: O.fromNullable(unit).pipe(
+      O.map((unit) => ({
+        id: unit.id,
+        name: unit.name,
+        parentId: unit.parent_structural_subdivision,
+      })),
+    ),
+    organization: Option.fromNullable(data.organization),
     avgRating: Option.fromNullable(data.average_rating),
     myRating: Option.fromNullable(data.rated_by_me),
     numRates: data.num_rates,
@@ -120,14 +133,15 @@ const toUser = (data: UserData): User => {
       char?.careers.map((c) => ({
         position: c.name,
         year_start: c.year_start,
-        month_start: c.month_start,
-        year_leave: c.year_finish,
-        month_leave: c.month_finish,
+        month_start: O.fromNullable(c.month_start),
+        year_leave: O.fromNullable(c.year_finish),
+        month_leave: O.fromNullable(c.month_finish),
       })) || [],
     training:
       char?.trainings.map((t) => ({
+        year: t.year ?? 0,
         name: t.name,
-        attachment: t.file ?? null,
+        attachment: O.fromNullable(t.file),
       })) || [],
     education:
       char?.universitys.map((u) => ({
@@ -136,20 +150,20 @@ const toUser = (data: UserData): User => {
         major: u.faculty ?? "",
       })) || [],
     courses:
-      char?.courses.map((c) => ({
-        year: c.year ?? 0,
-        name: c.name,
-        attachment: c.file ?? null,
+      char?.courses.map(({ name, file, year }) => ({
+        year: year ?? 0,
+        name: name,
+        attachment: O.fromNullable(file),
       })) || [],
     communityWork:
       char?.volunteers.map(({ name, file }) => ({
         name,
-        attachment: file ?? null,
+        attachment: O.fromNullable(file),
       })) || [],
     awards:
       char?.rewards.map(({ name, file }) => ({
         name,
-        attachment: file ?? null,
+        attachment: O.fromNullable(file),
       })) || [],
   };
 };
@@ -161,36 +175,38 @@ const fromUser = (user: User): UserData => ({
   is_superuser: user.isAdmin,
   surname: user.lastName,
   name: user.firstName,
-  patronym: user.patronym,
+  patronym: O.getOrNull(user.patronym),
+  sex:
+    user.sex === "male" ? "Мужской" : user.sex === "female" ? "Женский" : null,
   status: user.status,
-  birth_date: user.dateOfBirth,
+  birth_date: O.getOrNull(user.dateOfBirth),
   telephone_number: user.phoneNumber,
   inner_telephone_number: user.innerPhoneNumber,
   office: user.office,
   job_title: user.position,
   class_rank: user.serviceRank,
-  chief: user.bossId,
-  structural_division: user.unit && {
-    id: user.unit.id,
-    name: user.unit.name,
-    parent_structural_subdivision: user.unit.parentId,
-  },
-  organization: user.organization,
+  chief: O.getOrNull(user.bossId),
+  structural_division: O.map(user.unit, (unit) => ({
+    id: unit.id,
+    name: unit.name,
+    parent_structural_subdivision: unit.parentId,
+  })).pipe(O.getOrNull),
+  organization: O.getOrNull(user.organization),
   average_rating: Option.getOrNull(user.avgRating),
   rated_by_me: Option.getOrNull(user.myRating),
   num_rates: user.numRates,
-  avatar: user.photo,
+  avatar: O.getOrNull(user.photo),
   agreed_with_data_processing: user.agreeDataProcessing,
   characteristic: {
-    experience: user.workExperience ?? "",
+    experience: O.getOrElse(user.workExperience, () => ""),
     about: user.about,
-    competences: user.skills === null ? [] : [{ name: user.skills }],
+    competences: user.skills.map((name) => ({ name })),
     careers: user.career.map((c) => ({
       name: c.position,
       year_start: c.year_start,
-      month_start: c.month_start,
-      year_finish: c.year_leave,
-      month_finish: c.month_leave,
+      month_start: O.getOrNull(c.month_start),
+      year_finish: O.getOrNull(c.year_leave),
+      month_finish: O.getOrNull(c.month_leave),
     })),
     universitys: user.education.map((e) => ({
       name: e.university,
@@ -203,32 +219,57 @@ const fromUser = (user: User): UserData => ({
       name: c.name,
       year: c.year,
       month: null,
-      file: c.attachment ?? undefined,
+      file: O.getOrUndefined(c.attachment),
     })),
     rewards: user.awards.map((a) => ({
       name: a.name,
-      file: a.attachment ?? undefined,
+      file: O.getOrUndefined(a.attachment),
     })),
     trainings: user.training.map((t) => ({
       name: t.name,
-      file: t.attachment ?? undefined,
+      year: t.year,
+      file: O.getOrUndefined(t.attachment),
     })),
-    volunteers: user.communityWork.map(({ name, attachment: image }) => ({
+    volunteers: user.communityWork.map(({ name, attachment }) => ({
       name,
-      file: image ?? undefined,
+      file: O.getOrUndefined(attachment),
     })),
   },
 });
 
-export const useFetchUsers = (orgId: number | null) => {
+export const useFetchUsers = ({
+  orgId,
+  unitId,
+  sort,
+  query,
+}: {
+  orgId: number | null;
+  unitId?: number | null;
+  sort?: boolean;
+  query?: string;
+}) => {
   const tokenFetcher = useTokenFetcher();
 
   const limit = USERS_PAGE_LIMIT;
 
   const getKey = (index: number, prevPage: Paged<UserData>) => {
+    if (!orgId && (!query || query.length < 3)) {
+      return null;
+    }
     let key = `/colleagues/?limit=${limit}`;
-    if (orgId !== null) {
+    if (sort) {
+      key += `&sort_by=name`;
+    }
+    if (orgId) {
       key += `&structural_division__organization__id=${orgId}`;
+    } else {
+      key += `&structural_division__id__isnull=${orgId === 0 ? "true" : "false"}`;
+    }
+    if (typeof unitId === "number") {
+      key += `&structural_division__id=${unitId}`;
+    }
+    if (!orgId && query) {
+      key += `&search=${query}`;
     }
     if (index === 0) return key;
     if (prevPage && prevPage.next === null) return null;
@@ -250,6 +291,7 @@ export const useFetchUsers = (orgId: number | null) => {
 
   const {
     data: pages,
+    isLoading,
     error,
     size,
     setSize,
@@ -258,8 +300,13 @@ export const useFetchUsers = (orgId: number | null) => {
     revalidateFirstPage: false,
   });
 
-  const data = new Map(
-    pages?.flatMap((page) => page.results.map((user) => [user.id, user])) ?? [],
+  const users = useMemo(
+    () =>
+      new Map(
+        pages?.flatMap((page) => page.results.map((user) => [user.id, user])) ??
+          [],
+      ),
+    [pages],
   );
 
   const allAreLoaded = pages ? pages[pages.length - 1]?.next === null : false;
@@ -270,7 +317,14 @@ export const useFetchUsers = (orgId: number | null) => {
     }
   }, [size, pages?.length, setSize, allAreLoaded]);
 
-  return { data, error };
+  return {
+    data: {
+      isLoading,
+      users,
+      totalUsers: (pages && pages[0]?.count) ?? 0,
+    },
+    error,
+  };
 };
 
 export const cmpUsers = (u1: User, u2: User): -1 | 0 | 1 => {
@@ -297,7 +351,9 @@ export const sortUsers = (users: User[]): User[] => {
 
   for (const user of users) {
     const tree = trees.get(user.id)!;
-    const bossTree = user.bossId === null ? undefined : trees.get(user.bossId);
+    const bossTree = O.map(user.bossId, (bossId) => trees.get(bossId)).pipe(
+      O.getOrUndefined,
+    );
     if (bossTree) {
       bossTree.branches.push(tree);
     } else {
@@ -371,19 +427,28 @@ export const useFetchUsersSubset = ({
 export const useFetchColleagues = (
   user: User,
 ): Map<string, User> | undefined => {
-  const s1 = useFetchUsersSubset({ unitId: user.unit?.id });
+  const s1 = useFetchUsersSubset({
+    unitId: O.map(user.unit, (unit) => unit.id).pipe(O.getOrUndefined),
+  });
   const s2 = useFetchUsersSubset({ bossId: user.id });
-  const s = [...(s1?.data || []), ...(s2?.data || [])];
-  if (s.length === 0) return;
-  s.sort(cmpUsers);
-  return new Map(s.map((user) => [user.id, user]));
+
+  return useMemo(() => {
+    const s = [...(s1?.data || []), ...(s2?.data || [])];
+    if (s.length === 0) return;
+    s.sort(cmpUsers);
+    return new Map(s.map((user) => [user.id, user]));
+  }, [s1?.data, s2?.data]);
 };
 
-export const useFetchUser = (userId?: string | null) => {
+export const useFetchUser = (userId: O.Option<string>) => {
+  const auth = useAuth();
   const tokenFetcher = useTokenFetcher();
 
   const { data, ...rest } = useSWR<User>(
-    userId ? `/colleagues/${userId}/` : null,
+    O.map(
+      userId,
+      (id) => `/colleagues/${id === auth.userId ? "me" : id}/`,
+    ).pipe(O.getOrNull),
     async (path: string) =>
       tokenFetcher(path)
         .then((res) => {
@@ -404,14 +469,14 @@ export const useFetchUser = (userId?: string | null) => {
 };
 
 export const uploadFile = async (token: string, uri: string | null) => {
-  if (!uri?.startsWith("blob:")) {
+  if (!uri?.startsWith("blob:") && !uri?.startsWith("data:")) {
     return uri ?? undefined;
   }
-  const ext = fileExtention(uri);
-  if (!ext) {
+  const ext = fileExtension(uri);
+  if (uri.startsWith("blob:") && !ext) {
     return;
   }
-  uri = trimExtention(uri);
+  uri = trimExtension(uri);
   const blob = await fetch(uri).then((res) => res.blob());
   const formData = new FormData();
   const timestamp = new Date().getTime();
@@ -424,7 +489,16 @@ export const uploadFile = async (token: string, uri: string | null) => {
     .then(({ file }) => decodeURI(file));
 };
 
-export const saveUser = async (token: string, user: User) => {
+export const saveUser = async (auth: AuthState, user: User) => {
+  user = {
+    ...user,
+    // Drop entries with empty images.
+    awards: user.awards.filter(({ attachment }) => O.isSome(attachment)),
+    communityWork: user.communityWork.filter(({ attachment }) =>
+      O.isSome(attachment),
+    ),
+  };
+
   const data = fromUser(user);
 
   const attrs = [
@@ -435,12 +509,12 @@ export const saveUser = async (token: string, user: User) => {
   ] as const;
 
   await Promise.all([
-    uploadFile(token, user.photo).then((file) => {
+    uploadFile(auth.token, O.getOrNull(user.photo)).then((file) => {
       data.avatar = file ?? null;
     }),
     ...attrs.flatMap(([attr, apiAttr]) =>
       (user[attr] || []).map(({ attachment }, i) =>
-        uploadFile(token, attachment)
+        uploadFile(auth.token, O.getOrNull(attachment))
           .then((file) => {
             if (data.characteristic) {
               data.characteristic[apiAttr][i].file = file;
@@ -451,7 +525,9 @@ export const saveUser = async (token: string, user: User) => {
     ),
   ]);
 
-  return tokenFetch(token, `/colleagues/${user.id}/`, {
+  const userId = auth.userId === user.id ? "me" : user.id;
+
+  return tokenFetch(auth.token, `/colleagues/${userId}/`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -470,8 +546,7 @@ export const saveUser = async (token: string, user: User) => {
       const opt = {
         revalidate: false,
       };
-      mutate(`/colleagues/${user.id}/`, user, opt);
-      mutate(`/colleagues/me/`, user, opt);
+      mutate(`/colleagues/${userId}/`, user, opt);
       mutate(
         "/colleagues/",
         (users?: Map<string, User>) => {
