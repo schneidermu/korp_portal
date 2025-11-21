@@ -36,16 +36,33 @@ from employees.models import (
     SegmentGroup,
     StructuralSubdivision,
 )
-from homepage.models import Answer, News, Poll, PollGroup, PollSubmission, Question
+from homepage.models import (
+    Answer,
+    Comment,
+    Course,
+    Like,
+    News,
+    Poll,
+    PollGroup,
+    PollSubmission,
+    Question,
+    Video,
+    VideoView,
+)
 
 from .filters import CompetenceFilter, IdeaFilter
 from .permissions import IsAdminUserOrReadOnly
 from .serializers import (
+    CommentSerializer,
     CompetenceSerializer,
+    CourseDetailSerializer,
+    CourseListSerializer,
+    CourseWriteSerializer,
     FavoriteSegmentSerializer,
     FileUploadSerializer,
     HierarchySerializer,
     IdeaSerializer,
+    LikeSerializer,
     MyProfileSerializer,
     NewsSerializer,
     OrganizationSerializer,
@@ -63,6 +80,7 @@ from .serializers import (
     SegmentSerializer,
     StructuralSubdivisionReadSerializer,
     StructuralSubdivisionWriteSerializer,
+    VideoSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -1426,3 +1444,144 @@ class SegmentGroupViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Возвращает кверисет с prefetch для оптимизации."""
         return self.queryset.prefetch_related("segments")
+
+
+class VideoViewSet(viewsets.ModelViewSet):
+    """Вьюсет для видео с CRUD операциями."""
+
+    serializer_class = VideoSerializer
+    permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["author", "is_published"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["name", "pub_date", "created_at"]
+    ordering = ["-pub_date"]
+
+    def get_queryset(self):
+        """Возвращает опубликованные видео для обычных пользователей."""
+        user = self.request.user
+
+        if user.is_staff or user.is_superuser:
+            return (
+                Video.objects.all()
+                .select_related("author")
+                .prefetch_related("likes", "views", "comments")
+            )
+
+        return (
+            Video.objects.filter(is_published=True, pub_date__lte=timezone.now())
+            .select_related("author")
+            .prefetch_related("likes", "views", "comments")
+        )
+
+    def perform_create(self, serializer):
+        """Автоматически устанавливает автора видео при создании."""
+        serializer.save(author=self.request.user)
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def like(self, request, pk=None):
+        """Поставить лайк видео."""
+        video = self.get_object()
+
+        like, created = Like.objects.get_or_create(video=video, user=request.user)
+
+        if created:
+            return Response(
+                {"message": "Лайк добавлен", "is_liked": True},
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                {"message": "Вы уже поставили лайк этому видео", "is_liked": True},
+                status=status.HTTP_200_OK,
+            )
+
+    @action(detail=True, methods=["delete"], permission_classes=[IsAuthenticated])
+    def unlike(self, request, pk=None):
+        """Убрать лайк с видео."""
+        video = self.get_object()
+
+        try:
+            like = Like.objects.get(video=video, user=request.user)
+            like.delete()
+            return Response(
+                {"message": "Лайк удален", "is_liked": False},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        except Like.DoesNotExist:
+            return Response(
+                {"error": "Вы не ставили лайк этому видео"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def view(self, request, pk=None):
+        """Зарегистрировать просмотр видео."""
+        video = self.get_object()
+
+        # Создаем запись о просмотре (можно создавать несколько для одного пользователя)
+        VideoView.objects.create(video=video, user=request.user)
+
+        return Response(
+            {"message": "Просмотр зарегистрирован"},
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class CourseViewSet(viewsets.ModelViewSet):
+    """Вьюсет для курсов с CRUD операциями."""
+
+    permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["author", "is_published"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["name", "pub_date", "created_at"]
+    ordering = ["-pub_date"]
+
+    def get_queryset(self):
+        """Возвращает опубликованные курсы для обычных пользователей."""
+        user = self.request.user
+
+        if user.is_staff or user.is_superuser:
+            return (
+                Course.objects.all()
+                .select_related("author")
+                .prefetch_related("coursevideo_set__video")
+            )
+
+        return (
+            Course.objects.filter(is_published=True, pub_date__lte=timezone.now())
+            .select_related("author")
+            .prefetch_related("coursevideo_set__video")
+        )
+
+    def get_serializer_class(self):
+        """Возвращает разные сериализаторы для разных действий."""
+        if self.action == "retrieve":
+            return CourseDetailSerializer
+        elif self.action in ["create", "update", "partial_update"]:
+            return CourseWriteSerializer
+        return CourseListSerializer
+
+    def perform_create(self, serializer):
+        """Автоматически устанавливает автора курса при создании."""
+        serializer.save(author=self.request.user)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для комментариев к видео."""
+
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["video", "user"]
+    ordering_fields = ["pub_date"]
+    ordering = ["-pub_date"]
+
+    def get_queryset(self):
+        """Возвращает комментарии с prefetch для оптимизации."""
+        return Comment.objects.select_related("video", "user").all()
+
+    def perform_create(self, serializer):
+        """Автоматически устанавливает автора комментария при создании."""
+        serializer.save(user=self.request.user)
