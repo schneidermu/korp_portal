@@ -40,6 +40,13 @@ class _CustomLDAPUser(_LDAPUser):
             if response.status_code != 200:
                 raise self.AuthenticationFailed
 
+            try:
+                user_data = response.json()
+                if user_data.get("emailAddress") != self._username:
+                    raise self.AuthenticationFailed
+            except (ValueError, KeyError) as err:
+                raise self.AuthenticationFailed from err
+
             self._check_requirements()
             self._get_or_create_user()
 
@@ -94,6 +101,14 @@ class LiferayDatabaseBackend(ModelBackend):
             if not user.check_password(password):
                 response = requests.post(url, cookies=cookies, data=data, verify=False)
                 if response.status_code != 200:
+                    return None
+                
+                # Verify emailAddress matches username
+                try:
+                    user_data = response.json()
+                    if user_data.get("emailAddress") != username:
+                        return None
+                except (ValueError, KeyError):
                     return None
 
         except Employee.DoesNotExist:
