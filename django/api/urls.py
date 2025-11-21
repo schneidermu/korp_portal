@@ -4,7 +4,9 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     AgreeWithDataProcessingView,
     ColleagueProfileViewset,
+    CommentViewSet,
     CompetenceListView,
+    CourseViewSet,
     CustomTokenCreateView,
     FavoriteSegmentViewSet,
     FileUploadAPIView,
@@ -19,6 +21,7 @@ from .views import (
     SegmentViewSet,
     StructuralSubdivisionViewSet,
     ValidateNextCloudView,
+    VideoViewSet,
 )
 
 router_version1 = DefaultRouter()
@@ -35,6 +38,9 @@ router_version1.register(
 router_version1.register("segments", SegmentViewSet, basename="segment")
 router_version1.register("segment-groups", SegmentGroupViewSet, basename="segment-group")
 router_version1.register("favorite-segments", FavoriteSegmentViewSet, basename="favorite-segment")
+router_version1.register("videos", VideoViewSet, basename="video")
+router_version1.register("courses", CourseViewSet, basename="course")
+router_version1.register("comments", CommentViewSet, basename="comment")
 
 
 urlpatterns = [

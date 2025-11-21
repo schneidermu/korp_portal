@@ -1933,3 +1933,881 @@ class SegmentGroupAPITests(APITestCase):
         self.assertEqual(response.data[0]["name"], "ПКИ")
 
 
+@override_settings(
+    AUTHENTICATION_BACKENDS=["django.contrib.auth.backends.ModelBackend"],
+    FORCE_SCRIPT_NAME="",
+)
+class VideoAPITests(APITestCase):
+    """
+    Тесты для API видео.
+    
+    Проверяет функциональность CRUD операций для видео,
+    включая лайки, просмотры, права доступа и валидацию.
+    """
+
+    def setUp(self):
+        """Настройка тестового окружения."""
+        from homepage.models import Video
+        
+        self.user = Employee.objects.create_user(
+            username="regular_user",
+            password="testpass123",
+            email="user@example.com",
+        )
+        self.admin_user = Employee.objects.create_user(
+            username="admin_user",
+            password="adminpass123",
+            email="admin@example.com",
+            is_staff=True,
+        )
+        
+        # Создаем тестовое видео
+        self.video = Video.objects.create(
+            name="Тестовое видео",
+            description="Описание тестового видео",
+            author=self.admin_user,
+            pub_date=timezone.now() - timedelta(hours=1),
+            is_published=True,
+        )
+        
+        # Создаем неопубликованное видео
+        self.unpublished_video = Video.objects.create(
+            name="Неопубликованное видео",
+            description="Это видео не опубликовано",
+            author=self.admin_user,
+            pub_date=timezone.now() - timedelta(hours=1),
+            is_published=False,
+        )
+
+    def test_create_video_by_admin_success(self):
+        """Тест: Успешное создание видео администратором (POST)."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        
+        self.client.force_authenticate(user=self.admin_user)
+        
+        # Создаем фиктивный видеофайл
+        video_file = SimpleUploadedFile("test_video.mp4", b"file_content", content_type="video/mp4")
+        
+        data = {
+            "name": "Новое видео",
+            "description": "Описание нового видео",
+            "pub_date": timezone.now().isoformat(),
+            "is_published": True,
+            "media": video_file,
+        }
+        
+        response = self.client.post("/api/videos/", data, format="multipart")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["name"], "Новое видео")
+        self.assertEqual(response.data["author"], self.admin_user.pk)
+
+    def test_create_video_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может создавать видео (POST)."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "name": "Запрещенное видео",
+            "description": "Это должно быть запрещено",
+            "pub_date": timezone.now().isoformat(),
+            "is_published": True,
+        }
+        
+        response = self.client.post("/api/videos/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_videos_shows_only_published(self):
+        """Тест: Обычный пользователь видит только опубликованные видео."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get("/api/videos/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Проверяем, что в ответе только опубликованное видео
+        if "results" in response.data:
+            videos = response.data["results"]
+        else:
+            videos = response.data
+            
+        video_names = [v["name"] for v in videos]
+        self.assertIn("Тестовое видео", video_names)
+        self.assertNotIn("Неопубликованное видео", video_names)
+
+    def test_admin_sees_all_videos(self):
+        """Тест: Администратор видит все видео, включая неопубликованные."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        response = self.client.get("/api/videos/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        if "results" in response.data:
+            videos = response.data["results"]
+        else:
+            videos = response.data
+            
+        self.assertGreaterEqual(len(videos), 2)
+        video_names = [v["name"] for v in videos]
+        self.assertIn("Тестовое видео", video_names)
+        self.assertIn("Неопубликованное видео", video_names)
+
+    def test_retrieve_video_detail(self):
+        """Тест: Получение детальной информации о видео."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(f"/api/videos/{self.video.pk}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "Тестовое видео")
+        self.assertIn("likes_count", response.data)
+        self.assertIn("views_count", response.data)
+        self.assertIn("comments_count", response.data)
+        self.assertIn("is_liked_by_me", response.data)
+
+    def test_update_video_by_admin_success(self):
+        """Тест: Администратор может обновлять видео (PATCH)."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "name": "Обновленное название",
+            "description": "Обновленное описание",
+        }
+        
+        response = self.client.patch(f"/api/videos/{self.video.pk}/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.video.refresh_from_db()
+        self.assertEqual(self.video.name, "Обновленное название")
+
+    def test_update_video_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может обновлять видео."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "name": "Попытка обновления",
+            "description": "Это должно быть запрещено",
+            "pub_date": self.video.pub_date.isoformat(),
+            "is_published": True,
+        }
+        
+        response = self.client.put(f"/api/videos/{self.video.pk}/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_video_by_admin_success(self):
+        """Тест: Администратор может удалять видео (DELETE)."""
+        from homepage.models import Video
+        
+        self.client.force_authenticate(user=self.admin_user)
+        
+        video_to_delete = Video.objects.create(
+            name="Видео для удаления",
+            description="Будет удалено",
+            author=self.admin_user,
+            pub_date=timezone.now(),
+            is_published=True,
+        )
+        
+        video_id = video_to_delete.pk
+        response = self.client.delete(f"/api/videos/{video_id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Video.objects.filter(pk=video_id).exists())
+
+    def test_delete_video_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может удалять видео."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.delete(f"/api/videos/{self.video.pk}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_like_video_success(self):
+        """Тест: Пользователь может поставить лайк видео."""
+        from homepage.models import Like
+        
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.post(f"/api/videos/{self.video.pk}/like/")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("Лайк добавлен", response.data["message"])
+        self.assertTrue(response.data["is_liked"])
+        self.assertTrue(
+            Like.objects.filter(video=self.video, user=self.user).exists()
+        )
+
+    def test_like_video_twice_returns_message(self):
+        """Тест: Повторный лайк возвращает сообщение, что лайк уже поставлен."""
+        from homepage.models import Like
+        
+        self.client.force_authenticate(user=self.user)
+        
+        # Ставим первый лайк
+        Like.objects.create(video=self.video, user=self.user)
+        
+        # Пытаемся поставить второй лайк
+        response = self.client.post(f"/api/videos/{self.video.pk}/like/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("уже поставили лайк", response.data["message"])
+        self.assertTrue(response.data["is_liked"])
+        
+        # Проверяем, что лайк все еще один
+        self.assertEqual(
+            Like.objects.filter(video=self.video, user=self.user).count(), 1
+        )
+
+    def test_unlike_video_success(self):
+        """Тест: Пользователь может убрать лайк с видео."""
+        from homepage.models import Like
+        
+        self.client.force_authenticate(user=self.user)
+        
+        # Сначала ставим лайк
+        Like.objects.create(video=self.video, user=self.user)
+        
+        response = self.client.delete(f"/api/videos/{self.video.pk}/unlike/")
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertIn("Лайк удален", response.data["message"])
+        self.assertFalse(response.data["is_liked"])
+        self.assertFalse(
+            Like.objects.filter(video=self.video, user=self.user).exists()
+        )
+
+    def test_unlike_video_without_like_returns_error(self):
+        """Тест: Попытка убрать несуществующий лайк возвращает ошибку."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.delete(f"/api/videos/{self.video.pk}/unlike/")
+        
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn("не ставили лайк", response.data["error"])
+
+    def test_register_video_view(self):
+        """Тест: Регистрация просмотра видео."""
+        from homepage.models import VideoView
+        
+        self.client.force_authenticate(user=self.user)
+        
+        initial_views_count = VideoView.objects.filter(video=self.video).count()
+        
+        response = self.client.post(f"/api/videos/{self.video.pk}/view/")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("Просмотр зарегистрирован", response.data["message"])
+        
+        # Проверяем, что просмотр был создан
+        self.assertEqual(
+            VideoView.objects.filter(video=self.video, user=self.user).count(),
+            initial_views_count + 1
+        )
+
+    def test_multiple_views_are_allowed(self):
+        """Тест: Можно зарегистрировать несколько просмотров одного видео."""
+        from homepage.models import VideoView
+        
+        self.client.force_authenticate(user=self.user)
+        
+        # Регистрируем первый просмотр
+        self.client.post(f"/api/videos/{self.video.pk}/view/")
+        
+        # Регистрируем второй просмотр
+        response = self.client.post(f"/api/videos/{self.video.pk}/view/")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        # Проверяем, что оба просмотра зарегистрированы
+        self.assertGreaterEqual(
+            VideoView.objects.filter(video=self.video, user=self.user).count(), 2
+        )
+
+    def test_video_counts_in_response(self):
+        """Тест: В ответе корректно отображаются счетчики лайков, просмотров и комментариев."""
+        from homepage.models import Comment, Like, VideoView
+        
+        self.client.force_authenticate(user=self.user)
+        
+        # Создаем данные
+        Like.objects.create(video=self.video, user=self.user)
+        VideoView.objects.create(video=self.video, user=self.user)
+        VideoView.objects.create(video=self.video, user=self.user)
+        Comment.objects.create(video=self.video, user=self.user, text="Тестовый комментарий")
+        
+        response = self.client.get(f"/api/videos/{self.video.pk}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["likes_count"], 1)
+        self.assertEqual(response.data["views_count"], 2)
+        self.assertEqual(response.data["comments_count"], 1)
+        self.assertTrue(response.data["is_liked_by_me"])
+
+    def test_is_liked_by_me_false_when_not_liked(self):
+        """Тест: Поле is_liked_by_me = False, если пользователь не ставил лайк."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(f"/api/videos/{self.video.pk}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["is_liked_by_me"])
+
+    def test_like_requires_authentication(self):
+        """Тест: Для постановки лайка требуется аутентификация."""
+        response = self.client.post(f"/api/videos/{self.video.pk}/like/")
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_view_requires_authentication(self):
+        """Тест: Для регистрации просмотра требуется аутентификация."""
+        response = self.client.post(f"/api/videos/{self.video.pk}/view/")
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+@override_settings(
+    AUTHENTICATION_BACKENDS=["django.contrib.auth.backends.ModelBackend"],
+    FORCE_SCRIPT_NAME="",
+)
+class CourseAPITests(APITestCase):
+    """
+    Тесты для API курсов.
+    
+    Проверяет функциональность CRUD операций для курсов,
+    включая управление видео в курсе, права доступа и валидацию.
+    """
+
+    def setUp(self):
+        """Настройка тестового окружения."""
+        from homepage.models import Course, CourseVideo, Video
+        
+        self.user = Employee.objects.create_user(
+            username="regular_user",
+            password="testpass123",
+            email="user@example.com",
+        )
+        self.admin_user = Employee.objects.create_user(
+            username="admin_user",
+            password="adminpass123",
+            email="admin@example.com",
+            is_staff=True,
+        )
+        
+        # Создаем видео для курсов
+        self.video1 = Video.objects.create(
+            name="Видео 1",
+            description="Первое видео",
+            author=self.admin_user,
+            pub_date=timezone.now(),
+            is_published=True,
+        )
+        self.video2 = Video.objects.create(
+            name="Видео 2",
+            description="Второе видео",
+            author=self.admin_user,
+            pub_date=timezone.now(),
+            is_published=True,
+        )
+        
+        # Создаем тестовый курс
+        self.course = Course.objects.create(
+            name="Тестовый курс",
+            description="Описание тестового курса",
+            author=self.admin_user,
+            pub_date=timezone.now() - timedelta(hours=1),
+            is_published=True,
+        )
+        
+        # Добавляем видео в курс
+        CourseVideo.objects.create(course=self.course, video=self.video1, order=1)
+        CourseVideo.objects.create(course=self.course, video=self.video2, order=2)
+        
+        # Создаем неопубликованный курс
+        self.unpublished_course = Course.objects.create(
+            name="Неопубликованный курс",
+            description="Этот курс не опубликован",
+            author=self.admin_user,
+            pub_date=timezone.now(),
+            is_published=False,
+        )
+
+    def test_create_course_by_admin_success(self):
+        """Тест: Администратор может создать курс."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "name": "Новый курс",
+            "description": "Описание нового курса",
+            "pub_date": timezone.now().isoformat(),
+            "is_published": True,
+            "videos": [
+                {"video_id": self.video1.pk, "order": 1},
+                {"video_id": self.video2.pk, "order": 2},
+            ]
+        }
+        
+        response = self.client.post("/api/courses/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["name"], "Новый курс")
+        # CourseWriteSerializer не возвращает author в ответе
+        # Проверяем, что курс создан с правильным автором
+        from homepage.models import Course
+        created_course = Course.objects.get(name="Новый курс")
+        self.assertEqual(created_course.author, self.admin_user)
+
+    def test_create_course_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может создавать курсы."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "name": "Запрещенный курс",
+            "description": "Это должно быть запрещено",
+            "pub_date": timezone.now().isoformat(),
+            "is_published": True,
+        }
+        
+        response = self.client.post("/api/courses/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_courses_shows_only_published(self):
+        """Тест: Обычный пользователь видит только опубликованные курсы."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get("/api/courses/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        if "results" in response.data:
+            courses = response.data["results"]
+        else:
+            courses = response.data
+            
+        course_names = [c["name"] for c in courses]
+        self.assertIn("Тестовый курс", course_names)
+        self.assertNotIn("Неопубликованный курс", course_names)
+
+    def test_admin_sees_all_courses(self):
+        """Тест: Администратор видит все курсы."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        response = self.client.get("/api/courses/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        if "results" in response.data:
+            courses = response.data["results"]
+        else:
+            courses = response.data
+            
+        self.assertGreaterEqual(len(courses), 2)
+        course_names = [c["name"] for c in courses]
+        self.assertIn("Тестовый курс", course_names)
+        self.assertIn("Неопубликованный курс", course_names)
+
+    def test_retrieve_course_detail_with_videos(self):
+        """Тест: При получении детальной информации о курсе возвращаются видео."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(f"/api/courses/{self.course.pk}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["name"], "Тестовый курс")
+        self.assertIn("course_videos", response.data)
+        self.assertEqual(len(response.data["course_videos"]), 2)
+        
+        # Проверяем, что видео в правильном порядке
+        self.assertEqual(response.data["course_videos"][0]["video"]["name"], "Видео 1")
+        self.assertEqual(response.data["course_videos"][1]["video"]["name"], "Видео 2")
+
+    def test_list_courses_shows_videos_count(self):
+        """Тест: В списке курсов отображается количество видео."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get("/api/courses/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        if "results" in response.data:
+            courses = response.data["results"]
+        else:
+            courses = response.data
+            
+        test_course = next(c for c in courses if c["name"] == "Тестовый курс")
+        self.assertEqual(test_course["videos_count"], 2)
+
+    def test_update_course_by_admin_success(self):
+        """Тест: Администратор может обновить курс."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "name": "Обновленный курс",
+            "description": "Обновленное описание",
+            "pub_date": self.course.pub_date.isoformat(),
+            "is_published": True,
+            "videos": [
+                {"video_id": self.video2.pk, "order": 1},
+            ]
+        }
+        
+        response = self.client.put(f"/api/courses/{self.course.pk}/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.course.refresh_from_db()
+        self.assertEqual(self.course.name, "Обновленный курс")
+        
+        # Проверяем, что видео обновились
+        self.assertEqual(self.course.coursevideo_set.count(), 1)
+
+    def test_update_course_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может обновлять курсы."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "name": "Попытка обновления",
+            "description": "Это должно быть запрещено",
+            "pub_date": self.course.pub_date.isoformat(),
+            "is_published": True,
+        }
+        
+        response = self.client.put(f"/api/courses/{self.course.pk}/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_course_by_admin_success(self):
+        """Тест: Администратор может удалить курс."""
+        from homepage.models import Course
+        
+        self.client.force_authenticate(user=self.admin_user)
+        
+        course_to_delete = Course.objects.create(
+            name="Курс для удаления",
+            description="Будет удален",
+            author=self.admin_user,
+            pub_date=timezone.now(),
+            is_published=True,
+        )
+        
+        course_id = course_to_delete.pk
+        response = self.client.delete(f"/api/courses/{course_id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Course.objects.filter(pk=course_id).exists())
+
+    def test_delete_course_by_regular_user_forbidden(self):
+        """Тест: Обычный пользователь не может удалять курсы."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.delete(f"/api/courses/{self.course.pk}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_course_without_videos(self):
+        """Тест: Можно создать курс без видео."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "name": "Курс без видео",
+            "description": "Этот курс пока пустой",
+            "pub_date": timezone.now().isoformat(),
+            "is_published": True,
+        }
+        
+        response = self.client.post("/api/courses/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["name"], "Курс без видео")
+
+
+@override_settings(
+    AUTHENTICATION_BACKENDS=["django.contrib.auth.backends.ModelBackend"],
+    FORCE_SCRIPT_NAME="",
+)
+class CommentAPITests(APITestCase):
+    """
+    Тесты для API комментариев.
+    
+    Проверяет функциональность CRUD операций для комментариев,
+    включая права доступа - все аутентифицированные пользователи могут комментировать.
+    """
+
+    def setUp(self):
+        """Настройка тестового окружения."""
+        from homepage.models import Comment, Video
+        
+        self.user = Employee.objects.create_user(
+            username="regular_user",
+            password="testpass123",
+            email="user@example.com",
+        )
+        self.other_user = Employee.objects.create_user(
+            username="other_user",
+            password="otherpass123",
+            email="other@example.com",
+        )
+        self.admin_user = Employee.objects.create_user(
+            username="admin_user",
+            password="adminpass123",
+            email="admin@example.com",
+            is_staff=True,
+        )
+        
+        # Создаем видео
+        self.video = Video.objects.create(
+            name="Видео для комментариев",
+            description="Тестовое видео",
+            author=self.admin_user,
+            pub_date=timezone.now(),
+            is_published=True,
+        )
+        
+        # Создаем комментарий от пользователя
+        self.comment = Comment.objects.create(
+            video=self.video,
+            user=self.user,
+            text="Тестовый комментарий",
+        )
+
+    def test_create_comment_by_regular_user_success(self):
+        """Тест: Обычный пользователь может создать комментарий."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "video": self.video.pk,
+            "text": "Новый комментарий от пользователя",
+        }
+        
+        response = self.client.post("/api/comments/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["text"], "Новый комментарий от пользователя")
+        self.assertEqual(response.data["user"], self.user.pk)
+
+    def test_create_comment_by_another_user_success(self):
+        """Тест: Другой пользователь также может создать комментарий."""
+        self.client.force_authenticate(user=self.other_user)
+        
+        data = {
+            "video": self.video.pk,
+            "text": "Комментарий от другого пользователя",
+        }
+        
+        response = self.client.post("/api/comments/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["user"], self.other_user.pk)
+
+    def test_create_comment_by_admin_success(self):
+        """Тест: Администратор может создать комментарий."""
+        self.client.force_authenticate(user=self.admin_user)
+        
+        data = {
+            "video": self.video.pk,
+            "text": "Комментарий от администратора",
+        }
+        
+        response = self.client.post("/api/comments/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["user"], self.admin_user.pk)
+
+    def test_create_comment_without_authentication_forbidden(self):
+        """Тест: Неаутентифицированный пользователь не может создать комментарий."""
+        data = {
+            "video": self.video.pk,
+            "text": "Попытка комментария без авторизации",
+        }
+        
+        response = self.client.post("/api/comments/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_list_comments(self):
+        """Тест: Получение списка комментариев."""
+        from homepage.models import Comment
+        
+        self.client.force_authenticate(user=self.user)
+        
+        # Создаем дополнительные комментарии
+        Comment.objects.create(video=self.video, user=self.other_user, text="Второй комментарий")
+        Comment.objects.create(video=self.video, user=self.admin_user, text="Третий комментарий")
+        
+        response = self.client.get("/api/comments/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        if "results" in response.data:
+            comments = response.data["results"]
+        else:
+            comments = response.data
+            
+        self.assertGreaterEqual(len(comments), 3)
+
+    def test_filter_comments_by_video(self):
+        """Тест: Фильтрация комментариев по видео."""
+        from homepage.models import Comment, Video
+        
+        self.client.force_authenticate(user=self.user)
+        
+        # Создаем другое видео с комментарием
+        other_video = Video.objects.create(
+            name="Другое видео",
+            description="Еще одно видео",
+            author=self.admin_user,
+            pub_date=timezone.now(),
+            is_published=True,
+        )
+        Comment.objects.create(video=other_video, user=self.user, text="Комментарий к другому видео")
+        
+        response = self.client.get(f"/api/comments/?video={self.video.pk}")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        if "results" in response.data:
+            comments = response.data["results"]
+        else:
+            comments = response.data
+            
+        # Все комментарии должны быть к нашему видео
+        for comment in comments:
+            self.assertEqual(comment["video"], self.video.pk)
+
+    def test_retrieve_comment_detail(self):
+        """Тест: Получение детальной информации о комментарии."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(f"/api/comments/{self.comment.pk}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["text"], "Тестовый комментарий")
+        self.assertEqual(response.data["user"], self.user.pk)
+        self.assertIn("user_name", response.data)
+
+    def test_update_own_comment_success(self):
+        """Тест: Пользователь может обновить свой комментарий."""
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "video": self.video.pk,
+            "text": "Обновленный текст комментария",
+        }
+        
+        response = self.client.put(f"/api/comments/{self.comment.pk}/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.text, "Обновленный текст комментария")
+
+    def test_update_others_comment_allowed(self):
+        """Тест: Пользователь может обновить чужой комментарий (все аутентифицированные имеют доступ)."""
+        self.client.force_authenticate(user=self.other_user)
+        
+        data = {
+            "video": self.video.pk,
+            "text": "Изменение чужого комментария",
+        }
+        
+        response = self.client.put(f"/api/comments/{self.comment.pk}/", data, format="json")
+        
+        # Так как CommentViewSet использует только IsAuthenticated, любой пользователь может редактировать
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.text, "Изменение чужого комментария")
+
+    def test_delete_own_comment_success(self):
+        """Тест: Пользователь может удалить свой комментарий."""
+        from homepage.models import Comment
+        
+        self.client.force_authenticate(user=self.user)
+        
+        comment_to_delete = Comment.objects.create(
+            video=self.video,
+            user=self.user,
+            text="Комментарий для удаления",
+        )
+        
+        comment_id = comment_to_delete.pk
+        response = self.client.delete(f"/api/comments/{comment_id}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Comment.objects.filter(pk=comment_id).exists())
+
+    def test_delete_others_comment_allowed(self):
+        """Тест: Пользователь может удалить чужой комментарий (все аутентифицированные имеют доступ)."""
+        from homepage.models import Comment
+        
+        self.client.force_authenticate(user=self.other_user)
+        
+        comment_id = self.comment.pk
+        response = self.client.delete(f"/api/comments/{comment_id}/")
+        
+        # Так как CommentViewSet использует только IsAuthenticated, любой пользователь может удалять
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Comment.objects.filter(pk=comment_id).exists())
+
+    def test_comment_has_user_name_field(self):
+        """Тест: Комментарий содержит поле user_name."""
+        self.client.force_authenticate(user=self.user)
+        
+        response = self.client.get(f"/api/comments/{self.comment.pk}/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("user_name", response.data)
+        self.assertIsNotNone(response.data["user_name"])
+
+    def test_create_comment_sets_pub_date_automatically(self):
+        """Тест: При создании комментария автоматически устанавливается дата публикации."""
+        from homepage.models import Comment
+        
+        self.client.force_authenticate(user=self.user)
+        
+        data = {
+            "video": self.video.pk,
+            "text": "Комментарий с автоматической датой",
+        }
+        
+        response = self.client.post("/api/comments/", data, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        comment = Comment.objects.get(pk=response.data["id"])
+        self.assertIsNotNone(comment.pub_date)
+
+    def test_comments_ordered_by_pub_date_desc(self):
+        """Тест: Комментарии отсортированы по дате публикации (новые первыми)."""
+        from homepage.models import Comment
+        
+        self.client.force_authenticate(user=self.user)
+        
+        # Создаем комментарии с разницей во времени
+        old_comment = Comment.objects.create(
+            video=self.video,
+            user=self.user,
+            text="Старый комментарий",
+        )
+        old_comment.pub_date = timezone.now() - timedelta(hours=2)
+        old_comment.save()
+        
+        _ = Comment.objects.create(
+            video=self.video,
+            user=self.user,
+            text="Новый комментарий",
+        )
+        
+        response = self.client.get("/api/comments/")
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        if "results" in response.data:
+            comments = response.data["results"]
+        else:
+            comments = response.data
+            
+        # Первый комментарий должен быть самым новым
+        if len(comments) > 0:
+            self.assertEqual(comments[0]["text"], "Новый комментарий")
+
+
