@@ -5,7 +5,9 @@ import { Box, styled } from "@styled-system/jsx";
 import { grid } from "@styled-system/patterns";
 
 import { useFetchUser } from "@api/user";
-import { fullNameShort } from "../api/user/utils";
+import { fullNameShort } from "@api/user/utils";
+import { LINK } from "@app/routes";
+
 import { Avatar } from "./Avatar";
 import { RRLink } from "./RRLink";
 
@@ -25,7 +27,7 @@ export const ProfileCard = ({
   const { data: user } = useFetchUser(userId);
 
   return (
-    <RRLink to={userId && `/profile/${userId}`}>
+    <RRLink to={user ? LINK.profile.link + "/" + user.email : null}>
       <motion.article
         initial={{
           paddingInline: isOpen ? "0.75rem" : 0,
