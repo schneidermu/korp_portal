@@ -163,7 +163,7 @@ export const LINK: Record<LinkKey, Link> = {
       chakra: true,
     },
     nav: {
-      matcher: /^\/tree(\/?|\/?[1-9][0-9]*)$/,
+      matcher: /^\/tree(\/?|\/[1-9][0-9]*)$/,
       name: "Орг. структура",
       icon: Sax3DcubeOutline,
     },
