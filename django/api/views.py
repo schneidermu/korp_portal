@@ -874,6 +874,7 @@ class ColleagueProfileViewset(UserViewSet):
 
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = (
+        "username",
         "structural_division__name",
         "structural_division__id",
         "chief__id",
