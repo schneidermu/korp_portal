@@ -1,10 +1,8 @@
 import os
 
-import ldap
 import psycopg2
 import requests
 from django.contrib.auth.backends import ModelBackend
-from django_auth_ldap.backend import LDAPBackend, _LDAPUser, _report_error, logger
 
 from employees.models import Employee
 
@@ -25,6 +23,7 @@ connection = psycopg2.connect(
 cursor = connection.cursor()
 
 
+<<<<<<< HEAD
 class _CustomLDAPUser(_LDAPUser):
     def authenticate(self, password, cookies):
         """
@@ -90,6 +89,8 @@ class CustomLDAPBackend(LDAPBackend):
         return ldap_user.authenticate(password, cookies)
 
 
+=======
+>>>>>>> favr/backend
 class LiferayDatabaseBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None):
         cookies = request.COOKIES
@@ -103,6 +104,14 @@ class LiferayDatabaseBackend(ModelBackend):
                 if response.status_code != 200:
                     return None
                 
+                # Verify emailAddress matches username
+                try:
+                    user_data = response.json()
+                    if user_data.get("emailAddress") != username:
+                        return None
+                except (ValueError, KeyError):
+                    return None
+
                 # Verify emailAddress matches username
                 try:
                     user_data = response.json()
