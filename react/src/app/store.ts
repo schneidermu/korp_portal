@@ -10,8 +10,6 @@ import * as userTree from "@/features/UserTree/slice";
 import * as idea from "@page/skel/view/Idea/slice";
 import * as newsCreate from "@page/news/create/slice";
 
-console.log("configure store");
-
 export const store = configureStore({
   devTools: {
     name: "kp",
