@@ -7,26 +7,6 @@ import { Box, HStack } from "@styled-system/jsx";
 
 import { LINK } from "@app/routes";
 
-/*
-import { LINK } from "@app/const";
-
-const CRUMBS = [
-  { matcher: /^/, to: LINK.home, name: "Главная страница" },
-  { matcher: /^\/segments/, to: LINK.segments, name: "Сегменты" },
-  { matcher: /^\/news/, to: LINK.news.feed, name: "Наша жизнь" },
-  {
-    matcher: /^\/news\/create$/,
-    to: LINK.news.create,
-    name: "Создание новости",
-  },
-  {
-    matcher: /^\/news\/view\/[1-9][0-9]*$/,
-    to: LINK.news.view,
-    name: "Новость",
-  },
-];
-*/
-
 const Breadcrumb = ({
   last = false,
   ...rest
