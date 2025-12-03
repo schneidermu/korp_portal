@@ -1,5 +1,7 @@
 import * as R from "radashi";
 
+import { Media } from "@api/media/types";
+
 export const USER_STATUS = [
   "В командировке",
   "В отпуске",
@@ -33,7 +35,7 @@ export type User = {
   workExperience: string;
   about: string;
   skills: string[];
-  photo: string | null;
+  photo: Media | null;
   position: string;
   serviceRank: string;
   bossId: string | null;
@@ -119,7 +121,7 @@ export type UserRaw = {
       faculty: string | null;
       year: number | null;
       month: number | null;
-      file: string | null; // URI
+      file?: string | null; // URI
     }[];
     courses: {
       name: string;
@@ -165,7 +167,7 @@ export const toUser = (r: UserRaw): User => {
       c?.competences.map(({ name }) => name) ?? [],
       (x) => x,
     ),
-    photo: r.avatar,
+    photo: r.avatar === null ? r.avatar : { url: r.avatar },
     position: r.job_title ?? "",
     serviceRank: r.class_rank ?? "",
     bossId: r.chief,
@@ -237,7 +239,7 @@ export const fromUser = (u: User): UserRaw => ({
   average_rating: u.avgRating,
   rated_by_me: u.myRating,
   num_rates: u.numRates,
-  avatar: u.photo,
+  avatar: u.photo?.url ?? null,
   agreed_with_data_processing: u.agreeDataProcessing,
   characteristic: {
     experience: u.workExperience ?? "",
@@ -255,7 +257,7 @@ export const fromUser = (u: User): UserRaw => ({
       faculty: e.major,
       year: e.year,
       month: null,
-      file: null,
+      file: undefined,
     })),
     courses: u.courses.map((c) => ({
       name: c.name,

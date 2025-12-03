@@ -1,4 +1,4 @@
-import { resolveMediaPath } from "@/shared/utils";
+import { mediaAbsoluteURL } from "@api/media/types";
 import { User } from "@api/user/types";
 import { SaxUserBold } from "@meysam213/iconsax-react";
 import { css } from "@styled-system/css";
@@ -13,7 +13,7 @@ export const Avatar = ({ user, ...rest }: BoxProps & { user?: User }) => {
           borderRadius="full"
           w="full"
           h="full"
-          src={user?.photo ? resolveMediaPath(user.photo) : undefined}
+          src={user?.photo ? mediaAbsoluteURL(user.photo) : undefined}
         />
       ) : (
         <SaxUserBold
