@@ -27,7 +27,7 @@ const CRUMBS = [
 ];
 */
 
-const Breadcrump = ({
+const Breadcrumb = ({
   last = false,
   ...rest
 }: { last?: boolean } & LinkProps) => {
@@ -57,9 +57,9 @@ export const Breadcrumbs = () => {
           r.crumb && (
             <Fragment key={i}>
               {i > 0 && <Box>-</Box>}
-              <Breadcrump last={i === n - 1} to={r.link}>
+              <Breadcrumb last={i === n - 1} to={r.link}>
                 {r.crumb.name}
-              </Breadcrump>
+              </Breadcrumb>
             </Fragment>
           ),
       )}
