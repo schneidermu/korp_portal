@@ -15,14 +15,14 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        "@": path.resolve(__dirname, "./src"),
+        "@legacy": path.resolve(__dirname, "./src/legacy/"),
         "@styled-system": path.resolve(__dirname, "./styled-system/"),
-        "@app": path.resolve(__dirname, "./src/v2/app"),
-        "@api": path.resolve(__dirname, "./src/v2/api"),
-        "@view": path.resolve(__dirname, "./src/v2/view"),
-        "@ui": path.resolve(__dirname, "./src/v2/ui/"),
-        "@util": path.resolve(__dirname, "./src/v2/util"),
-        "@page": path.resolve(__dirname, "./src/v2/page"),
+        "@app": path.resolve(__dirname, "./src/app/"),
+        "@api": path.resolve(__dirname, "./src/api/"),
+        "@view": path.resolve(__dirname, "./src/view/"),
+        "@ui": path.resolve(__dirname, "./src/ui/"),
+        "@util": path.resolve(__dirname, "./src/util/"),
+        "@page": path.resolve(__dirname, "./src/page/"),
       },
     },
   };
