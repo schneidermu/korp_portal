@@ -14,7 +14,7 @@ import {
 
 import { GROUP } from "./const";
 
-import NextcloudPage from "@legacy/features/Nextcloud/Nextcloud";
+import NextcloudPage from "@page/nextcloud";
 
 const HomePage = lazy(() => import("@page/home"));
 const SegmentsPage = lazy(() => import("@page/segments"));
@@ -200,12 +200,15 @@ export const LINK: Record<LinkKey, Link> = {
     route: {
       path: "/nextcloud",
       element: NextcloudPage,
-      chakra: true,
     },
     nav: {
       matcher: /^\/nextcloud\/?$/,
       name: "Облако",
       icon: SaxFolderCloudOutline,
+    },
+    crumb: {
+      matcher: /^\/nextcloud\/?/,
+      name: "Облако",
     },
   },
 
