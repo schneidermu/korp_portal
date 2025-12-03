@@ -3,7 +3,7 @@ import { Grid, styled } from "@styled-system/jsx";
 import { useFetchSegments } from "@api/segment";
 
 import { stack } from "@styled-system/patterns";
-import { Button } from "@view/Button";
+import { Button } from "@ui/atoms/buttons";
 import { SegmentView } from "@view/SegmentView";
 import { Link } from "react-router-dom";
 

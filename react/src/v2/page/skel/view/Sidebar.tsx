@@ -2,18 +2,14 @@ import { useContext } from "react";
 
 import { Link } from "react-router-dom";
 
-import * as R from "radashi";
-
 import { css } from "@styled-system/css";
-import { Box, BoxProps, Center, Stack, styled } from "@styled-system/jsx";
+import { Box, Stack, styled } from "@styled-system/jsx";
 
 import { useFetchUser } from "@api/user";
-import { User } from "@api/user/types";
-import { Avatar } from "@view/Avatar";
-import { CircProgress } from "@view/CircProgress";
+import { Avatar } from "@ui/atoms/media";
+import { AvatarWithRating } from "@ui/molecules/media";
 
-import { Drawer } from "./Drawer";
-import { DrawerContext } from "./Drawer/context";
+import { Drawer, DrawerContext } from "@ui/molecules/navigation";
 import { Events } from "./Events";
 
 export const Sidebar = () => {
@@ -60,7 +56,11 @@ const ProfileCard = () => {
     <Stack gap={4} align="center">
       {user ? (
         <Link to={`/profile/${user.id}`}>
-          <AvatarWithRating user={user} w={24} h={24} />
+          {ctx.isOpen ? (
+            <AvatarWithRating user={user} w={24} h={24} />
+          ) : (
+            <Avatar user={user} w="2.75rem" h="2.75rem" />
+          )}
         </Link>
       ) : (
         <Box h={24} />
@@ -102,59 +102,5 @@ const ProfileCard = () => {
         </>
       )}
     </Stack>
-  );
-};
-
-const AvatarWithRating = ({ user, ...rest }: { user: User } & BoxProps) => {
-  const ctx = useContext(DrawerContext);
-  const rating = user.avgRating ?? 0;
-
-  if (!ctx.isOpen) {
-    return <Avatar user={user} w="2.75rem" h="2.75rem" />;
-  }
-
-  return (
-    <Box position="relative" {...rest}>
-      <CircProgress
-        className={css({ color: "Corporate/Accent" })}
-        bgColor="#e0e0e0"
-        progress={rating / 5}
-        thickness={0.16}
-      />
-      <Center top="0" left="0" w="full" h="full" position="absolute">
-        <Avatar user={user} w="4.5rem" h="4.5rem" />
-        <RatingBadge rating={rating} />
-      </Center>
-    </Box>
-  );
-};
-
-const RatingBadge = ({ rating, ...rest }: { rating: number } & BoxProps) => {
-  const phi = (2 * Math.PI) / 11;
-  const x = 50 + 50 * Math.cos(phi);
-  const y = 50 + 50 * Math.sin(phi);
-
-  const s = R.round(rating, 1).toFixed(1).replace(".", ",");
-
-  return (
-    <Box
-      position="absolute"
-      transform="translate(-50%, -50%)"
-      style={{
-        left: `${x}%`,
-        top: `${y}%`,
-      }}
-      bg="white"
-      fontSize="body/S"
-      color="Corporate/Accent"
-      borderWidth="3px"
-      borderColor="currentcolor"
-      borderRadius="full"
-      px={3}
-      py={1}
-      {...rest}
-    >
-      {s}
-    </Box>
   );
 };

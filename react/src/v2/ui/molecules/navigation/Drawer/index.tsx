@@ -4,8 +4,10 @@ import { HTMLMotionProps, motion } from "motion/react";
 
 import { css } from "@styled-system/css";
 
-import { OpenButton, OpenButtonProps } from "./OpenButton";
 import { DrawerContext } from "./context";
+import { DrawerTriggerProps, DrawerTrigger } from "./DrawerTrigger";
+
+export { DrawerContext };
 
 export const Drawer = ({
   openedWidth,
@@ -58,7 +60,7 @@ const DrawerWrapper = ({
 }: {
   openedWidth: string;
   closedWidth: string;
-  side: OpenButtonProps["side"];
+  side: DrawerTriggerProps["side"];
   toggle: () => void;
 } & HTMLMotionProps<"div">) => {
   const ctx = useContext(DrawerContext);
@@ -76,7 +78,7 @@ const DrawerWrapper = ({
       })}
       {...rest}
     >
-      <OpenButton
+      <DrawerTrigger
         isOpen={ctx.isOpen}
         side={side}
         position="absolute"

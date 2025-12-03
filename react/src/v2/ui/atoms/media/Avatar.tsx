@@ -1,8 +1,10 @@
-import { mediaAbsoluteURL } from "@api/media/types";
-import { User } from "@api/user/types";
-import { SaxUserBold } from "@meysam213/iconsax-react";
 import { css } from "@styled-system/css";
 import { BoxProps, Center, styled } from "@styled-system/jsx";
+
+import { SaxUserBold } from "@meysam213/iconsax-react";
+
+import { mediaAbsoluteURL } from "@api/media/types";
+import { User } from "@api/user/types";
 
 export const Avatar = ({ user, ...rest }: BoxProps & { user?: User }) => {
   return (

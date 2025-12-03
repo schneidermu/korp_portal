@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-export const CircProgress = ({
+export const CircularProgress = ({
   rotation = 0,
   thickness,
   progress,

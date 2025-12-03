@@ -9,9 +9,8 @@ import { flex, hstack, stack } from "@styled-system/patterns";
 import { SaxArrowRightLinear } from "@meysam213/iconsax-react";
 
 import { toggleFavoriteSegment } from "@api/segment";
-import { Button } from "@view/Button";
+import { Button, FavoriteToggle } from "@ui/atoms/buttons";
 
-import { FavToggle } from "./FavToggle";
 import { ProfileCard } from "./ProfileCard";
 import { Segment } from "@api/segment/types";
 
@@ -45,7 +44,7 @@ export const SegmentView = ({ full, segment: s, ...rest }: SegmentProps) => {
         borderColor="Grayscale/SpacerLight"
       >
         <HStack justify="space-between">
-          <FavToggle fav={s.isFavorite} toggle={toggle} />
+          <FavoriteToggle fav={s.isFavorite} toggle={toggle} />
           <Box
             borderWidth="1px"
             borderRadius="12px"
@@ -104,7 +103,7 @@ export const SegmentView = ({ full, segment: s, ...rest }: SegmentProps) => {
       p={4}
       {...rest}
     >
-      <FavToggle fav={s.isFavorite} toggle={toggle} />
+      <FavoriteToggle fav={s.isFavorite} toggle={toggle} />
       <styled.a
         href={s.url}
         target="_blank"

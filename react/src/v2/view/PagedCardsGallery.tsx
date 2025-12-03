@@ -6,7 +6,7 @@ import {
   SaxArrowRight1Outline,
 } from "@meysam213/iconsax-react";
 
-import { IconButton } from "@view/Button";
+import { IconButton } from "@ui/atoms/buttons";
 
 export const PagedCardsGallery = ({
   children,

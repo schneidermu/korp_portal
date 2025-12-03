@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { styled } from "@styled-system/jsx";
 
-import { SaxStarBold } from "./SaxStarBold";
+import { SaxStarBold } from "@ui/atoms/icons";
 import { SaxStarSlashBold } from "@meysam213/iconsax-react";
 import { css } from "@styled-system/css";
 
@@ -14,7 +14,7 @@ export type FavouriteButtonProps = Omit<
   toggle: () => void;
 };
 
-export const FavToggle = ({
+export const FavoriteToggle = ({
   fav = false,
   toggle,
   ...rest

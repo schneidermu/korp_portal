@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { BoxProps, HStack, styled } from "@styled-system/jsx";
 import { stack } from "@styled-system/patterns";
 
-import { Button } from "@view/Button";
+import { Button } from "@ui/atoms/buttons";
 
 export const HomeSection = ({
   heading,

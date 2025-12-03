@@ -8,12 +8,12 @@ import { stack } from "@styled-system/patterns";
 import { useFetchNewsPage } from "@api/news";
 import { GROUP } from "@app/const";
 import { LINK } from "@app/routes";
-import { Breadcrumbs } from "@view/Breadcrumbs";
-import { Button } from "@view/Button";
+import { Breadcrumbs } from "@ui/molecules/navigation";
+import { Button } from "@ui/atoms/buttons";
 import { HomeSection } from "@view/HomeSection";
 import { NewsCard } from "@view/NewsCard";
 import { PagedNewsGallery } from "@view/PagedNewsGallery";
-import { Paging } from "@view/Paging";
+import { Pagination } from "@ui/molecules/navigation";
 import { ShowProtected } from "@view/ShowProtected";
 
 export default function NewsPage() {
@@ -88,7 +88,7 @@ const Feed = () => {
           ))}
         </Grid>
       </Stack>
-      <Paging {...{ page, pageCount, setPage }} />
+      <Pagination {...{ page, pageCount, setPage }} />
       <HomeSection
         heading="Последние новости"
         actionText="Показать все"

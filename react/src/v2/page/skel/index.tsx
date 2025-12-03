@@ -5,7 +5,7 @@ import { Box, Flex, Grid, Stack } from "@styled-system/jsx";
 
 import { useLogin } from "@/features/auth/services";
 
-import { DPA } from "@view/DPA";
+import { DPA } from "@ui/organisms/compliance";
 
 import { Sidebar } from "./view/Sidebar";
 import { Navbar } from "./view/Navbar";

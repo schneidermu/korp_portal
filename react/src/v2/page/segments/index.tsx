@@ -7,7 +7,7 @@ import { stack } from "@styled-system/patterns";
 
 import { useFetchSegments } from "@api/segment";
 import { Segment } from "@api/segment/types";
-import { Breadcrumbs } from "@view/Breadcrumbs";
+import { Breadcrumbs } from "@ui/molecules/navigation";
 import { SegmentView } from "@view/SegmentView";
 
 export default function SegmentsPage() {

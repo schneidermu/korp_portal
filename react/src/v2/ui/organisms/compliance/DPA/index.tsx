@@ -6,7 +6,7 @@ import { LuCheck } from "react-icons/lu";
 
 import { DPA_TERMS_URL } from "@/app/const";
 
-import { Button } from "@view/Button";
+import { Button } from "@ui/atoms/buttons";
 
 import { useAgreeDPA } from "./hooks";
 

@@ -6,14 +6,18 @@ import {
   SaxArrowRight1Linear,
 } from "@meysam213/iconsax-react";
 
-import { IconButton } from "@view/Button";
+import { IconButton } from "@ui/atoms/buttons";
 
-export type OpenButtonProps = Parameters<typeof styled.button>[0] & {
+export type DrawerTriggerProps = Parameters<typeof styled.button>[0] & {
   side: "left" | "right";
   isOpen: boolean;
 };
 
-export const OpenButton = ({ side, isOpen, ...rest }: OpenButtonProps) => {
+export const DrawerTrigger = ({
+  side,
+  isOpen,
+  ...rest
+}: DrawerTriggerProps) => {
   const left = side === "left";
 
   return (

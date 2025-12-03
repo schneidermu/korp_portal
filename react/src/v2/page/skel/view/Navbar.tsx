@@ -9,11 +9,10 @@ import { stack } from "@styled-system/patterns";
 import { SaxAddCircleOutline } from "@meysam213/iconsax-react";
 
 import { NAVITEMS } from "@app/routes";
-import { IconButton } from "@view/Button";
+import { IconButton } from "@ui/atoms/buttons";
 import { ProfileCard } from "@view/ProfileCard";
 
-import { Drawer } from "./Drawer";
-import { DrawerContext } from "./Drawer/context";
+import { Drawer, DrawerContext } from "@ui/molecules/navigation";
 import { IdeaPrompt } from "./Idea";
 
 export const Navbar = () => {

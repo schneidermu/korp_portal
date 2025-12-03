@@ -2,11 +2,11 @@ import * as R from "radashi";
 
 import { BoxProps, Center, HStack, styled } from "@styled-system/jsx";
 
-import { LeftIcon, RightIcon } from "./icons";
+import { LeftIcon, RightIcon } from "@ui/atoms/icons";
 
 type ButtonProps = Parameters<typeof styled.button>[0];
 
-export const Paging = ({
+export const Pagination = ({
   page,
   pageCount,
   setPage,

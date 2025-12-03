@@ -17,9 +17,9 @@ import { useAuth } from "@/features/auth/slice";
 
 import { useFetchUsers } from "@api/user";
 import { formatDate } from "@util/date";
-import { IconButton } from "@view/Button";
+import { IconButton } from "@ui/atoms/buttons";
 
-import { DrawerContext } from "../Drawer/context";
+import { DrawerContext } from "@ui/molecules/navigation";
 import { birthdays, monthDays, MONTHS_NAMES, WEEKDAYS_NAMES } from "./utils";
 
 export const Events = () => {

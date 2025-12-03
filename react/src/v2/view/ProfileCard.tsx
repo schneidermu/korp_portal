@@ -8,8 +8,8 @@ import { useFetchUser } from "@api/user";
 import { fullNameShort } from "@api/user/utils";
 import { LINK } from "@app/routes";
 
-import { Avatar } from "./Avatar";
-import { RRLink } from "./RRLink";
+import { Avatar } from "@ui/atoms/media";
+import { RRLink } from "@ui/atoms/navigation";
 
 export const ProfileCard = ({
   isOpen = true,

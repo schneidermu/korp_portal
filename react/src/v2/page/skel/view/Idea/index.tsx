@@ -3,13 +3,13 @@ import { useActionState, useContext } from "react";
 import { Box, HStack, Stack, styled } from "@styled-system/jsx";
 import { stack } from "@styled-system/patterns";
 
-import { Button, IconButton } from "@view/Button";
+import { Button, IconButton } from "@ui/atoms/buttons";
 import { Modal } from "@view/Modal";
 
 import { SaxCloseCircleLinear } from "@meysam213/iconsax-react";
 import { css } from "@styled-system/css";
 import { IDEA_MAX_TEXT_LENGTH } from "../../const";
-import { DrawerContext } from "../Drawer/context";
+import { DrawerContext } from "@ui/molecules/navigation";
 
 import { useAppDispatch } from "@/app/store";
 import { actions, submitIdea, useSliceSelector } from "./slice";

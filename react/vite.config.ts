@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => {
         "@app": path.resolve(__dirname, "./src/v2/app"),
         "@api": path.resolve(__dirname, "./src/v2/api"),
         "@view": path.resolve(__dirname, "./src/v2/view"),
+        "@ui": path.resolve(__dirname, "./src/v2/ui/"),
         "@util": path.resolve(__dirname, "./src/v2/util"),
         "@page": path.resolve(__dirname, "./src/v2/page"),
       },

@@ -6,8 +6,8 @@ import { Box, BoxProps, Grid, HStack, Stack, styled } from "@styled-system/jsx";
 import { stack } from "@styled-system/patterns";
 
 import { ACCEPT_IMAGES } from "@/app/const";
-import { Breadcrumbs } from "@view/Breadcrumbs";
-import { Button, IconButton } from "@view/Button";
+import { Breadcrumbs } from "@ui/molecules/navigation";
+import { Button, IconButton } from "@ui/atoms/buttons";
 
 import { SaxPaperclip2Linear } from "@meysam213/iconsax-react";
 import { css } from "@styled-system/css";
