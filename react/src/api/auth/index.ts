@@ -4,7 +4,9 @@ import { BACKEND_API_PREFIX } from "@app/const";
 
 import { useAppDispatch } from "@app/store";
 
-import { authSlice, useAuth } from "./slice";
+import { slice, useAuth, useSliceSelector } from "./slice";
+
+export { useAuth } from "./slice";
 
 declare const Liferay: { authToken: string };
 
@@ -82,7 +84,7 @@ export const useLogin = (credentials?: Credentials) => {
             organization: null | { id: number };
           }) => {
             dispatch(
-              authSlice.actions.login({
+              slice.actions.login({
                 userId,
                 email,
                 token,
@@ -97,4 +99,27 @@ export const useLogin = (credentials?: Credentials) => {
   }, [dispatch, auth.isLoggedIn, credentials]);
 
   return auth;
+};
+
+export const fetcher = (path: string, init?: RequestInit) =>
+  fetch(BACKEND_API_PREFIX + path, init);
+
+export const tokenFetch = async (
+  token: string,
+  path: string,
+  init?: RequestInit,
+) =>
+  fetcher(path, {
+    ...init,
+    headers: {
+      ...init?.headers,
+      Authorization: "Token " + token,
+    },
+  });
+
+export const useTokenFetcher = () => {
+  const token = useSliceSelector((state) => state.token);
+
+  return async (path: string, init?: RequestInit) =>
+    tokenFetch(token, path, init);
 };

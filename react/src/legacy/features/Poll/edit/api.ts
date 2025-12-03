@@ -1,4 +1,4 @@
-import { tokenFetch } from "@legacy/features/auth/hooks";
+import { tokenFetch } from "@api/auth";
 import { APIError } from "@api/common/errors";
 
 import { index } from "@legacy/shared/utils";

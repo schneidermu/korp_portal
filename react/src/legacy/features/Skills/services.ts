@@ -1,6 +1,6 @@
 import useSWR from "swr";
 
-import { useTokenFetcher } from "@legacy/features/auth/hooks";
+import { useTokenFetcher } from "@api/auth";
 
 import { SkillCompletion, SkillCompletionRaw } from "./types";
 

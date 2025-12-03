@@ -8,7 +8,7 @@ import { Grid, Heading, Show, Stack, Text } from "@chakra-ui/react";
 
 import { useAppDispatch } from "@app/store.ts";
 
-import { useAuth } from "@legacy/features/auth/slice.ts";
+import { useAuth } from "@api/auth";
 import { useIntParam } from "@legacy/shared/hooks/useIntParam.ts";
 
 import { PageHeading } from "@legacy/features/App/comps/PageHeading.tsx";

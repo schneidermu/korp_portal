@@ -7,7 +7,7 @@ import useSWRInfinite from "swr/infinite";
 
 import { USERS_PAGE_LIMIT } from "@app/const";
 
-import { tokenFetch, useTokenFetcher } from "@legacy/features/auth/hooks";
+import { tokenFetch, useTokenFetcher } from "@api/auth";
 import { Paged } from "@api/common/types";
 import {
   fileExtension,
@@ -16,7 +16,8 @@ import {
   trimExtension,
 } from "@legacy/shared/utils";
 import { User, UserStatus } from "./types";
-import { AuthState, useAuth } from "../auth/slice";
+import { useAuth } from "@api/auth";
+import { Auth } from "@api/auth/types";
 
 export const UserNotFoundError = new Error("User not found");
 
@@ -489,7 +490,7 @@ export const uploadFile = async (token: string, uri: string | null) => {
     .then(({ file }) => decodeURI(file));
 };
 
-export const saveUser = async (auth: AuthState, user: User) => {
+export const saveUser = async (auth: Auth, user: User) => {
   user = {
     ...user,
     // Drop entries with empty images.

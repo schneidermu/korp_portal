@@ -1,7 +1,7 @@
 import { Page } from "@legacy/features/App/comps/Page";
 import { PageHeading } from "@legacy/features/App/comps/PageHeading";
-import { useTokenFetcher } from "@legacy/features/auth/hooks";
-import { useAuth } from "@legacy/features/auth/slice";
+import { useTokenFetcher } from "@api/auth";
+import { useAuth } from "@api/auth";
 import { downloadResponse } from "@legacy/shared/utils";
 import {
   HStack,

@@ -1,4 +1,4 @@
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 
 export const ShowProtected = ({
   groups,

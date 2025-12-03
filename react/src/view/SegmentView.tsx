@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 
 import { css } from "@styled-system/css";
 import { Box, BoxProps, Grid, HStack, Stack, styled } from "@styled-system/jsx";

@@ -2,7 +2,7 @@ import useSWR from "swr";
 
 import * as R from "radashi";
 
-import { useTokenFetcher } from "@legacy/features/auth/hooks";
+import { useTokenFetcher } from "@api/auth";
 import { Poll, PollRaw, toPoll } from "@legacy/features/Poll/types";
 
 import { APIError } from "@api/common/errors";

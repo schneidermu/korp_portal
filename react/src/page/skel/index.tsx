@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import { css } from "@styled-system/css";
 import { Box, Flex, Grid, Stack } from "@styled-system/jsx";
 
-import { useLogin } from "@legacy/features/auth/services";
+import { useLogin } from "@api/auth";
 
 import { DPA } from "@ui/organisms/compliance";
 

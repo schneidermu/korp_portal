@@ -4,7 +4,7 @@ import { Option } from "effect";
 
 import { RatingGroup } from "@chakra-ui/react";
 
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 import { User } from "@legacy/features/user/types";
 import { useUpdateRating } from "../services";
 

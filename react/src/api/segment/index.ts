@@ -1,6 +1,6 @@
 import useSWR, { mutate } from "swr";
 
-import { tokenFetch, useTokenFetcher } from "@legacy/features/auth/hooks";
+import { tokenFetch, useTokenFetcher } from "@api/auth";
 
 import { APIError } from "@api/common/errors";
 

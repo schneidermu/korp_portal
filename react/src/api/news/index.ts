@@ -2,8 +2,8 @@ import useSWR from "swr";
 
 import * as R from "radashi";
 
-import { tokenFetch, useTokenFetcher } from "@legacy/features/auth/hooks";
-import { AuthState } from "@legacy/features/auth/slice";
+import { tokenFetch, useTokenFetcher } from "@api/auth";
+import { Auth } from "@api/auth/types";
 
 import { APIError } from "@api/common/errors";
 import { Paged } from "@api/common/types";
@@ -56,7 +56,7 @@ export const useFetchNewsPage = ({
 };
 
 export const publishNews = async (
-  { token, orgId }: Pick<AuthState, "token" | "orgId">,
+  { token, orgId }: Pick<Auth, "token" | "orgId">,
   { title, text, datetime, imgs }: NewsCreateInfo,
 ) => {
   const res = await tokenFetch(token, "/news/", {

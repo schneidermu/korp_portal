@@ -2,7 +2,7 @@ import useSWR from "swr";
 
 import { Organization } from "./types";
 
-import { useTokenFetcher } from "@legacy/features/auth/hooks";
+import { useTokenFetcher } from "@api/auth";
 
 interface OrganizationData {
   id: number;

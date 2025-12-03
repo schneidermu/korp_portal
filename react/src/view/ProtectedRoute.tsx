@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 
 export const ProtectedRoute = ({ groups = [] }: { groups?: string[] }) => {
   const auth = useAuth();

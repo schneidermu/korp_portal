@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { RootState, useAppSelector } from "@app/store";
-import { tokenFetch } from "../auth/hooks";
+import { tokenFetch } from "@api/auth";
 import {
   recomputeChildren,
   Tree,

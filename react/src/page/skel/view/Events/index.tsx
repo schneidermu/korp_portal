@@ -13,7 +13,7 @@ import {
   SaxCalendar1Outline,
 } from "@meysam213/iconsax-react";
 
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 
 import { useFetchUsers } from "@api/user";
 import { formatDate } from "@util/date";

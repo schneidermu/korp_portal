@@ -1,5 +1,5 @@
 import { useAppDispatch } from "@app/store";
-import { useTokenFetcher } from "@legacy/features/auth/hooks";
+import { useTokenFetcher } from "@api/auth";
 import {
   Box,
   createListCollection,

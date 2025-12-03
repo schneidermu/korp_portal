@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { ButtonProps, Flex, Show, Stack } from "@chakra-ui/react";
 
-import { useAuth } from "@legacy/features/auth/slice.ts";
+import { useAuth } from "@api/auth";
 
 import { Page } from "@legacy/features/App/comps/Page.tsx";
 import { PageHeading } from "@legacy/features/App/comps/PageHeading.tsx";

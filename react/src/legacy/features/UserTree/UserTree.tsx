@@ -10,7 +10,7 @@ import { USER_TREE_COLORS } from "@app/const";
 import { useAppDispatch } from "@app/store";
 import { Page } from "@legacy/features/App/comps/Page";
 import { PageHeading } from "@legacy/features/App/comps/PageHeading";
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 import { OrgPicker } from "@legacy/features/org/comps/OrgPicker";
 import { useFetchHierarchy } from "@legacy/features/UserTree/services";
 import {

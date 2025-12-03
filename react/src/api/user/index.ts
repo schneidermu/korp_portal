@@ -5,8 +5,8 @@ import useSWRInfinite from "swr/infinite";
 
 import * as R from "radashi";
 
-import { useTokenFetcher } from "@legacy/features/auth/hooks";
-import { useAuth } from "@legacy/features/auth/slice";
+import { useTokenFetcher } from "@api/auth";
+import { useAuth } from "@api/auth";
 
 import { FETCH_USERS_PAGE_SIZE } from "@api/common/const";
 import { APIError } from "@api/common/errors";

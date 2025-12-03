@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Heading } from "@chakra-ui/react";
 
 import { useAppDispatch } from "@app/store";
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 
 import { Page } from "@legacy/features/App/comps/Page";
 import { PageHeading } from "@legacy/features/App/comps/PageHeading";

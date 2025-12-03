@@ -1,6 +1,6 @@
 import useSWR from "swr";
 
-import { useTokenFetcher } from "@legacy/features/auth/hooks.ts";
+import { useTokenFetcher } from "@api/auth";
 import { APIError } from "@api/common/errors";
 
 import { RawUserAnswers } from "../take/api.ts";

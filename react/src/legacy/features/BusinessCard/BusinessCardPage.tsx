@@ -4,7 +4,7 @@ import { Center } from "@chakra-ui/react";
 import { Option as O } from "effect";
 import QRCode from "qrcode";
 import { useCallback } from "react";
-import { useAuth } from "../auth/slice";
+import { useAuth } from "@api/auth";
 import { useFetchUser } from "../user/services";
 import businessCard from "/public/business-card.png";
 

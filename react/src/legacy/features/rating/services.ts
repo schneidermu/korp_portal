@@ -1,7 +1,7 @@
 import { Number, Option } from "effect";
 import { mutate } from "swr";
 
-import { useTokenFetcher } from "@legacy/features/auth/hooks";
+import { useTokenFetcher } from "@api/auth";
 import { User } from "@legacy/features/user/types";
 
 class RatingUpdateError extends Error {

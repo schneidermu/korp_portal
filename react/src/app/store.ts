@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector } from "react-redux";
 
-import { authSlice } from "@legacy/features/auth/slice";
+import * as authSlice from "@api/auth/slice";
 import * as pollTake from "@legacy/features/Poll/take/slice";
 import * as pollEdit from "@legacy/features/Poll/edit/slice";
 import * as pollList from "@legacy/features/Poll/list/slice";
@@ -15,7 +15,7 @@ export const store = configureStore({
     name: "kp",
   },
   reducer: {
-    auth: authSlice.reducer,
+    [authSlice.NAME]: authSlice.slice.reducer,
     [pollTake.NAME]: pollTake.slice.reducer,
     [pollEdit.NAME]: pollEdit.slice.reducer,
     [pollList.NAME]: pollList.slice.reducer,

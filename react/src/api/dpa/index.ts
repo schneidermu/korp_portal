@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { mutate } from "swr";
 
 import { DPA_CLOSE_DELAY } from "@app/const";
-import { tokenFetch, useTokenFetcher } from "@legacy/features/auth/hooks";
+import { tokenFetch, useTokenFetcher } from "@api/auth";
 
 import { APIError } from "@api/common/errors";
 import { useFetchUser } from "@api/user";

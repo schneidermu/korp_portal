@@ -1,5 +1,5 @@
 import { useAppDispatch } from "@app/store";
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 
 import { Tabs } from "@legacy/shared/comps/Tabs";
 

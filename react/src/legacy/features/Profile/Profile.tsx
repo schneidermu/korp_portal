@@ -9,7 +9,7 @@ import {
   Button as ChakraButton,
 } from "@chakra-ui/react";
 
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 import { useUserState } from "@legacy/features/user/hooks";
 import {
   saveUser,

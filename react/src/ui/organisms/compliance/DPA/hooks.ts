@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 
 import { DPA_CLOSE_DELAY } from "@app/const";
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 
 import { agreeDPA } from "@api/dpa";
 import { useFetchUser } from "@api/user";

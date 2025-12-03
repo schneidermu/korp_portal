@@ -29,7 +29,7 @@ import { Dialog } from "@legacy/shared/comps/Dialog";
 import { LuCircleAlert } from "react-icons/lu";
 
 import warningIcon from "../assets/warning.svg";
-import { useAuth } from "@legacy/features/auth/slice";
+import { useAuth } from "@api/auth";
 import { useNavigate } from "react-router-dom";
 
 export default function EditPollPage() {

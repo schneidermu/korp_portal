@@ -1,7 +1,7 @@
 import useSWR from "swr";
 
-import { tokenFetch, useTokenFetcher } from "@legacy/features/auth/hooks";
-import { useAuth } from "@legacy/features/auth/slice";
+import { tokenFetch, useTokenFetcher } from "@api/auth";
+import { useAuth } from "@api/auth";
 import { APIError } from "@api/common/errors";
 
 import { Answers, Poll } from "../types";
