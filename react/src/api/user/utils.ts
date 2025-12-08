@@ -9,3 +9,7 @@ export const fullNameShort = (user: User): string => {
   }
   return parts.join(" ");
 };
+
+export const fullNameLong = (user: User): string => {
+  return R.sift([user.lastName, user.firstName, user.patronym]).join(" ");
+};

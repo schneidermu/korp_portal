@@ -10,6 +10,8 @@ import * as userTree from "@legacy/features/UserTree/slice";
 import * as idea from "@page/skel/view/Idea/slice";
 import * as newsCreate from "@page/news/create/slice";
 
+import { secretSantaSlice } from "@ui/organisms/seasonal";
+
 export const store = configureStore({
   devTools: {
     name: "kp",
@@ -22,6 +24,7 @@ export const store = configureStore({
     [userTree.NAME]: userTree.slice.reducer,
     [idea.NAME]: idea.slice.reducer,
     [newsCreate.NAME]: newsCreate.slice.reducer,
+    [secretSantaSlice.NAME]: secretSantaSlice.slice.reducer,
   },
 });
 

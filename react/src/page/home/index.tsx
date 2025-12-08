@@ -7,6 +7,7 @@ import { HomeSection } from "@view/HomeSection";
 
 import { PollCard } from "./view/PollCard";
 import { Segments } from "./view/Segments";
+import { SecretSanta } from "@ui/organisms/seasonal";
 
 const mergePages = <T,>(page1: T[], page2: T[], cur: number): T[] => [
   ...page1.slice(cur),
@@ -55,6 +56,7 @@ export default function HomePage() {
       >
         <Segments />
       </HomeSection>
+      <SecretSanta />
       <HomeSection
         heading="Наша жизнь"
         actionText="Показать все"
