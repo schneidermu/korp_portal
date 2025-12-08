@@ -1,43 +1,42 @@
-// TODO: refactor me
-
-import { Center, styled } from "@styled-system/jsx";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
-export interface ModalProps {
+import { Center, CenterProps, styled } from "@styled-system/jsx";
+
+export interface OverlayProps
+  extends Omit<CenterProps, "onClick" | "position" | "zIndex"> {
   isOpen: boolean;
-  onClose: () => void;
+  close: () => void;
   children: React.ReactNode;
 }
 
-export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
+export const Overlay = ({ isOpen, close, children, ...rest }: OverlayProps) => {
   useEffect(() => {
     if (!isOpen) return;
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        onClose();
+        close();
       }
     };
 
     window.addEventListener("keydown", handleEscape);
-    document.body.style.overflow = "hidden";
 
     return () => {
       window.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "unset";
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, close]);
 
-  if (!isOpen) return null;
+  if (!isOpen) return;
 
   const modal = (
     <Center
       bg="rgba(26, 20, 31, 0.3)"
       position="fixed"
-      zIndex="1000" // FIXME
+      zIndex="overlay"
       inset="0"
-      onClick={onClose}
+      onClick={close}
+      {...rest}
     >
       <styled.div
         onClick={(e) => e.stopPropagation()}
@@ -49,5 +48,7 @@ export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
     </Center>
   );
 
-  return createPortal(modal, document.body);
+  const root = document.getElementById("root")!;
+
+  return createPortal(modal, root);
 };

@@ -34,6 +34,9 @@ export default defineConfig({
           L: { value: "0 10px 30px 0 rgba(62, 19, 77, 0.47)" },
           Sidebar: { value: "8px 0 30px 0 rgba(62, 19, 77, 0.09)" },
         },
+        zIndex: {
+          overlay: { value: 9999 },
+        },
       },
     },
   },

@@ -24,6 +24,7 @@ export const slice = createSlice({
   reducers: {
     opened(state) {
       state.isOpen = true;
+      state.isSuccess = false;
     },
     closed(state) {
       state.isOpen = false;
