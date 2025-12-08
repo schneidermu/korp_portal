@@ -11,6 +11,7 @@ export default defineConfig({
           "Grayscale/Black": { value: "#1A141F" },
           "Grayscale/Border": { value: "#ABA7AF" },
           "Grayscale/Disabled": { value: "#D4D2D5" },
+          "Grayscale/HintText": { value: "#5C5C5C" },
           "Grayscale/SpacerLight": { value: "#E5E0EB" },
           "Informing/Link": { value: "#0F0BAB" },
           "Complementary/Blue": { value: "#EBF6FF" },

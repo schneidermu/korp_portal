@@ -1,5 +1,8 @@
 import { Temporal } from "temporal-polyfill";
 
+export const parseAPIInstant = (date: string): Temporal.Instant =>
+  Temporal.Instant.from(date);
+
 export const parseAPIDate = (date: string): Temporal.PlainDate =>
   Temporal.PlainDateTime.from(date.slice(0, -1)).toPlainDate();
 
