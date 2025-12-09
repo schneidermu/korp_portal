@@ -3,7 +3,7 @@ import useSWR from "swr";
 import { useTokenFetcher } from "@api/auth";
 import { APIError } from "@api/common/errors";
 
-import { RawUserAnswers } from "../take/api.ts";
+import { RawUserAnswers } from "../take/api";
 
 export const useFetchAnswers = (pollId: number) => {
   const fetcher = useTokenFetcher();

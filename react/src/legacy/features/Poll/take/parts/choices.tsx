@@ -9,13 +9,13 @@ import {
   Stack,
 } from "@chakra-ui/react";
 
-import { useAppDispatch } from "@app/store.ts";
+import { useAppDispatch } from "@app/store";
 
 import { Checkbox } from "@legacy/shared/comps/Checkbox.tsx";
 
-import { Question } from "../../types.ts";
-import { useAnswerSelector, useIsReadOnly, usePollSelector } from "../slice.ts";
-import { slice } from "../slice.ts";
+import { Question } from "../../types";
+import { useAnswerSelector, useIsReadOnly, usePollSelector } from "../slice";
+import { slice } from "../slice";
 
 export const ChoiceListMultiple = ({ q }: { q: Question }) => {
   const dispatch = useAppDispatch();

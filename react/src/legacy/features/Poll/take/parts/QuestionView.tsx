@@ -1,7 +1,7 @@
 import { Box, Heading, Text, HStack, Show, Stack } from "@chakra-ui/react";
 
-import { Question } from "../../types.ts";
-import { useIsShown } from "../slice.ts";
+import { Question } from "../../types";
+import { useIsShown } from "../slice";
 
 import { ChoiceCountNotice, ValidationNotice } from "./notices.tsx";
 import {

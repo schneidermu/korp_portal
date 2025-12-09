@@ -1,4 +1,4 @@
-import { useAppDispatch } from "@app/store.ts";
+import { useAppDispatch } from "@app/store";
 import { Button } from "@legacy/shared/comps/Button";
 import { Checkbox } from "@legacy/shared/comps/Checkbox";
 import {

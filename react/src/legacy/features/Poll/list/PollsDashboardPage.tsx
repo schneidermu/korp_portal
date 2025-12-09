@@ -10,8 +10,8 @@ import { Page } from "@legacy/features/App/comps/Page.tsx";
 import { PageHeading } from "@legacy/features/App/comps/PageHeading.tsx";
 import { Button } from "@legacy/shared/comps/Button.tsx";
 
-import { useFetchPolls } from "../api.ts";
-import { useTab } from "./slice.ts";
+import { useFetchPolls } from "../api";
+import { useTab } from "./slice";
 
 import { GlobalStats } from "./parts/GlobalStats.tsx";
 import { PollsTable } from "./parts/PollsTable.tsx";

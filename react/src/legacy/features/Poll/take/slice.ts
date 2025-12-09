@@ -2,10 +2,10 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { RootState, useAppSelector } from "@app/store";
 
-import { Answers, Poll, Question } from "../types.ts";
-import { questionIsShown, validateQuestion } from "../utils.ts";
+import { Answers, Poll, Question } from "../types";
+import { questionIsShown, validateQuestion } from "../utils";
 
-import * as api from "./api.ts";
+import * as api from "./api";
 
 /* NOTE (invariants)
  * 1: `state.answers[qid]` is always defined

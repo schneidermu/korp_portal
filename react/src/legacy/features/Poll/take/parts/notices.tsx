@@ -1,10 +1,10 @@
 import { HStack, Icon, Text } from "@chakra-ui/react";
 import { LuCircleAlert } from "react-icons/lu";
 
-import { Question } from "../../types.ts";
-import { useSliceSelector } from "../slice.ts";
-import { useIsValidated, useQuestionValidation } from "../slice.ts";
-import { choiceCountNoticeText } from "../../utils.ts";
+import { Question } from "../../types";
+import { useSliceSelector } from "../slice";
+import { useIsValidated, useQuestionValidation } from "../slice";
+import { choiceCountNoticeText } from "../../utils";
 
 export const ChoiceCountNotice = ({ q }: { q: Question }) => {
   const mode = useSliceSelector((state) => state.mode);

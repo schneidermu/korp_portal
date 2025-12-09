@@ -6,10 +6,10 @@ import { useNavigate } from "react-router-dom";
 
 import { Grid, Heading, Show, Stack, Text } from "@chakra-ui/react";
 
-import { useAppDispatch } from "@app/store.ts";
+import { useAppDispatch } from "@app/store";
 
 import { useAuth } from "@api/auth";
-import { useIntParam } from "@legacy/shared/hooks/useIntParam.ts";
+import { useIntParam } from "@legacy/shared/hooks/useIntParam";
 
 import { PageHeading } from "@legacy/features/App/comps/PageHeading.tsx";
 import { Button } from "@legacy/shared/comps/Button.tsx";
@@ -17,18 +17,18 @@ import { Button } from "@legacy/shared/comps/Button.tsx";
 import { PollOpenedIcon } from "@legacy/shared/icons/poll/PollOpenedIcon.tsx";
 import { PollSubmittedIcon } from "@legacy/shared/icons/poll/PollSubmittedIcon.tsx";
 
-import { useFetchPoll } from "../../api.ts";
-import { useFetchUserAnswers } from "../api.ts";
-import { submitPoll, useSliceSelector } from "../slice.ts";
+import { useFetchPoll } from "../../api";
+import { useFetchUserAnswers } from "../api";
+import { submitPoll, useSliceSelector } from "../slice";
 
-import { slice } from "../slice.ts";
+import { slice } from "../slice";
 
 import { useFormStatus } from "react-dom";
 import { mutate } from "swr";
 import { QuestionView } from "./QuestionView.tsx";
-import { Poll } from "../../types.ts";
-import { useFetchUser } from "@legacy/features/user/services.ts";
-import { fullNameLong } from "@legacy/shared/utils/index.ts";
+import { Poll } from "../../types";
+import { useFetchUser } from "@legacy/features/user/services";
+import { fullNameLong } from "@legacy/shared/utils/index";
 
 export const PollView = ({
   action,

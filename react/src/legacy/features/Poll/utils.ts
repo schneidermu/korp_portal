@@ -1,6 +1,6 @@
-import { ruOnNum } from "@legacy/shared/utils/lang.ts";
+import { ruOnNum } from "@legacy/shared/utils/lang";
 
-import { Poll, Question } from "./types.ts";
+import { Poll, Question } from "./types";
 
 export const choiceCountNoticeText = (q: Question): string | undefined => {
   if (!q.isMultipleChoice) return;

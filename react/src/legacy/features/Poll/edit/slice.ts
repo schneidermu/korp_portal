@@ -2,10 +2,10 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { RootState, useAppSelector } from "@app/store";
 
-import { index, max, remove } from "@legacy/shared/utils/index.ts";
-import { NewPoll, NewQuestion, Poll, PollRaw } from "../types.ts";
+import { index, max, remove } from "@legacy/shared/utils/index";
+import { NewPoll, NewQuestion, Poll, PollRaw } from "../types";
 
-import * as api from "./api.ts";
+import * as api from "./api";
 
 export type NewPollUpdate = Partial<Omit<NewPoll, "questions">>;
 export type NewQuestionUpdate = Partial<NewQuestion>;

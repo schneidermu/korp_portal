@@ -3,7 +3,7 @@ import useSWR, { mutate } from "swr";
 import { tokenFetch, useTokenFetcher } from "@api/auth";
 import { APIError } from "@api/common/errors";
 
-import { Poll, PollStats, PollStatsRaw, toPoll, toPollStats } from "./types.ts";
+import { Poll, PollStats, PollStatsRaw, toPoll, toPollStats } from "./types";
 
 export const useFetchPoll = (id: number | null) => {
   const fetcher = useTokenFetcher();
