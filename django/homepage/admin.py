@@ -12,6 +12,8 @@ from .models import (
     Poll,
     PollGroup,
     PollSubmission,
+    SecretSantaParticipant,
+    SecretSantaSeason,
     Question,
     QuestionDependency,
     Video,
@@ -338,6 +340,20 @@ class PollSubmissionAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+@admin.register(SecretSantaSeason)
+class SecretSantaSeasonAdmin(admin.ModelAdmin):
+    list_display = ("deadline", "budget", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("deadline",)
+
+
+@admin.register(SecretSantaParticipant)
+class SecretSantaParticipantAdmin(admin.ModelAdmin):
+    list_display = ("gift_giver", "gift_receiver", "created_at")
+    autocomplete_fields = ("gift_giver", "gift_receiver")
+    search_fields = ("gift_giver__username", "gift_receiver__username", "gift_giver__email")
 
 
 @admin.register(Video)

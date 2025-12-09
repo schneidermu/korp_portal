@@ -50,6 +50,8 @@ from homepage.models import (
     VideoView,
 )
 
+from homepage.models import SecretSantaParticipant, SecretSantaSeason
+
 from .filters import CompetenceFilter, IdeaFilter
 from .permissions import IsAdminUserOrReadOnly
 from .serializers import (
@@ -1162,6 +1164,94 @@ class ValidateNextCloudView(APIView):
             status=status.HTTP_200_OK,
             headers={"WWW-Authenticate": 'Basic realm="Nextcloud"'},
         )
+
+
+class SecretSantaAPIView(APIView):
+    """API для работы с анкетой Тайного Санты.
+
+    URL: /seasonal/secret_santa/
+    GET: вернуть анкету текущего пользователя + общие параметры (deadline, budget, is_active)
+    POST: создать анкету для текущего пользователя
+    PUT/PATCH: обновить анкету текущего пользователя
+    DELETE: удалить анкету текущего пользователя
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        from .serializers import (
+            SecretSantaParticipantSerializer,
+            SecretSantaSeasonSerializer,
+        )
+
+        season = (
+            SecretSantaSeason.objects.filter(is_active=True).order_by("-id").first()
+            or SecretSantaSeason.objects.order_by("-id").first()
+        )
+
+        season_data = (
+            SecretSantaSeasonSerializer(season).data if season else {
+                "deadline": None,
+                "budget": 0,
+                "is_active": False,
+            }
+        )
+
+        try:
+            participant = SecretSantaParticipant.objects.get(gift_giver=request.user)
+            part_data = SecretSantaParticipantSerializer(
+                participant, context={"request": request},
+            ).data
+        except SecretSantaParticipant.DoesNotExist:
+            part_data = None
+
+        response_data = {"participant": part_data}
+        response_data.update(season_data)
+        return Response(response_data)
+
+    def post(self, request):
+        from .serializers import SecretSantaParticipantSerializer
+
+        try:
+            existing = SecretSantaParticipant.objects.get(gift_giver=request.user)
+            return Response(
+                {"detail": "Анкета уже существует. Используйте PUT/PATCH для обновления."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except SecretSantaParticipant.DoesNotExist:
+            pass
+
+        serializer = SecretSantaParticipantSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(gift_giver=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def put(self, request):
+        return self.patch(request)
+
+    def patch(self, request):
+        from .serializers import SecretSantaParticipantSerializer
+
+        try:
+            participant = SecretSantaParticipant.objects.get(gift_giver=request.user)
+        except SecretSantaParticipant.DoesNotExist:
+            return Response({"detail": "Анкета не найдена."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = SecretSantaParticipantSerializer(
+            participant, data=request.data, partial=True, context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        try:
+            participant = SecretSantaParticipant.objects.get(gift_giver=request.user)
+        except SecretSantaParticipant.DoesNotExist:
+            return Response({"detail": "Анкета не найдена."}, status=status.HTTP_404_NOT_FOUND)
+
+        participant.delete()
+        return Response({"message": "Анкета удалена."}, status=status.HTTP_204_NO_CONTENT)
 
 
 class CompetenceListView(generics.ListAPIView):

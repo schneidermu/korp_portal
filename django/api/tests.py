@@ -2851,3 +2851,96 @@ class CommentAPITests(APITestCase):
             self.assertEqual(comments[0]["text"], "Новый комментарий")
 
 
+
+@override_settings(
+    AUTHENTICATION_BACKENDS=["django.contrib.auth.backends.ModelBackend"],
+    FORCE_SCRIPT_NAME="",
+)
+class SecretSantaAPITests(APITestCase):
+    """Тесты для функционала Тайного Санты (анкет).
+
+    Проверяет, что POST/PUT/PATCH/DELETE модифицируют анкету текущего пользователя,
+    а GET возвращает анкету вместе с полями сезона (deadline, budget, is_active).
+    """
+
+    def setUp(self):
+        from homepage.models import SecretSantaSeason
+
+        self.user = Employee.objects.create_user(
+            username="santa_user", password="password123", email="santa@example.com",
+        )
+        self.client.force_authenticate(user=self.user)
+
+        # Создаём активный сезон
+        self.season = SecretSantaSeason.objects.create(
+            deadline=timezone.now() + timedelta(days=7), budget=1000.00, is_active=True,
+        )
+
+    def test_get_returns_participant_and_season(self):
+        from homepage.models import SecretSantaParticipant
+
+        # У пользователя ещё нет анкеты
+        response = self.client.get("/api/seasonal/secret_santa/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Должны присутствовать поля сезона
+        self.assertIn("deadline", response.data)
+        self.assertIn("budget", response.data)
+        self.assertIn("is_active", response.data)
+
+        # Так как анкеты нет, participant = None
+        self.assertIsNone(response.data.get("participant"))
+
+        # Создадим анкету и повторим запрос
+        SecretSantaParticipant.objects.create(gift_giver=self.user, wishes="Books", address="Street 1", zip_code=111111, phone="+70000000000")
+        response = self.client.get("/api/seasonal/secret_santa/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(response.data.get("participant"))
+
+    def test_post_creates_participant(self):
+        data = {"wishes": "Chocolates", "address": "Addr 1", "zip_code": 123456, "phone": "+70001112233"}
+        response = self.client.post("/api/seasonal/secret_santa/", data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        from homepage.models import SecretSantaParticipant
+
+        self.assertTrue(SecretSantaParticipant.objects.filter(gift_giver=self.user).exists())
+        obj = SecretSantaParticipant.objects.get(gift_giver=self.user)
+        self.assertEqual(obj.wishes, "Chocolates")
+
+    def test_post_when_exists_returns_400(self):
+        from homepage.models import SecretSantaParticipant
+
+        SecretSantaParticipant.objects.create(gift_giver=self.user)
+        response = self.client.post("/api/seasonal/secret_santa/", {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Анкета уже существует", str(response.data))
+
+    def test_patch_updates_participant(self):
+        from homepage.models import SecretSantaParticipant
+
+        participant = SecretSantaParticipant.objects.create(gift_giver=self.user, wishes="Old", phone="+7000")
+        data = {"wishes": "New wishes", "phone": "+79991112233"}
+        response = self.client.patch("/api/seasonal/secret_santa/", data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        participant.refresh_from_db()
+        self.assertEqual(participant.wishes, "New wishes")
+        self.assertEqual(participant.phone, "+79991112233")
+
+    def test_delete_removes_participant(self):
+        from homepage.models import SecretSantaParticipant
+
+        SecretSantaParticipant.objects.create(gift_giver=self.user)
+        response = self.client.delete("/api/seasonal/secret_santa/")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(SecretSantaParticipant.objects.filter(gift_giver=self.user).exists())
+
+    def test_cannot_assign_self_as_gift_receiver(self):
+        # Попытка указать себя в поле gift_receiver должна приводить к ошибке валидации
+        data = {"wishes": "X", "gift_receiver": self.user.pk}
+        response = self.client.post("/api/seasonal/secret_santa/", data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("gift_receiver cannot be the same as gift_giver", str(response.data))
+
+
