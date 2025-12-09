@@ -22,13 +22,48 @@ from homepage.models import Answer, Attachment, Choice, Comment
 from homepage.models import Course as HomepageCourse
 from homepage.models import (CourseVideo, Like, News, Poll, PollGroup,
                              PollSubmission, Question, QuestionDependency,
-                             Video, VideoView)
+                             Video, VideoView, SecretSantaParticipant, SecretSantaSeason)
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = UploadedFile
         fields = ("file",)
+
+
+class SecretSantaSeasonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SecretSantaSeason
+        fields = ("deadline", "budget", "is_active")
+
+
+class SecretSantaParticipantSerializer(serializers.ModelSerializer):
+    gift_giver = serializers.PrimaryKeyRelatedField(read_only=True)
+    gift_receiver = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(), required=False, allow_null=True,
+    )
+
+    class Meta:
+        model = SecretSantaParticipant
+        fields = (
+            "gift_giver",
+            "wishes",
+            "address",
+            "zip_code",
+            "phone",
+            "gift_receiver",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("created_at", "updated_at", "gift_giver")
+
+    def validate(self, data):
+        # Prevent assigning self as receiver
+        gift_receiver = data.get("gift_receiver")
+        request = self.context.get("request")
+        if request and gift_receiver and request.user and gift_receiver == request.user:
+            raise serializers.ValidationError("gift_receiver cannot be the same as gift_giver")
+        return data
 
 
 ATTRIBUTE_MODEL = (

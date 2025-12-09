@@ -22,6 +22,7 @@ from .views import (
     StructuralSubdivisionViewSet,
     ValidateNextCloudView,
     VideoViewSet,
+    SecretSantaAPIView,
 )
 
 router_version1 = DefaultRouter()
@@ -59,5 +60,10 @@ urlpatterns = [
         "nextcloud/validate/",
         ValidateNextCloudView.as_view(),
         name="nextcloud-validate",
+    ),
+    path(
+        "seasonal/secret_santa/",
+        SecretSantaAPIView.as_view(),
+        name="secret-santa",
     ),
 ]
