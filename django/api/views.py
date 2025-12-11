@@ -1375,6 +1375,8 @@ class IdeaViewSet(viewsets.ModelViewSet):
         Пользователи могут видеть только свои идеи,
         администраторы - все идеи.
         """
+        if getattr(self, "swagger_fake_view", False):
+            return self.queryset.none()
         if self.request.user.is_staff:
             return self.queryset
         return self.queryset.filter(author=self.request.user)
@@ -1478,6 +1480,9 @@ class FavoriteSegmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Возвращает только избранные сегменты текущего пользователя."""
+        if getattr(self, "swagger_fake_view", False):
+            return FavoriteSegment.objects.none()
+
         return FavoriteSegment.objects.filter(user=self.request.user).select_related(
             "segment", "segment__supervisor",
         )
