@@ -17,7 +17,7 @@ from employees.models import (
     StructuralSubdivision,
 )
 from homepage.constants import MAX_FAVORITE_SEGMENTS
-from homepage.models import News, PollGroup
+from homepage.models import News, PollGroup, Poll
 
 
 @override_settings(
@@ -2942,5 +2942,40 @@ class SecretSantaAPITests(APITestCase):
         response = self.client.post("/api/seasonal/secret_santa/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("gift_receiver cannot be the same as gift_giver", str(response.data))
+
+
+
+@override_settings(
+    AUTHENTICATION_BACKENDS=["django.contrib.auth.backends.ModelBackend"],
+    FORCE_SCRIPT_NAME="",
+)
+class PollViewSetTests(APITestCase):
+    """Simple tests to verify `is_public` compatibility on Poll detail API."""
+
+    def setUp(self):
+        self.user = Employee.objects.create_user(username="poll_tester", password="pw")
+        self.client.force_authenticate(user=self.user)
+
+    def test_is_public_field_in_detail(self):
+        published = Poll.objects.create(
+            name="Published Poll",
+            is_published=True,
+            status=Poll.StatusChoices.PUBLISHED,
+            pub_date=timezone.now() - timedelta(hours=1),
+        )
+
+        url = f"/api/polls/{published.pk}/"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("is_public", response.data)
+        self.assertTrue(response.data["is_public"])
+
+    def test_setting_is_public_property_updates_is_published(self):
+        p = Poll.objects.create(name="Some Poll", is_published=False)
+        # in-memory property setter should update the underlying field
+        self.assertFalse(p.is_public)
+        p.is_public = True
+        self.assertTrue(p.is_published)
 
 

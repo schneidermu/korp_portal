@@ -57,6 +57,7 @@ class PollGroup(models.Model):
         return self.name if self.name else "Пусто"
 
 
+
 class News(Published):
     """Модель для новости."""
 
@@ -193,6 +194,15 @@ class Poll(Published):
 
     def __str__(self):
         return self.name if self.name else "Пусто"
+
+    @property
+    def is_public(self):
+        """Compatibility alias for older API: maps to `is_published` field."""
+        return self.is_published
+
+    @is_public.setter
+    def is_public(self, value):
+        self.is_published = bool(value)
 
 
 class Question(models.Model):
