@@ -3,7 +3,8 @@ from datetime import timedelta
 from django.test import override_settings
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIRequestFactory
+from django.contrib.auth.models import AnonymousUser
 
 from employees.models import (
     Competence,
@@ -2933,3 +2934,37 @@ class SecretSantaAPITests(APITestCase):
         self.assertEqual(gift_receiver["phone"], "+100")
 
 
+@override_settings(
+    AUTHENTICATION_BACKENDS=["django.contrib.auth.backends.ModelBackend"],
+    FORCE_SCRIPT_NAME="",
+)
+class SwaggerSchemaGenerationTests(APITestCase):
+    """Ensure viewsets short-circuit during drf_yasg schema generation."""
+
+    def setUp(self):
+        self.factory = APIRequestFactory()
+
+    def test_idea_get_queryset_short_circuits_for_swagger(self):
+        from api.views import IdeaViewSet
+
+        view = IdeaViewSet()
+        request = self.factory.get("/")
+        request.user = AnonymousUser()
+        view.request = request
+        view.swagger_fake_view = True
+
+        qs = view.get_queryset()
+        # should be an empty queryset and not raise
+        self.assertEqual(qs.count(), 0)
+
+    def test_favorite_segment_get_queryset_short_circuits_for_swagger(self):
+        from api.views import FavoriteSegmentViewSet
+
+        view = FavoriteSegmentViewSet()
+        request = self.factory.get("/")
+        request.user = AnonymousUser()
+        view.request = request
+        view.swagger_fake_view = True
+
+        qs = view.get_queryset()
+        self.assertEqual(qs.count(), 0)
