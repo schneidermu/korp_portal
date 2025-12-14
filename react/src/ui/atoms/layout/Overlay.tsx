@@ -7,7 +7,7 @@ export interface OverlayProps
   extends Omit<CenterProps, "onClick" | "position" | "zIndex"> {
   isOpen: boolean;
   close: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export const Overlay = ({ isOpen, close, children, ...rest }: OverlayProps) => {

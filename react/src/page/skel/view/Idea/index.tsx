@@ -73,7 +73,7 @@ const IdeaModalForm = () => {
 
   return (
     <Modal
-      heading="Предложить идею"
+      title="Предложить идею"
       isOpen={isOpen}
       close={() => dispatch(actions.closed())}
     >
