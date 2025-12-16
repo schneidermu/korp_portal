@@ -1,12 +1,8 @@
 import os.path
 
 from django.core.exceptions import ValidationError
-from django.core.validators import (
-    EmailValidator,
-    MaxValueValidator,
-    MinValueValidator,
-    RegexValidator,
-)
+from django.core.validators import (EmailValidator, MaxValueValidator,
+                                    MinValueValidator, RegexValidator)
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -15,49 +11,59 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from employees.models import (
-    Career,
-    Characteristic,
-    Competence,
-    Conference,
-    Course,
-    Diploma,
-    Employee,
-    FavoriteSegment,
-    Hobby,
-    Idea,
-    Organization,
-    Performance,
-    Rating,
-    Reward,
-    Segment,
-    SegmentGroup,
-    Sport,
-    StructuralSubdivision,
-    Training,
-    University,
-    UploadedFile,
-    Victory,
-    Volunteer,
-)
+from employees.models import (Career, Characteristic, Competence, Conference,
+                              Course, Diploma, Employee, FavoriteSegment,
+                              Hobby, Idea, Organization, Performance, Rating,
+                              Reward, Segment, SegmentGroup, Sport,
+                              StructuralSubdivision, Training, University,
+                              UploadedFile, Victory, Volunteer)
 from homepage.constants import CHARFIELD_LENGTH
-from homepage.models import (
-    Answer,
-    Attachment,
-    Choice,
-    News,
-    Poll,
-    PollGroup,
-    PollSubmission,
-    Question,
-    QuestionDependency,
-)
+from homepage.models import Answer, Attachment, Choice, Comment
+from homepage.models import Course as HomepageCourse
+from homepage.models import (CourseVideo, Like, News, Poll, PollGroup,
+                             PollSubmission, Question, QuestionDependency,
+                             Video, VideoView, SecretSantaParticipant, SecretSantaSeason)
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = UploadedFile
         fields = ("file",)
+
+
+class SecretSantaSeasonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SecretSantaSeason
+        fields = ("deadline", "budget", "is_active")
+
+
+class SecretSantaParticipantSerializer(serializers.ModelSerializer):
+    gift_giver = serializers.PrimaryKeyRelatedField(read_only=True)
+    gift_receiver = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(), required=False, allow_null=True,
+    )
+
+    class Meta:
+        model = SecretSantaParticipant
+        fields = (
+            "gift_giver",
+            "wishes",
+            "address",
+            "zip_code",
+            "phone",
+            "gift_receiver",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("created_at", "updated_at", "gift_giver")
+
+    def validate(self, data):
+        # Prevent assigning self as receiver
+        gift_receiver = data.get("gift_receiver")
+        request = self.context.get("request")
+        if request and gift_receiver and request.user and gift_receiver == request.user:
+            raise serializers.ValidationError("gift_receiver cannot be the same as gift_giver")
+        return data
 
 
 ATTRIBUTE_MODEL = (
@@ -2068,3 +2074,223 @@ class SegmentGroupSerializer(serializers.ModelSerializer):
     def get_segments_count(self, obj):
         """Возвращает количество сегментов в группе."""
         return obj.segments.count()
+
+
+class VideoSerializer(serializers.ModelSerializer):
+    """Сериализатор для видео."""
+
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
+    likes_count = serializers.SerializerMethodField(read_only=True)
+    views_count = serializers.SerializerMethodField(read_only=True)
+    comments_count = serializers.SerializerMethodField(read_only=True)
+    is_liked_by_me = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Video
+        fields = (
+            "id",
+            "name",
+            "description",
+            "author",
+            "media",
+            "pub_date",
+            "is_published",
+            "created_at",
+            "likes_count",
+            "views_count",
+            "comments_count",
+            "is_liked_by_me",
+        )
+        read_only_fields = ("created_at",)
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_views_count(self, obj):
+        return obj.views.count()
+
+    def get_comments_count(self, obj):
+        return obj.comments.count()
+
+    def get_is_liked_by_me(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(user=request.user).exists()
+        return False
+
+
+class CourseVideoSerializer(serializers.ModelSerializer):
+    """Сериализатор для связи курса и видео."""
+
+    video = VideoSerializer(read_only=True)
+    video_id = serializers.PrimaryKeyRelatedField(
+        queryset=Video.objects.all(),
+        source="video",
+        write_only=True,
+    )
+
+    class Meta:
+        model = CourseVideo
+        fields = (
+            "id",
+            "video",
+            "video_id",
+            "order",
+        )
+
+
+class CourseListSerializer(serializers.ModelSerializer):
+    """Сериализатор для списка курсов (без вложенных видео)."""
+
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
+    videos_count = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = HomepageCourse
+        fields = (
+            "id",
+            "name",
+            "description",
+            "author",
+            "pub_date",
+            "is_published",
+            "created_at",
+            "videos_count",
+        )
+        read_only_fields = ("created_at",)
+
+    def get_videos_count(self, obj):
+        return obj.coursevideo_set.count()
+
+
+class CourseDetailSerializer(serializers.ModelSerializer):
+    """Сериализатор для детального просмотра курса (с вложенными видео)."""
+
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
+    course_videos = CourseVideoSerializer(source="coursevideo_set", many=True, read_only=True)
+
+    class Meta:
+        model = HomepageCourse
+        fields = (
+            "id",
+            "name",
+            "description",
+            "author",
+            "pub_date",
+            "is_published",
+            "created_at",
+            "course_videos",
+        )
+        read_only_fields = ("created_at",)
+
+
+class CourseWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания и редактирования курса."""
+
+    videos = serializers.ListField(
+        child=serializers.DictField(),
+        write_only=True,
+        required=False,
+    )
+
+    class Meta:
+        model = HomepageCourse
+        fields = (
+            "id",
+            "name",
+            "description",
+            "pub_date",
+            "is_published",
+            "videos",
+        )
+
+    @transaction.atomic
+    def create(self, validated_data):
+        videos_data = validated_data.pop("videos", [])
+        course = HomepageCourse.objects.create(**validated_data)
+
+        for video_data in videos_data:
+            video_id = video_data.get("video_id")
+            order = video_data.get("order", 0)
+            if video_id:
+                CourseVideo.objects.create(
+                    course=course,
+                    video_id=video_id,
+                    order=order,
+                )
+
+        return course
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        videos_data = validated_data.pop("videos", None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if videos_data is not None:
+            instance.coursevideo_set.all().delete()
+            for video_data in videos_data:
+                video_id = video_data.get("video_id")
+                order = video_data.get("order", 0)
+                if video_id:
+                    CourseVideo.objects.create(
+                        course=instance,
+                        video_id=video_id,
+                        order=order,
+                    )
+
+        return instance
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для комментариев к видео."""
+
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    user_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = (
+            "id",
+            "video",
+            "user",
+            "user_name",
+            "text",
+            "pub_date",
+        )
+        read_only_fields = ("pub_date",)
+
+    def get_user_name(self, obj):
+        if obj.user:
+            return obj.user.get_full_name()
+        return "Аноним"
+
+
+class VideoViewSerializer(serializers.ModelSerializer):
+    """Сериализатор для просмотров видео."""
+
+    class Meta:
+        model = VideoView
+        fields = (
+            "id",
+            "video",
+            "user",
+            "viewed_at",
+        )
+        read_only_fields = ("viewed_at",)
+
+
+class LikeSerializer(serializers.ModelSerializer):
+    """Сериализатор для лайков видео."""
+
+    class Meta:
+        model = Like
+        fields = (
+            "id",
+            "video",
+            "user",
+            "created_at",
+        )
+        read_only_fields = ("created_at",)

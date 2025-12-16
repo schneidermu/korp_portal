@@ -36,16 +36,35 @@ from employees.models import (
     SegmentGroup,
     StructuralSubdivision,
 )
-from homepage.models import Answer, News, Poll, PollGroup, PollSubmission, Question
+from homepage.models import (
+    Answer,
+    Comment,
+    Course,
+    Like,
+    News,
+    Poll,
+    PollGroup,
+    PollSubmission,
+    Question,
+    Video,
+    VideoView,
+)
+
+from homepage.models import SecretSantaParticipant, SecretSantaSeason
 
 from .filters import CompetenceFilter, IdeaFilter
 from .permissions import IsAdminUserOrReadOnly
 from .serializers import (
+    CommentSerializer,
     CompetenceSerializer,
+    CourseDetailSerializer,
+    CourseListSerializer,
+    CourseWriteSerializer,
     FavoriteSegmentSerializer,
     FileUploadSerializer,
     HierarchySerializer,
     IdeaSerializer,
+    LikeSerializer,
     MyProfileSerializer,
     NewsSerializer,
     OrganizationSerializer,
@@ -63,6 +82,7 @@ from .serializers import (
     SegmentSerializer,
     StructuralSubdivisionReadSerializer,
     StructuralSubdivisionWriteSerializer,
+    VideoSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -1136,6 +1156,132 @@ class ValidateNextCloudView(APIView):
         )
 
 
+class SecretSantaAPIView(APIView):
+    """API для работы с анкетой Тайного Санты.
+
+    URL: /seasonal/secret_santa/
+    GET: вернуть анкету текущего пользователя + общие параметры (deadline, budget, is_active)
+    POST: создать анкету для текущего пользователя
+    PUT/PATCH: обновить анкету текущего пользователя
+    DELETE: удалить анкету текущего пользователя
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        from .serializers import (
+            SecretSantaParticipantSerializer,
+            SecretSantaSeasonSerializer,
+        )
+
+        season = (
+            SecretSantaSeason.objects.filter(is_active=True).order_by("-id").first()
+            or SecretSantaSeason.objects.order_by("-id").first()
+        )
+
+        season_data = (
+            SecretSantaSeasonSerializer(season).data if season else {
+                "deadline": None,
+                "budget": 0,
+                "is_active": False,
+            }
+        )
+
+        try:
+            participant = SecretSantaParticipant.objects.get(gift_giver=request.user)
+            part_data = SecretSantaParticipantSerializer(
+                participant, context={"request": request},
+            ).data
+        except SecretSantaParticipant.DoesNotExist:
+            participant = None
+            part_data = None
+
+        # Build response: include `gift_giver` with id + participant fields,
+        # and `gift_receiver` with its id and receiver's participant data (if any).
+        gift_giver_obj = None
+        gift_receiver_obj = None
+
+        if part_data is not None:
+            # prefer explicit id under `gift_giver` and include other participant fields
+            gift_giver_obj = {"id": request.user.pk}
+            # copy other fields except gift_giver (PK) which we already set
+            for k, v in part_data.items():
+                if k == "gift_giver":
+                    continue
+                gift_giver_obj[k] = v
+
+            # If a receiver user is set, try to include their participant record
+            receiver_user = participant.gift_receiver
+            if receiver_user:
+                try:
+                    receiver_participant = SecretSantaParticipant.objects.get(
+                        gift_giver=receiver_user
+                    )
+                    receiver_data = SecretSantaParticipantSerializer(
+                        receiver_participant, context={"request": request},
+                    ).data
+                except SecretSantaParticipant.DoesNotExist:
+                    receiver_data = None
+
+                # Flatten receiver participant data under `gift_receiver` and include id
+                if receiver_data is not None:
+                    gift_receiver_obj = {"id": receiver_user.pk}
+                    for k, v in receiver_data.items():
+                        if k in ("gift_giver", "gift_receiver"):
+                            continue
+                        gift_receiver_obj[k] = v
+                else:
+                    gift_receiver_obj = {"id": receiver_user.pk}
+
+        response_data = {"gift_giver": gift_giver_obj, "gift_receiver": gift_receiver_obj}
+        response_data.update(season_data)
+        return Response(response_data)
+
+    def post(self, request):
+        from .serializers import SecretSantaParticipantSerializer
+
+        try:
+            existing = SecretSantaParticipant.objects.get(gift_giver=request.user)
+            return Response(
+                {"detail": "Анкета уже существует. Используйте PUT/PATCH для обновления."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except SecretSantaParticipant.DoesNotExist:
+            pass
+
+        serializer = SecretSantaParticipantSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(gift_giver=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def put(self, request):
+        return self.patch(request)
+
+    def patch(self, request):
+        from .serializers import SecretSantaParticipantSerializer
+
+        try:
+            participant = SecretSantaParticipant.objects.get(gift_giver=request.user)
+        except SecretSantaParticipant.DoesNotExist:
+            return Response({"detail": "Анкета не найдена."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = SecretSantaParticipantSerializer(
+            participant, data=request.data, partial=True, context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        try:
+            participant = SecretSantaParticipant.objects.get(gift_giver=request.user)
+        except SecretSantaParticipant.DoesNotExist:
+            return Response({"detail": "Анкета не найдена."}, status=status.HTTP_404_NOT_FOUND)
+
+        participant.delete()
+        return Response({"message": "Анкета удалена."}, status=status.HTTP_204_NO_CONTENT)
+
+
 class CompetenceListView(generics.ListAPIView):
     """
     Provides a read-only list of all available Competences (id and name).
@@ -1257,6 +1403,8 @@ class IdeaViewSet(viewsets.ModelViewSet):
         Пользователи могут видеть только свои идеи,
         администраторы - все идеи.
         """
+        if getattr(self, "swagger_fake_view", False):
+            return self.queryset.none()
         if self.request.user.is_staff:
             return self.queryset
         return self.queryset.filter(author=self.request.user)
@@ -1360,6 +1508,9 @@ class FavoriteSegmentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Возвращает только избранные сегменты текущего пользователя."""
+        if getattr(self, "swagger_fake_view", False):
+            return FavoriteSegment.objects.none()
+
         return FavoriteSegment.objects.filter(user=self.request.user).select_related(
             "segment", "segment__supervisor",
         )
@@ -1417,3 +1568,144 @@ class SegmentGroupViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Возвращает кверисет с prefetch для оптимизации."""
         return self.queryset.prefetch_related("segments")
+
+
+class VideoViewSet(viewsets.ModelViewSet):
+    """Вьюсет для видео с CRUD операциями."""
+
+    serializer_class = VideoSerializer
+    permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["author", "is_published"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["name", "pub_date", "created_at"]
+    ordering = ["-pub_date"]
+
+    def get_queryset(self):
+        """Возвращает опубликованные видео для обычных пользователей."""
+        user = self.request.user
+
+        if user.is_staff or user.is_superuser:
+            return (
+                Video.objects.all()
+                .select_related("author")
+                .prefetch_related("likes", "views", "comments")
+            )
+
+        return (
+            Video.objects.filter(is_published=True, pub_date__lte=timezone.now())
+            .select_related("author")
+            .prefetch_related("likes", "views", "comments")
+        )
+
+    def perform_create(self, serializer):
+        """Автоматически устанавливает автора видео при создании."""
+        serializer.save(author=self.request.user)
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def like(self, request, pk=None):
+        """Поставить лайк видео."""
+        video = self.get_object()
+
+        like, created = Like.objects.get_or_create(video=video, user=request.user)
+
+        if created:
+            return Response(
+                {"message": "Лайк добавлен", "is_liked": True},
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                {"message": "Вы уже поставили лайк этому видео", "is_liked": True},
+                status=status.HTTP_200_OK,
+            )
+
+    @action(detail=True, methods=["delete"], permission_classes=[IsAuthenticated])
+    def unlike(self, request, pk=None):
+        """Убрать лайк с видео."""
+        video = self.get_object()
+
+        try:
+            like = Like.objects.get(video=video, user=request.user)
+            like.delete()
+            return Response(
+                {"message": "Лайк удален", "is_liked": False},
+                status=status.HTTP_204_NO_CONTENT,
+            )
+        except Like.DoesNotExist:
+            return Response(
+                {"error": "Вы не ставили лайк этому видео"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def view(self, request, pk=None):
+        """Зарегистрировать просмотр видео."""
+        video = self.get_object()
+
+        # Создаем запись о просмотре (можно создавать несколько для одного пользователя)
+        VideoView.objects.create(video=video, user=request.user)
+
+        return Response(
+            {"message": "Просмотр зарегистрирован"},
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class CourseViewSet(viewsets.ModelViewSet):
+    """Вьюсет для курсов с CRUD операциями."""
+
+    permission_classes = [IsAuthenticated, IsAdminUserOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["author", "is_published"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["name", "pub_date", "created_at"]
+    ordering = ["-pub_date"]
+
+    def get_queryset(self):
+        """Возвращает опубликованные курсы для обычных пользователей."""
+        user = self.request.user
+
+        if user.is_staff or user.is_superuser:
+            return (
+                Course.objects.all()
+                .select_related("author")
+                .prefetch_related("coursevideo_set__video")
+            )
+
+        return (
+            Course.objects.filter(is_published=True, pub_date__lte=timezone.now())
+            .select_related("author")
+            .prefetch_related("coursevideo_set__video")
+        )
+
+    def get_serializer_class(self):
+        """Возвращает разные сериализаторы для разных действий."""
+        if self.action == "retrieve":
+            return CourseDetailSerializer
+        elif self.action in ["create", "update", "partial_update"]:
+            return CourseWriteSerializer
+        return CourseListSerializer
+
+    def perform_create(self, serializer):
+        """Автоматически устанавливает автора курса при создании."""
+        serializer.save(author=self.request.user)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для комментариев к видео."""
+
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["video", "user"]
+    ordering_fields = ["pub_date"]
+    ordering = ["-pub_date"]
+
+    def get_queryset(self):
+        """Возвращает комментарии с prefetch для оптимизации."""
+        return Comment.objects.select_related("video", "user").all()
+
+    def perform_create(self, serializer):
+        """Автоматически устанавливает автора комментария при создании."""
+        serializer.save(user=self.request.user)

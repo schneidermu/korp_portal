@@ -552,3 +552,62 @@ class Like(models.Model):
 
     def __str__(self):
         return f"Лайк от {self.user} к видео '{self.video.name}'"
+
+
+class SecretSantaSeason(models.Model):
+    """Хранит общие константы для мероприятия Тайного Санты."""
+
+    deadline = models.DateTimeField(
+        null=True, blank=True, verbose_name="Крайний срок регистрации/изменений",
+    )
+    budget = models.DecimalField(
+        max_digits=8, decimal_places=2, default=0, verbose_name="Бюджет (руб.)",
+    )
+    is_active = models.BooleanField(default=False, verbose_name="Активен")
+
+    class Meta:
+        verbose_name = "Настройки Тайного Санты"
+        verbose_name_plural = "Настройки Тайного Санты"
+
+    def __str__(self):
+        return f"SecretSantaSeason(active={self.is_active}, deadline={self.deadline})"
+
+
+class SecretSantaParticipant(models.Model):
+    """Анкета участника Тайного Санты.
+
+    Каждый пользователь может иметь одну анкету (gift_giver).
+    Поле gift_receiver заполняется вручную после жеребьевки и должно быть уникальным.
+    """
+
+    gift_giver = models.OneToOneField(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="secret_santa_participant",
+        verbose_name="Отправитель подарка",
+    )
+    wishes = models.TextField(blank=True, verbose_name="Пожелания")
+    address = models.TextField(blank=True, verbose_name="Адрес")
+    zip_code = models.IntegerField(null=True, blank=True, verbose_name="Индекс")
+    phone = models.CharField(max_length=50, blank=True, verbose_name="Телефон")
+
+    # Связан с другим пользователем — получателем подарка.
+    # OneToOneField гарантирует уникальность получателя в рамках мероприятия.
+    gift_receiver = models.OneToOneField(
+        Employee,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="secret_santa_receiver",
+        verbose_name="Получатель подарка",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Участник Тайного Санты"
+        verbose_name_plural = "Участники Тайного Санты"
+
+    def __str__(self):
+        return f"SecretSantaParticipant({self.gift_giver})"
