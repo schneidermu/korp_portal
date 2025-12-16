@@ -1233,7 +1233,15 @@ class SecretSantaAPIView(APIView):
                 except SecretSantaParticipant.DoesNotExist:
                     receiver_data = None
 
-                gift_receiver_obj = {"id": receiver_user.pk, "participant": receiver_data}
+                # Flatten receiver participant data under `gift_receiver` and include id
+                if receiver_data is not None:
+                    gift_receiver_obj = {"id": receiver_user.pk}
+                    for k, v in receiver_data.items():
+                        if k in ("gift_giver", "gift_receiver"):
+                            continue
+                        gift_receiver_obj[k] = v
+                else:
+                    gift_receiver_obj = {"id": receiver_user.pk}
 
         response_data = {"gift_giver": gift_giver_obj, "gift_receiver": gift_receiver_obj}
         response_data.update(season_data)

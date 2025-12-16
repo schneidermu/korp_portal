@@ -2969,9 +2969,9 @@ class SecretSantaAPITests(APITestCase):
 
         gift_receiver = response.data["gift_receiver"]
         self.assertEqual(gift_receiver["id"], receiver.pk)
-        self.assertIn("participant", gift_receiver)
-        self.assertIsNotNone(gift_receiver["participant"])
-        self.assertEqual(gift_receiver["participant"]["gift_giver"], receiver.pk)
+        # receiver participant fields are flattened into gift_receiver
+        self.assertEqual(gift_receiver["wishes"], "Receiver wish")
+        self.assertEqual(gift_receiver["phone"], "+100")
 
 
 
