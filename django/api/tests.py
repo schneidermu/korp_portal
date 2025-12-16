@@ -2889,14 +2889,17 @@ class SecretSantaAPITests(APITestCase):
         self.assertIn("budget", response.data)
         self.assertIn("is_active", response.data)
 
-        # Так как анкеты нет, participant = None
-        self.assertIsNone(response.data.get("participant"))
+        # Так как анкеты нет, gift_giver и gift_receiver = None
+        self.assertIsNone(response.data.get("gift_giver"))
+        self.assertIsNone(response.data.get("gift_receiver"))
 
         # Создадим анкету и повторим запрос
         SecretSantaParticipant.objects.create(gift_giver=self.user, wishes="Books", address="Street 1", zip_code=111111, phone="+70000000000")
         response = self.client.get("/api/seasonal/secret_santa/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsNotNone(response.data.get("participant"))
+        # gift_giver should now be present and include id
+        self.assertIsNotNone(response.data.get("gift_giver"))
+        self.assertEqual(response.data["gift_giver"]["id"], self.user.pk)
 
     def test_post_creates_participant(self):
         data = {"wishes": "Chocolates", "address": "Addr 1", "zip_code": 123456, "phone": "+70001112233"}
@@ -2943,6 +2946,32 @@ class SecretSantaAPITests(APITestCase):
         response = self.client.post("/api/seasonal/secret_santa/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("gift_receiver cannot be the same as gift_giver", str(response.data))
+
+    def test_get_includes_gift_receiver_and_their_participant(self):
+        from homepage.models import SecretSantaParticipant
+
+        # create receiver and their participant
+        receiver = Employee.objects.create_user(username="receiver", password="pw")
+        SecretSantaParticipant.objects.create(gift_giver=receiver, wishes="Receiver wish", phone="+100")
+
+        # create giver's participant that points to receiver
+        SecretSantaParticipant.objects.create(gift_giver=self.user, gift_receiver=receiver, wishes="Giver wish", phone="+200")
+
+        response = self.client.get("/api/seasonal/secret_santa/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertIn("gift_giver", response.data)
+        self.assertIn("gift_receiver", response.data)
+
+        gift_giver = response.data["gift_giver"]
+        self.assertEqual(gift_giver["id"], self.user.pk)
+        self.assertEqual(gift_giver["wishes"], "Giver wish")
+
+        gift_receiver = response.data["gift_receiver"]
+        self.assertEqual(gift_receiver["id"], receiver.pk)
+        self.assertIn("participant", gift_receiver)
+        self.assertIsNotNone(gift_receiver["participant"])
+        self.assertEqual(gift_receiver["participant"]["gift_giver"], receiver.pk)
 
 
 

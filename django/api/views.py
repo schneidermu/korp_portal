@@ -1203,9 +1203,39 @@ class SecretSantaAPIView(APIView):
                 participant, context={"request": request},
             ).data
         except SecretSantaParticipant.DoesNotExist:
+            participant = None
             part_data = None
 
-        response_data = {"participant": part_data}
+        # Build response: include `gift_giver` with id + participant fields,
+        # and `gift_receiver` with its id and receiver's participant data (if any).
+        gift_giver_obj = None
+        gift_receiver_obj = None
+
+        if part_data is not None:
+            # prefer explicit id under `gift_giver` and include other participant fields
+            gift_giver_obj = {"id": request.user.pk}
+            # copy other fields except gift_giver (PK) which we already set
+            for k, v in part_data.items():
+                if k == "gift_giver":
+                    continue
+                gift_giver_obj[k] = v
+
+            # If a receiver user is set, try to include their participant record
+            receiver_user = participant.gift_receiver
+            if receiver_user:
+                try:
+                    receiver_participant = SecretSantaParticipant.objects.get(
+                        gift_giver=receiver_user
+                    )
+                    receiver_data = SecretSantaParticipantSerializer(
+                        receiver_participant, context={"request": request},
+                    ).data
+                except SecretSantaParticipant.DoesNotExist:
+                    receiver_data = None
+
+                gift_receiver_obj = {"id": receiver_user.pk, "participant": receiver_data}
+
+        response_data = {"gift_giver": gift_giver_obj, "gift_receiver": gift_receiver_obj}
         response_data.update(season_data)
         return Response(response_data)
 
