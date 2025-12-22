@@ -1,0 +1,1 @@
+export { AvatarWithRating } from "./AvatarWithRating";
