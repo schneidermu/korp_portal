@@ -5,6 +5,10 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase, APIRequestFactory
 from django.contrib.auth.models import AnonymousUser
+from django.core.files.uploadedfile import SimpleUploadedFile
+import base64
+from io import BytesIO
+from PIL import Image
 
 from employees.models import (
     Competence,
@@ -18,7 +22,7 @@ from employees.models import (
     StructuralSubdivision,
 )
 from homepage.constants import MAX_FAVORITE_SEGMENTS
-from homepage.models import News, PollGroup, Poll
+from homepage.models import News, PollGroup, Poll, Attachment
 
 
 @override_settings(
@@ -591,6 +595,68 @@ class NewsViewSetTests(APITestCase):
         self.assertIn("Published News", titles)
         self.assertIn("News Without Organization", titles)
         self.assertNotIn("News Other Organization", titles)
+
+    def test_update_news_add_base64_attachment(self):
+        """PATCH: adding a base64 attachment should save it as media (no 500)."""
+        news = News.objects.create(
+            title="Update Attachments",
+            text="text",
+            is_published=True,
+            pub_date=timezone.now() - timedelta(hours=5),
+        )
+        news.organization.set([self.organization])
+
+        # generate a valid 1x1 PNG base64
+        buf = BytesIO()
+        Image.new("RGBA", (1, 1), (255, 0, 0, 0)).save(buf, format="PNG")
+        png_b = buf.getvalue()
+        data_uri = "data:image/png;base64," + base64.b64encode(png_b).decode()
+
+        # use staff user for update (permission required)
+        admin = Employee.objects.create_user(username="admin", password="pass", is_staff=True)
+        admin.structural_division = self.structural_division
+        admin.save()
+        self.client.force_authenticate(user=admin)
+
+        url = f"/api/news/{news.pk}/"
+        response = self.client.patch(url, {"attachments": [{"image": data_uri}]}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(Attachment.objects.filter(publication=news).exists())
+
+    def test_update_news_mixed_attachments_preserve_existing(self):
+        """PATCH: mixing URL and base64 — URL ignored, base64 saved, existing preserved."""
+        news = News.objects.create(
+            title="Mixed Attachments",
+            text="text",
+            is_published=True,
+            pub_date=timezone.now() - timedelta(hours=5),
+        )
+        news.organization.set([self.organization])
+
+        # create an existing attachment file (valid PNG)
+        buf = BytesIO()
+        Image.new("RGBA", (1, 1), (0, 255, 0, 0)).save(buf, format="PNG")
+        file_bytes = buf.getvalue()
+        uploaded = SimpleUploadedFile("exist.png", file_bytes, content_type="image/png")
+        Attachment.objects.create(publication=news, image=uploaded)
+
+        initial_count = Attachment.objects.filter(publication=news).count()
+
+        data_uri = "data:image/png;base64," + base64.b64encode(file_bytes).decode()
+        # use staff user for update (permission required)
+        admin = Employee.objects.create_user(username="admin2", password="pass", is_staff=True)
+        admin.structural_division = self.structural_division
+        admin.save()
+        self.client.force_authenticate(user=admin)
+
+        url = f"/api/news/{news.pk}/"
+        response = self.client.patch(url, {"attachments": [{"image": "https://remote.example/img.png"}, {"image": data_uri}]}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        final_count = Attachment.objects.filter(publication=news).count()
+        # only the base64 one should have been added
+        self.assertEqual(final_count, initial_count + 1)
 
 
 @override_settings(

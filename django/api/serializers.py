@@ -84,13 +84,15 @@ ATTRIBUTE_MODEL = (
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
-    """Сериализатор картинки"""
+    """Сериализатор картинки. Принимает либо data-uri/base64 строку, либо URL.
 
-    image = Base64ImageField()
+    Обработка сохранения выполняется в `NewsSerializer.create`/`update`.
+    """
+
+    image = serializers.CharField()
 
     class Meta:
         model = Attachment
-
         fields = ("image",)
 
 
@@ -953,19 +955,57 @@ class NewsSerializer(serializers.ModelSerializer):
         news_defaults = validated_data
 
         news_item, created = News.objects.get_or_create(
-            title=validated_data["title"], defaults=news_defaults,
+            title=validated_data.get("title"), defaults=news_defaults,
         )
 
-        if created:
-            if organization_data is not None:
-                news_item.organization.set(organization_data)
+        if organization_data is not None:
+            news_item.organization.set(organization_data)
 
-            for attachment_data in attachments_data:
-                Attachment.objects.create(publication=news_item, **attachment_data)
-        else:
-            pass
+        # Process attachments: allow mixing of existing URLs and base64 data-uris.
+        for attachment_data in attachments_data:
+            image_val = attachment_data.get("image")
+            if not image_val:
+                continue
+
+            # If the client sent a data URI / base64 image, save it as a new Attachment
+            if isinstance(image_val, str) and ";base64," in image_val:
+                b64field = Base64ImageField()
+                file_obj = b64field.to_internal_value(image_val)
+                Attachment.objects.create(publication=news_item, image=file_obj)
+            else:
+                # It's a URL or some other string: do not try to re-save it.
+                # We keep existing server attachments untouched.
+                # If behavior should create attachments from remote URLs, implement download here.
+                continue
 
         return news_item
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        # Update simple fields
+        attachments_data = validated_data.pop("attachments", None)
+        organization_data = validated_data.pop("organization", None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if organization_data is not None:
+            instance.organization.set(organization_data)
+
+        # If attachments provided: process base64 entries and add them.
+        # URLs are treated as references to existing media and are ignored.
+        if attachments_data is not None:
+            for attachment_data in attachments_data:
+                image_val = attachment_data.get("image")
+                if not image_val:
+                    continue
+                if isinstance(image_val, str) and ";base64," in image_val:
+                    b64field = Base64ImageField()
+                    file_obj = b64field.to_internal_value(image_val)
+                    Attachment.objects.create(publication=instance, image=file_obj)
+
+        return instance
 
 
 class CourseSerializer(serializers.ModelSerializer):
