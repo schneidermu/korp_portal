@@ -5,7 +5,7 @@ import { enableMapSet } from "immer";
 import { Provider } from "react-redux";
 import { SWRConfig } from "swr";
 
-import { store } from "@/app/store";
+import { store } from "@app/store";
 import { swrConfig } from "./app/swrConfig";
 
 import { App } from "@app/index";
