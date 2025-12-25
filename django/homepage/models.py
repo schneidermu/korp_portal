@@ -96,6 +96,9 @@ class News(Published):
             "Если установить дату и время в будущем"
             " — можно делать отложенные публикации."
         ),
+        null=True,
+        blank=True,
+        default=None,
     )
 
     class Meta:

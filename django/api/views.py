@@ -871,7 +871,7 @@ class NewsViewSet(viewsets.ModelViewSet):
                 if is_published_param.lower() in ("true", "1", "yes"):
                     qs = qs.filter(is_published=True, pub_date__lte=now)
                 else:
-                    qs = qs.filter(Q(is_published=False) | Q(pub_date__gt=now))
+                    qs = qs.filter(Q(is_published=False) | Q(pub_date__gt=now) | Q(pub_date__isnull=True))
             return qs.order_by("-pub_date")
 
         # Default for ordinary users: published and already-published
@@ -885,18 +885,26 @@ class NewsViewSet(viewsets.ModelViewSet):
             can_manage_news = False
 
         if can_manage_news:
-            own_qs = News.objects.filter(author=user).select_related("author")
+            # make explicit unions via Q to avoid unexpected queryset union behavior
+            own_q = Q(author=user)
 
             if is_published_param is None:
                 # default: include published + own (any status)
-                queryset = (queryset | own_qs).distinct()
+                published_ids = list(published_qs.values_list("id", flat=True))
+                queryset = (
+                    News.objects.select_related("author")
+                    .filter(Q(id__in=published_ids) | own_q)
+                    .distinct()
+                )
             else:
                 # explicit filtering requested
                 if is_published_param.lower() in ("true", "1", "yes"):
-                    queryset = queryset
+                    queryset = published_qs
                 else:
-                    # news admins requesting False see their own unpublished/future news
-                    queryset = own_qs.filter(Q(is_published=False) | Q(pub_date__gt=now))
+                    # news admins requesting False see their own unpublished/future news only
+                    queryset = News.objects.select_related("author").filter(
+                        own_q & (Q(is_published=False) | Q(pub_date__gt=now) | Q(pub_date__isnull=True))
+                    )
 
         # For non-admins, ?is_published=False does not change visibility
         return queryset.order_by("-pub_date")
