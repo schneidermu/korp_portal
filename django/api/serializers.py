@@ -932,6 +932,7 @@ class NewsSerializer(serializers.ModelSerializer):
         model = News
         fields = (
             "id",
+            "is_published",
             "title",
             "author",
             "text",
@@ -941,6 +942,7 @@ class NewsSerializer(serializers.ModelSerializer):
             "pub_date",
         )
         optional_fields = (
+            "is_published",
             "attachments",
             "video",
             "organization",

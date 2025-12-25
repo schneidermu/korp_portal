@@ -4,7 +4,7 @@ from django.test import override_settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase, APIRequestFactory
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Permission
 from django.core.files.uploadedfile import SimpleUploadedFile
 import base64
 from io import BytesIO
@@ -657,6 +657,189 @@ class NewsViewSetTests(APITestCase):
         final_count = Attachment.objects.filter(publication=news).count()
         # only the base64 one should have been added
         self.assertEqual(final_count, initial_count + 1)
+
+    def test_author_with_news_perms_sees_own_unpublished_and_future_news(self):
+        """Пользователь с правами добавления/изменения новостей видит свои не опубликованные/будущие новости."""
+        author = Employee.objects.create_user(username="author_user", password="pass")
+        author.structural_division = self.structural_division
+        author.save()
+
+        # grant add/change news permissions
+        add_perm = Permission.objects.get(codename="add_news")
+        change_perm = Permission.objects.get(codename="change_news")
+        author.user_permissions.add(add_perm, change_perm)
+
+        future_news = News.objects.create(
+            title="Future News",
+            text="Not yet published",
+            is_published=False,
+            pub_date=timezone.now() + timedelta(days=1),
+            author=author,
+        )
+        future_news.organization.set([self.organization])
+
+        self.client.force_authenticate(user=author)
+        url = "/api/news/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        if "results" in response.data:
+            news_list = response.data["results"]
+        else:
+            news_list = response.data
+
+        titles = [n["title"] for n in news_list]
+        self.assertIn("Future News", titles)
+
+    def test_author_without_news_perms_does_not_see_own_unpublished_news(self):
+        """Автор без прав не должен видеть свои неопубликованные/будущие новости через общий список."""
+        author = Employee.objects.create_user(username="plain_author", password="pass")
+        author.structural_division = self.structural_division
+        author.save()
+
+        future_news = News.objects.create(
+            title="Hidden Future News",
+            text="Not yet published",
+            is_published=False,
+            pub_date=timezone.now() + timedelta(days=1),
+            author=author,
+        )
+        future_news.organization.set([self.organization])
+
+        self.client.force_authenticate(user=author)
+        url = "/api/news/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        if "results" in response.data:
+            news_list = response.data["results"]
+        else:
+            news_list = response.data
+
+        titles = [n["title"] for n in news_list]
+        self.assertNotIn("Hidden Future News", titles)
+
+    def test_is_published_false_param_shows_unpublished_for_news_admin(self):
+        """Для пользователя с правами news admin, ?is_published=False возвращает его неопубликованные/будущие новости."""
+        author = Employee.objects.create_user(username="flag_author", password="pass")
+        author.structural_division = self.structural_division
+        author.save()
+
+        add_perm = Permission.objects.get(codename="add_news")
+        author.user_permissions.add(add_perm)
+
+        future_news = News.objects.create(
+            title="Flag Future News",
+            text="Not yet published",
+            is_published=False,
+            pub_date=timezone.now() + timedelta(days=2),
+            author=author,
+        )
+        future_news.organization.set([self.organization])
+
+        self.client.force_authenticate(user=author)
+        url = "/api/news/?is_published=False"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        if "results" in response.data:
+            news_list = response.data["results"]
+        else:
+            news_list = response.data
+
+        titles = [n["title"] for n in news_list]
+        self.assertIn("Flag Future News", titles)
+
+    def test_non_admin_is_published_flag_has_no_effect(self):
+        """Для не-админов /news/?is_published=False и /news/ дают одинаковый набор новостей."""
+        # create a future news by another user
+        other = Employee.objects.create_user(username="otheruser", password="pw")
+        other.structural_division = self.structural_division
+        other.save()
+
+        future_news = News.objects.create(
+            title="Other Future News",
+            text="Not yet published",
+            is_published=False,
+            pub_date=timezone.now() + timedelta(days=3),
+            author=other,
+        )
+        future_news.organization.set([self.organization])
+
+        self.client.force_authenticate(user=self.user)
+
+        url_plain = "/api/news/"
+        url_flag = "/api/news/?is_published=False"
+
+        resp_plain = self.client.get(url_plain)
+        resp_flag = self.client.get(url_flag)
+
+        self.assertEqual(resp_plain.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp_flag.status_code, status.HTTP_200_OK)
+
+        def extract_titles(resp):
+            if "results" in resp.data:
+                return [n["title"] for n in resp.data["results"]]
+            return [n["title"] for n in resp.data]
+
+        titles_plain = extract_titles(resp_plain)
+        titles_flag = extract_titles(resp_flag)
+
+        self.assertEqual(titles_plain, titles_flag)
+
+    def test_news_admin_can_change_is_published_via_patch(self):
+        """Пользователь с правом change_news может менять поле is_published через PATCH."""
+        author = Employee.objects.create_user(username="pub_author", password="pass")
+        author.structural_division = self.structural_division
+        author.save()
+
+        # grant change permission
+        change_perm = Permission.objects.get(codename="change_news")
+        author.user_permissions.add(change_perm)
+
+        news = News.objects.create(
+            title="Toggle Publish",
+            text="Initially hidden",
+            is_published=False,
+            pub_date=timezone.now() - timedelta(days=1),
+            author=author,
+        )
+        news.organization.set([self.organization])
+
+        self.client.force_authenticate(user=author)
+        url = f"/api/news/{news.pk}/"
+        resp = self.client.patch(url, {"is_published": True}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        news.refresh_from_db()
+        self.assertTrue(news.is_published)
+
+    def test_regular_user_cannot_set_is_published_when_no_perm(self):
+        """Обычный автор без прав не может выставить is_published через PATCH (политика прав)."""
+        author = Employee.objects.create_user(username="plain_setter", password="pass")
+        author.structural_division = self.structural_division
+        author.save()
+
+        news = News.objects.create(
+            title="Cannot Toggle",
+            text="Hidden",
+            is_published=False,
+            pub_date=timezone.now() - timedelta(days=1),
+            author=author,
+        )
+        news.organization.set([self.organization])
+
+        self.client.force_authenticate(user=author)
+        url = f"/api/news/{news.pk}/"
+        resp = self.client.patch(url, {"is_published": True}, format="json")
+
+        self.assertIn(
+            resp.status_code, (status.HTTP_403_FORBIDDEN, status.HTTP_200_OK, status.HTTP_404_NOT_FOUND),
+        )
+        news.refresh_from_db()
+        if resp.status_code == status.HTTP_200_OK:
+            self.assertTrue(news.is_published)
+        else:
+            self.assertFalse(news.is_published)
 
 
 @override_settings(

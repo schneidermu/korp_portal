@@ -847,19 +847,59 @@ class NewsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         user_organization = user.organization if hasattr(user, "organization") else None
+        now = timezone.now()
 
-        queryset = News.objects.filter(
-            is_published=True, pub_date__lte=timezone.now(),
-        ).select_related("author")
-        
+        published_qs = (
+            News.objects.filter(is_published=True, pub_date__lte=now)
+            .select_related("author")
+        )
+
         if user_organization:
-            queryset = queryset.filter(
+            published_qs = published_qs.filter(
                 Q(organization__isnull=True) | Q(organization=user_organization),
             )
         else:
-            queryset = queryset.filter(organization__isnull=True)
-        
-        return queryset.distinct().order_by("-pub_date")
+            published_qs = published_qs.filter(organization__isnull=True)
+
+        # Respect explicit ?is_published param when provided
+        is_published_param = self.request.query_params.get("is_published")
+
+        # Staff/superuser see all news and can filter by is_published
+        if user.is_staff or user.is_superuser:
+            qs = News.objects.select_related("author").all()
+            if is_published_param is not None:
+                if is_published_param.lower() in ("true", "1", "yes"):
+                    qs = qs.filter(is_published=True, pub_date__lte=now)
+                else:
+                    qs = qs.filter(Q(is_published=False) | Q(pub_date__gt=now))
+            return qs.order_by("-pub_date")
+
+        # Default for ordinary users: published and already-published
+        queryset = published_qs
+
+        try:
+            can_manage_news = (
+                user.has_perm("homepage.add_news") or user.has_perm("homepage.change_news")
+            )
+        except Exception:
+            can_manage_news = False
+
+        if can_manage_news:
+            own_qs = News.objects.filter(author=user).select_related("author")
+
+            if is_published_param is None:
+                # default: include published + own (any status)
+                queryset = (queryset | own_qs).distinct()
+            else:
+                # explicit filtering requested
+                if is_published_param.lower() in ("true", "1", "yes"):
+                    queryset = queryset
+                else:
+                    # news admins requesting False see their own unpublished/future news
+                    queryset = own_qs.filter(Q(is_published=False) | Q(pub_date__gt=now))
+
+        # For non-admins, ?is_published=False does not change visibility
+        return queryset.order_by("-pub_date")
 
     def perform_create(self, serializer):
         """Автоматически устанавливает автора новости при создании."""
