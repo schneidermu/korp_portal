@@ -833,9 +833,10 @@ class PollViewset(viewsets.ModelViewSet):
 class NewsViewSet(viewsets.ModelViewSet):
     """Вьюсет для новостей"""
 
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
 
     filterset_fields = ("organization__id",)
+    search_fields = ("title",)
 
     permission_classes = (
         IsAuthenticated,
