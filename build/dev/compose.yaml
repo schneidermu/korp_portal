@@ -35,6 +35,7 @@ services:
     build: ../../django/
     container_name: $COMPOSE_NAME-django
     stop_signal: SIGINT
+    user: root
     volumes:
       - ./volumes/media/:/media/
       - ./volumes/logs/:/app/logs/
@@ -58,6 +59,7 @@ services:
       SECRET_KEY: $DJANGO_SECRET_KEY
       ALLOWED_HOSTS: django,$DJANGO_ALLOWED_HOSTS
       DEBUG: $DJANGO_DEBUG
+      LOGS_IGNORE_USERS: $DJANGO_LOGS_IGNORE_USERS
       CHALLENGE_URL: $DJANGO_CHALLENGE_URL
       SCRIPT_NAME: $BACKEND_PREFIX
       DJANGO_PORT:

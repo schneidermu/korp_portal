@@ -142,6 +142,12 @@ CORS_ALLOWED_ORIGIN_REGEXES = [r"^http://([a-z0-9]+\.)*localhost(:[0-9]+)?$"]
 
 DJANGO_PORT = os.getenv("DJANGO_PORT", 8000)
 
+LOGS_IGNORE_USERS = set()
+if os.getenv("LOGS_IGNORE_USERS", "") != "":
+    LOGS_IGNORE_USERS = {
+        user.strip() for user in os.environ["LOGS_IGNORE_USERS"].split(",") if user.strip()
+    }
+
 CORS_ALLOWED_ORIGINS = [f"http://{vm_hostname}:{DJANGO_PORT}"]
 if os.getenv("ALLOWED_ORIGINS", "") != "":
     CORS_ALLOWED_ORIGINS.extend(os.environ["ALLOWED_ORIGINS"].split(","))

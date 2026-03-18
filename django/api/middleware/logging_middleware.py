@@ -1,5 +1,7 @@
 import logging
 
+from django.conf import settings
+
 api_logger = logging.getLogger("api_logger")
 
 
@@ -9,6 +11,12 @@ class ApiLoggingMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
+
+        if (
+            request.user.is_authenticated
+            and request.user.username in settings.LOGS_IGNORE_USERS
+        ):
+            return response
 
         user = request.user.username if request.user.is_authenticated else "Anonymous"
 
