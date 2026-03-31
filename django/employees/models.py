@@ -641,10 +641,15 @@ class SegmentGroup(models.Model):
         default="",
     )
 
+    order = models.IntegerField(
+        verbose_name="Порядок сортировки",
+        default=0,
+    )
+
     class Meta:
         verbose_name = "Группа сегментов"
         verbose_name_plural = "Группы сегментов"
-        ordering = ["name"]
+        ordering = ["order", "name"]
 
     def __str__(self):
         return self.name if self.name else "Пусто"
