@@ -18,15 +18,20 @@ logger = logging.getLogger(__name__)
 DEFAULT_FILES = (
     "Центральный аппарат Центррегионводхоз.xlsx",
     "Штатная расстановка АКВА на 01.04.26.xlsx",
+    "Штатная расстановка РОСНИИВХ на 01.02.2026 без ЗП.xlsx",
+    "ФГБУ РосНИИВХ.xls",
+    "штатная расстановка на 27.05.2026.docx",
 )
 
 ORG_BY_FILE = {
     "Центральный аппарат Центррегионводхоз.xlsx": "Центррегионводхоз",
     "Штатная расстановка АКВА на 01.04.26.xlsx": "Акваинфотека",
     "Штатная расстановка РОСНИИВХ на 01.02.2026 без ЗП.xlsx": "РосНИИВХ",
+    "ФГБУ РосНИИВХ.xls": "РосНИИВХ",
+    "штатная расстановка на 27.05.2026.docx": "ЦА ФАВР",
 }
 
-VACANCY_RE = re.compile(r"\bваканси[яи]\b", re.IGNORECASE)
+VACANCY_RE = re.compile(r"\bвакан[а-яёА-ЯЁ]+\b", re.IGNORECASE)
 FULL_FIO_RE = re.compile(
     r"\b([А-ЯЁ][а-яё-]+)\s+([А-ЯЁ][а-яё-]+)\s+([А-ЯЁ][а-яё-]+)\b",
 )
@@ -152,15 +157,21 @@ def import_file(path, args, stats):
 
 
 def parse_workbook(path, organization_name):
-    workbook = load_workbook(path, data_only=True)
-    if path.name.startswith("Центральный аппарат"):
-        yield from parse_centerregionvodhoz(workbook.active, path.name, organization_name)
-    elif "АКВА" in path.name:
-        yield from parse_akva(workbook["Лист1"], path.name, organization_name)
-    elif "РОСНИИВХ" in path.name:
-        yield from parse_rosniivh(workbook.active, path.name, organization_name)
+    suffix = path.suffix.lower()
+    if suffix == ".xls":
+        yield from parse_fgbu_rosniivh_xls(path, path.name, organization_name)
+    elif suffix == ".docx":
+        yield from parse_rosvodresursy_docx(path, path.name, organization_name)
     else:
-        raise ValueError(f"Unknown staffing file format: {path}")
+        workbook = load_workbook(path, data_only=True)
+        if path.name.startswith("Центральный аппарат"):
+            yield from parse_centerregionvodhoz(workbook.active, path.name, organization_name)
+        elif "АКВА" in path.name:
+            yield from parse_akva(workbook["Лист1"], path.name, organization_name)
+        elif "РОСНИИВХ" in path.name.upper():
+            yield from parse_rosniivh(workbook.active, path.name, organization_name)
+        else:
+            raise ValueError(f"Unknown staffing file format: {path}")
 
 
 def parse_centerregionvodhoz(sheet, source, organization):
@@ -234,6 +245,55 @@ def parse_rosniivh(sheet, source, organization):
                 *person,
                 raw_name,
             )
+
+
+def parse_fgbu_rosniivh_xls(path, source, organization):
+    import xlrd
+
+    wb = xlrd.open_workbook(str(path))
+    sh = wb.sheet_by_index(0)
+    current_subdivision = None
+    for row_number in range(4, sh.nrows):
+        col0 = clean_text(sh.cell_value(row_number, 0))
+        col1 = clean_text(sh.cell_value(row_number, 1))
+        col2 = clean_text(sh.cell_value(row_number, 2))
+
+        if not col1 and not col2:
+            if col0 and not is_total(col0):
+                current_subdivision = col0
+            continue
+
+        if not col1 or not col2 or is_vacancy(col2) or not current_subdivision:
+            continue
+
+        for person in extract_initial_names(col2):
+            yield StaffRow(source, sh.name, row_number, organization, current_subdivision, col1, *person, col2)
+
+
+def parse_rosvodresursy_docx(path, source, organization):
+    from docx import Document
+
+    doc = Document(str(path))
+    table = doc.tables[0]
+    current_subdivision = "Руководство"
+    for row_number, row in enumerate(table.rows):
+        if row_number < 2:
+            continue
+
+        cells = [clean_text(c.text) for c in row.cells]
+        position = cells[1]
+        fio = cells[3]
+
+        # merged header row: position and FIO columns contain the same text
+        if position and fio and position == fio:
+            current_subdivision = position
+            continue
+
+        if not position or not fio or is_vacancy(fio):
+            continue
+
+        for person in extract_full_names(fio):
+            yield StaffRow(source, "Лист1", row_number, organization, current_subdivision, position, *person, fio)
 
 
 def get_or_create_organization(name, dry_run, stats):
