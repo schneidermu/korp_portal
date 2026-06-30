@@ -8,7 +8,10 @@ WORKDIR /app
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   apt-get update && apt-get --no-install-recommends install -y \
-  libldap2-dev libsasl2-dev libssl-dev python-dev-is-python3
+  antiword \
+  libldap2-dev libsasl2-dev libssl-dev python-dev-is-python3 \
+  poppler-utils \
+  tesseract-ocr tesseract-ocr-rus
 
 COPY requirements.txt .
 
