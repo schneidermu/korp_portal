@@ -98,6 +98,7 @@ HEADER_MARKERS = (
 )
 ROSVODRESURSY_DOCX = "штатная расстановка на 27.05.2026.docx"
 FGBU_ROSNIIVH_XLS = "ФГБУ РосНИИВХ.xls"
+ROOT_SUBDIVISION_NAMES = ("Руководство", "Аппарат управления")
 
 
 @dataclass(frozen=True)
@@ -112,6 +113,7 @@ class StaffRow:
     name: Optional[str]
     patronym: Optional[str]
     raw_name: str
+    parent_subdivision: Optional[str] = None
 
     @property
     def display_name(self):
@@ -128,6 +130,8 @@ class ImportStats:
         self.skipped = 0
         self.created_orgs = 0
         self.created_subdivisions = 0
+        self.linked_parents = 0
+        self.linked_chiefs = 0
 
 
 def run(*script_args):
@@ -154,9 +158,17 @@ def run(*script_args):
     parser.add_argument(
         "--allow-ambiguous-first",
         action="store_true",
+        default=True,
         help="Update the first employee when several employees match the same FIO.",
     )
+    parser.add_argument(
+        "--strict-ambiguous",
+        action="store_true",
+        help="Skip ambiguous FIO matches instead of picking the first match.",
+    )
     args = parser.parse_args(script_args)
+    if args.strict_ambiguous:
+        args.allow_ambiguous_first = False
 
     base_dir = Path(args.base_dir)
     files = [Path(path) for path in args.files] if args.files else [Path(f) for f in DEFAULT_FILES]
@@ -172,7 +184,8 @@ def run(*script_args):
 
     logger.info(
         "Staffing import completed: rows=%s updated=%s missing=%s ambiguous=%s "
-        "skipped=%s orgs_created=%s subdivisions_created=%s dry_run=%s",
+        "skipped=%s orgs_created=%s subdivisions_created=%s linked_parents=%s "
+        "linked_chiefs=%s dry_run=%s",
         stats.rows,
         stats.updated,
         stats.missing,
@@ -180,6 +193,8 @@ def run(*script_args):
         stats.skipped,
         stats.created_orgs,
         stats.created_subdivisions,
+        stats.linked_parents,
+        stats.linked_chiefs,
         args.dry_run,
     )
     print(
@@ -187,7 +202,9 @@ def run(*script_args):
         f"rows={stats.rows} updated={stats.updated} missing={stats.missing} "
         f"ambiguous={stats.ambiguous} skipped={stats.skipped} "
         f"orgs_created={stats.created_orgs} "
-        f"subdivisions_created={stats.created_subdivisions} dry_run={args.dry_run}",
+        f"subdivisions_created={stats.created_subdivisions} "
+        f"linked_parents={stats.linked_parents} "
+        f"linked_chiefs={stats.linked_chiefs} dry_run={args.dry_run}",
     )
 
 
@@ -226,6 +243,289 @@ def import_file(path, args, stats):
             )
         update_employee(row, subdivision, args, stats)
 
+    link_organization_structure(organization, rows, args, stats)
+
+
+class SubdivisionTracker:
+    def __init__(self, default_root="Аппарат управления"):
+        self.default_root = truncate_subdivision_name(default_root)
+        self.root_name = self.default_root
+        self.current_management = None
+        self.known_names = set()
+        self._current_subdivision = None
+        self._current_parent = None
+        self.enter_subdivision(self.default_root)
+
+    def enter_subdivision(self, name):
+        name = truncate_subdivision_name(clean_text(name))
+        if name == self._current_subdivision:
+            return self._current_subdivision, self._current_parent
+
+        parent = self.resolve_parent(name)
+        if self.is_root(name):
+            self.root_name = name
+            self.current_management = None
+        elif self.is_management_unit(name):
+            self.current_management = name
+
+        self.known_names.add(name)
+        self._current_subdivision = name
+        self._current_parent = parent
+        return name, parent
+
+    def current(self):
+        return self._current_subdivision or self.default_root, self._current_parent
+
+    def is_root(self, name):
+        return truncate_subdivision_name(name) in ROOT_SUBDIVISION_NAMES
+
+    def is_management_unit(self, name):
+        lower = truncate_subdivision_name(name).lower()
+        if self.is_root(name):
+            return False
+        if lower in ("бухгалтерия",):
+            return True
+        if lower.startswith("управление ") or lower.endswith(" управление"):
+            return True
+        if "управление" in lower and not lower.startswith("отдел "):
+            return True
+        if lower.startswith("служба ") or lower.endswith(" служба"):
+            return True
+        if lower.startswith("координацион") or lower.startswith("специальный объект"):
+            return True
+        return False
+
+    def resolve_parent(self, name):
+        name = truncate_subdivision_name(name)
+        if self.is_root(name):
+            return None
+
+        parent = infer_genitive_parent_name(name, self.known_names | {name})
+        if parent:
+            return parent
+
+        if name == "Экономический отдел" and "Финансово-экономическая служба" in self.known_names:
+            return "Финансово-экономическая служба"
+
+        if self.is_management_unit(name):
+            return self.root_name
+
+        if self.current_management:
+            return self.current_management
+        return self.root_name
+
+
+def infer_genitive_parent_name(name, known_names):
+    name = truncate_subdivision_name(name)
+    normalized_names = {
+        subdivision_name: truncate_subdivision_name(subdivision_name)
+        for subdivision_name in known_names
+    }
+    for parent_name, parent_normalized in sorted(
+        normalized_names.items(),
+        key=lambda item: len(item[1]),
+        reverse=True,
+    ):
+        if parent_normalized == name or not parent_normalized.startswith("Управление "):
+            continue
+        genitive = truncate_subdivision_name(
+            "Управления " + parent_normalized[len("Управление "):],
+        )
+        if name.endswith(genitive):
+            return parent_name
+    return None
+
+
+def build_subdivision_parent_map(rows, subdivision_names):
+    parent_names = {}
+    for row in rows:
+        if not should_import_subdivision(row):
+            continue
+        name = truncate_subdivision_name(row.subdivision)
+        if name in parent_names:
+            continue
+        if row.parent_subdivision is not None:
+            parent_names[name] = truncate_subdivision_name(row.parent_subdivision)
+        elif name in ROOT_SUBDIVISION_NAMES:
+            parent_names[name] = None
+
+    for name in subdivision_names:
+        if name not in parent_names:
+            parent_names[name] = infer_parent_subdivision_name(name, subdivision_names)
+    return parent_names
+
+
+def link_organization_structure(organization, rows, args, stats):
+    if organization is None or args.dry_run:
+        return
+
+    subdivision_names = []
+    seen = set()
+    for row in rows:
+        if not should_import_subdivision(row):
+            continue
+        subdivision_name = truncate_subdivision_name(row.subdivision)
+        if subdivision_name not in seen:
+            seen.add(subdivision_name)
+            subdivision_names.append(subdivision_name)
+
+    if not subdivision_names:
+        return
+
+    subdivisions = {
+        subdivision.name: subdivision
+        for subdivision in StructuralSubdivision.objects.filter(
+            organization=organization,
+            name__in=subdivision_names,
+        )
+    }
+    parent_names = build_subdivision_parent_map(rows, subdivision_names)
+
+    for name, parent_name in parent_names.items():
+        subdivision = subdivisions.get(name)
+        if subdivision is None:
+            continue
+        parent = subdivisions.get(parent_name) if parent_name else None
+        if subdivision.parent_structural_subdivision_id == (parent.id if parent else None):
+            continue
+        subdivision.parent_structural_subdivision = parent
+        subdivision.save(update_fields=["parent_structural_subdivision"])
+        stats.linked_parents += 1
+        logger.info(
+            "Linked parent subdivision: %s / %s -> %s",
+            organization.name,
+            name,
+            parent_name or "—",
+        )
+
+    subdivision_chiefs = {}
+    rows_by_subdivision = {}
+    for row in rows:
+        if not should_import_subdivision(row):
+            continue
+        subdivision_name = truncate_subdivision_name(row.subdivision)
+        rows_by_subdivision.setdefault(subdivision_name, []).append(row)
+
+    for subdivision_name, subdivision_rows in rows_by_subdivision.items():
+        chief = resolve_chief_employee(subdivision_rows)
+        if chief is not None:
+            subdivision_chiefs[subdivision_name] = chief
+
+    for subdivision_name, chief in subdivision_chiefs.items():
+        subdivision = subdivisions.get(subdivision_name)
+        if subdivision is None or subdivision.chief_id == chief.id:
+            continue
+        subdivision.chief = chief
+        subdivision.save(update_fields=["chief"])
+        stats.linked_chiefs += 1
+        logger.info(
+            "Linked subdivision chief: %s / %s -> %s",
+            organization.name,
+            subdivision_name,
+            chief,
+        )
+
+    for subdivision_name, subdivision_rows in rows_by_subdivision.items():
+        unit_chief = subdivision_chiefs.get(subdivision_name)
+        parent_name = parent_names.get(subdivision_name)
+        parent_chief = subdivision_chiefs.get(parent_name) if parent_name else None
+
+        for row in subdivision_rows:
+            employee = resolve_employee_for_structure(row)
+            if employee is None:
+                continue
+
+            if unit_chief is not None and employee.id == unit_chief.id:
+                chief = parent_chief
+            else:
+                chief = unit_chief
+
+            if employee.chief_id == (chief.id if chief else None):
+                continue
+
+            employee.chief = chief
+            employee.save(update_fields=["chief"])
+            stats.linked_chiefs += 1
+            logger.info(
+                "Linked employee chief: %s -> %s",
+                employee,
+                chief or "—",
+            )
+
+    root_name = next(
+        (name for name in subdivision_names if name in ROOT_SUBDIVISION_NAMES),
+        None,
+    )
+    if root_name and subdivision_chiefs.get(root_name):
+        head = subdivision_chiefs[root_name]
+        if organization.head_id != head.id:
+            organization.head = head
+            organization.save(update_fields=["head"])
+            logger.info("Linked organization head: %s -> %s", organization.name, head)
+
+
+def infer_parent_subdivision_name(name, all_names):
+    name = truncate_subdivision_name(name)
+    normalized_names = {
+        subdivision_name: truncate_subdivision_name(subdivision_name)
+        for subdivision_name in all_names
+    }
+    if name == "Руководство":
+        return None
+    if name == "Экономический отдел" and "Финансово-экономическая служба" in normalized_names:
+        return "Финансово-экономическая служба"
+
+    for parent_name, parent_normalized in sorted(
+        normalized_names.items(),
+        key=lambda item: len(item[1]),
+        reverse=True,
+    ):
+        if parent_normalized == name:
+            continue
+        if name.endswith(parent_normalized):
+            return parent_name
+        if parent_normalized.startswith("Управление "):
+            genitive = truncate_subdivision_name(
+                "Управления " + parent_normalized[len("Управление "):],
+            )
+            if name.endswith(genitive):
+                return parent_name
+
+    for root_name in ("Руководство", "Аппарат управления"):
+        if root_name in normalized_names and name != root_name:
+            return root_name
+    return None
+
+
+def resolve_chief_employee(subdivision_rows):
+    for row in subdivision_rows:
+        if is_chief_position(row.position):
+            employee = resolve_employee_for_structure(row)
+            if employee is not None:
+                return employee
+    for row in subdivision_rows:
+        employee = resolve_employee_for_structure(row)
+        if employee is not None:
+            return employee
+    return None
+
+
+def resolve_employee_for_structure(row):
+    matches = find_employee(row)
+    if not matches:
+        return None
+    return matches[0]
+
+
+def is_chief_position(position):
+    normalized = clean_text(position).lower()
+    if not normalized or "замест" in normalized:
+        return False
+    return any(
+        hint in normalized
+        for hint in ("начальник", "директор", "руководитель", "главный бухгалтер")
+    )
+
 
 def parse_workbook(path, organization_name):
     suffix = path.suffix.lower()
@@ -260,43 +560,66 @@ def parse_workbook(path, organization_name):
 
 
 def parse_centerregionvodhoz(sheet, source, organization):
-    current_subdivision = None
+    tracker = SubdivisionTracker("Руководство")
+    current_subdivision, current_parent = tracker.current()
     for row_number in range(9, sheet.max_row + 1):
         unit = clean_text(sheet.cell(row_number, 2).value)
         position = clean_text(sheet.cell(row_number, 5).value)
         raw_name = clean_text(sheet.cell(row_number, 6).value)
 
         if unit and not is_total(unit):
-            current_subdivision = unit
+            current_subdivision, current_parent = tracker.enter_subdivision(unit)
 
         if not position or not raw_name or is_vacancy(raw_name) or not current_subdivision:
             continue
 
         for person in extract_full_names(raw_name):
-            yield StaffRow(source, sheet.title, row_number, organization, current_subdivision, position, *person, raw_name)
+            yield StaffRow(
+                source,
+                sheet.title,
+                row_number,
+                organization,
+                current_subdivision,
+                position,
+                *person,
+                raw_name,
+                current_parent,
+            )
 
 
 def parse_akva(sheet, source, organization):
-    current_subdivision = None
+    tracker = SubdivisionTracker("Аппарат управления")
+    current_subdivision, current_parent = tracker.current()
     for row_number in range(4, sheet.max_row + 1):
         first = clean_text(sheet.cell(row_number, 1).value)
         position = clean_text(sheet.cell(row_number, 2).value)
         raw_name = clean_text(sheet.cell(row_number, 6).value)
 
         if first and not position and not raw_name and not is_total(first):
-            current_subdivision = first
+            current_subdivision, current_parent = tracker.enter_subdivision(first)
             continue
 
         if not position or is_total(position) or not raw_name or is_vacancy(raw_name):
             continue
 
-        subdivision = current_subdivision or "Аппарат управления"
+        subdivision = current_subdivision or tracker.default_root
         for person in extract_full_names(raw_name):
-            yield StaffRow(source, sheet.title, row_number, organization, subdivision, position, *person, raw_name)
+            yield StaffRow(
+                source,
+                sheet.title,
+                row_number,
+                organization,
+                subdivision,
+                position,
+                *person,
+                raw_name,
+                current_parent,
+            )
 
 
 def parse_rosniivh(sheet, source, organization):
-    current_subdivision = "Аппарат управления"
+    tracker = SubdivisionTracker("Аппарат управления")
+    current_subdivision, current_parent = tracker.current()
     section_number = 1
     current_position = ""
     for row_number in range(12, sheet.max_row + 1):
@@ -310,7 +633,9 @@ def parse_rosniivh(sheet, source, organization):
             next_position = clean_text(sheet.cell(row_number + 1, 1).value)
             if next_position:
                 section_number += 1
-                current_subdivision = f"Подразделение {section_number}"
+                current_subdivision, current_parent = tracker.enter_subdivision(
+                    f"Подразделение {section_number}",
+                )
             continue
 
         if not raw_name or is_vacancy(raw_name):
@@ -329,6 +654,7 @@ def parse_rosniivh(sheet, source, organization):
                 current_position,
                 *person,
                 raw_name,
+                current_parent,
             )
 
 
@@ -337,7 +663,8 @@ def parse_fgbu_rosniivh_xls(path, source, organization):
 
     wb = xlrd.open_workbook(str(path))
     sh = wb.sheet_by_index(0)
-    current_subdivision = None
+    tracker = SubdivisionTracker("Аппарат управления")
+    current_subdivision, current_parent = tracker.current()
     for row_number in range(4, sh.nrows):
         col0 = clean_text(sh.cell_value(row_number, 0))
         col1 = clean_text(sh.cell_value(row_number, 1))
@@ -345,14 +672,24 @@ def parse_fgbu_rosniivh_xls(path, source, organization):
 
         if not col1 and not col2:
             if col0 and not is_total(col0):
-                current_subdivision = col0
+                current_subdivision, current_parent = tracker.enter_subdivision(col0)
             continue
 
         if not col1 or not col2 or is_vacancy(col2) or not current_subdivision:
             continue
 
         for person in extract_initial_names(col2):
-            yield StaffRow(source, sh.name, row_number, organization, current_subdivision, col1, *person, col2)
+            yield StaffRow(
+                source,
+                sh.name,
+                row_number,
+                organization,
+                current_subdivision,
+                col1,
+                *person,
+                col2,
+                current_parent,
+            )
 
 
 def parse_rosvodresursy_docx(path, source, organization):
@@ -360,7 +697,8 @@ def parse_rosvodresursy_docx(path, source, organization):
 
     doc = Document(str(path))
     table = doc.tables[0]
-    current_subdivision = "Руководство"
+    tracker = SubdivisionTracker("Руководство")
+    current_subdivision, current_parent = tracker.current()
     for row_number, row in enumerate(table.rows):
         if row_number < 2:
             continue
@@ -371,46 +709,68 @@ def parse_rosvodresursy_docx(path, source, organization):
 
         # merged header row: position and FIO columns contain the same text
         if position and fio and position == fio:
-            current_subdivision = position
+            current_subdivision, current_parent = tracker.enter_subdivision(position)
             continue
 
         if not position or not fio or is_vacancy(fio):
             continue
 
         for person in extract_full_names(fio):
-            yield StaffRow(source, "Лист1", row_number, organization, current_subdivision, position, *person, fio)
+            yield StaffRow(
+                source,
+                "Лист1",
+                row_number,
+                organization,
+                current_subdivision,
+                position,
+                *person,
+                fio,
+                current_parent,
+            )
 
 
 def parse_bvu_xlsx(sheet, source, organization):
-    current_subdivision = "Аппарат управления"
+    tracker = SubdivisionTracker("Аппарат управления")
+    current_subdivision, current_parent = tracker.current()
     for row_number in range(1, sheet.max_row + 1):
         unit = clean_text(sheet.cell(row_number, 1).value)
         raw_name = clean_text(sheet.cell(row_number, 6).value)
 
         if unit and not raw_name and not is_total(unit):
             if is_subdivision_header(unit):
-                current_subdivision = unit
+                current_subdivision, current_parent = tracker.enter_subdivision(unit)
             continue
 
         if not unit or is_total(unit) or not raw_name or is_vacancy(raw_name):
             continue
 
         for person in extract_people(raw_name):
-            yield StaffRow(source, sheet.title, row_number, organization, current_subdivision, unit, *person, raw_name)
+            yield StaffRow(
+                source,
+                sheet.title,
+                row_number,
+                organization,
+                current_subdivision,
+                unit,
+                *person,
+                raw_name,
+                current_parent,
+            )
 
 
 def parse_bvu_xls(path, source, organization):
     import xlrd
 
     sh = xlrd.open_workbook(str(path)).sheet_by_index(0)
-    current_subdivision = "Аппарат управления"
+    tracker = SubdivisionTracker("Аппарат управления")
+    current_subdivision, current_parent = tracker.current()
     for row_number in range(6, sh.nrows):
         col0 = clean_text(sh.cell_value(row_number, 0))
         col1 = clean_text(sh.cell_value(row_number, 1))
         col3 = clean_text(sh.cell_value(row_number, 3))
 
         if col0 and not col1 and not col3 and not is_total(col0):
-            current_subdivision = col0
+            current_subdivision, current_parent = tracker.enter_subdivision(col0)
             continue
 
         if not col0 or not col3 or is_vacancy(col3) or is_total(col0):
@@ -422,7 +782,17 @@ def parse_bvu_xls(path, source, organization):
             if key in seen:
                 continue
             seen.add(key)
-            yield StaffRow(source, sh.name, row_number, organization, current_subdivision, col0, *person, col3)
+            yield StaffRow(
+                source,
+                sh.name,
+                row_number,
+                organization,
+                current_subdivision,
+                col0,
+                *person,
+                col3,
+                current_parent,
+            )
 
 
 def parse_bvu_docx(path, source, organization):
@@ -435,7 +805,8 @@ def parse_bvu_docx(path, source, organization):
         (index for index, value in enumerate(header) if "фио" in value or "фамил" in value),
         1,
     )
-    current_subdivision = "Аппарат управления"
+    tracker = SubdivisionTracker("Аппарат управления")
+    current_subdivision, current_parent = tracker.current()
     for row_number, row in enumerate(table.rows[1:], start=1):
         cells = [clean_text(cell.text) for cell in row.cells]
         if not any(cells):
@@ -443,7 +814,7 @@ def parse_bvu_docx(path, source, organization):
 
         if len(set(cells)) == 1 and cells[0] and not is_total(cells[0]):
             if is_subdivision_header(cells[0]):
-                current_subdivision = cells[0]
+                current_subdivision, current_parent = tracker.enter_subdivision(cells[0])
             continue
 
         position = cells[0]
@@ -451,11 +822,21 @@ def parse_bvu_docx(path, source, organization):
         if not position or not raw_name or is_vacancy(raw_name) or is_total(position):
             continue
         if is_subdivision_header(position):
-            current_subdivision = position
+            current_subdivision, current_parent = tracker.enter_subdivision(position)
             continue
 
         for person in extract_people(raw_name):
-            yield StaffRow(source, "Лист1", row_number, organization, current_subdivision, position, *person, raw_name)
+            yield StaffRow(
+                source,
+                "Лист1",
+                row_number,
+                organization,
+                current_subdivision,
+                position,
+                *person,
+                raw_name,
+                current_parent,
+            )
 
 
 def parse_bvu_doc(path, source, organization):
@@ -479,7 +860,8 @@ def parse_bvu_markdown(path, source, organization):
         max(len(header_cells) - 2, 1),
     )
 
-    current_subdivision = "Аппарат управления"
+    tracker = SubdivisionTracker("Аппарат управления")
+    current_subdivision, current_parent = tracker.current()
     for row_number, line in enumerate(table_lines[2:], start=3):
         if is_markdown_separator(line):
             continue
@@ -494,7 +876,9 @@ def parse_bvu_markdown(path, source, organization):
             continue
 
         if is_markdown_subdivision_row(cells, raw_cells, fio_column):
-            current_subdivision = normalize_subdivision_name(position)
+            current_subdivision, current_parent = tracker.enter_subdivision(
+                normalize_subdivision_name(position),
+            )
             continue
 
         if is_total(position):
@@ -505,7 +889,17 @@ def parse_bvu_markdown(path, source, organization):
             continue
 
         for person in extract_people(raw_name):
-            yield StaffRow(source, path.stem, row_number, organization, current_subdivision, position, *person, raw_name)
+            yield StaffRow(
+                source,
+                path.stem,
+                row_number,
+                organization,
+                current_subdivision,
+                position,
+                *person,
+                raw_name,
+                current_parent,
+            )
 
 
 def parse_bvu_pdf(path, source, organization):
@@ -514,7 +908,8 @@ def parse_bvu_pdf(path, source, organization):
 
 
 def parse_bvu_text_lines(lines, source, organization):
-    current_subdivision = "Аппарат управления"
+    tracker = SubdivisionTracker("Аппарат управления")
+    current_subdivision, current_parent = tracker.current()
     start = find_table_start(lines)
     index = start
     while index < len(lines):
@@ -526,7 +921,9 @@ def parse_bvu_text_lines(lines, source, organization):
             index += 1
             continue
         if is_subdivision_header(line):
-            current_subdivision = clean_text(line).rstrip(":")
+            current_subdivision, current_parent = tracker.enter_subdivision(
+                clean_text(line).rstrip(":"),
+            )
             index += 1
             continue
 
@@ -535,7 +932,16 @@ def parse_bvu_text_lines(lines, source, organization):
             raw_name = lines[index + 2]
             if not is_vacancy(raw_name):
                 for person in extract_people(raw_name):
-                    yield make_staff_row(source, index, organization, current_subdivision, position, person, raw_name)
+                    yield make_staff_row(
+                        source,
+                        index,
+                        organization,
+                        current_subdivision,
+                        position,
+                        person,
+                        raw_name,
+                        current_parent,
+                    )
             index += 3
             continue
 
@@ -544,7 +950,16 @@ def parse_bvu_text_lines(lines, source, organization):
             position = numbered_position.group(1).strip()
             raw_name = lines[index + 1]
             for person in extract_people(raw_name):
-                yield make_staff_row(source, index, organization, current_subdivision, position, person, raw_name)
+                yield make_staff_row(
+                    source,
+                    index,
+                    organization,
+                    current_subdivision,
+                    position,
+                    person,
+                    raw_name,
+                    current_parent,
+                )
             index += 2
             continue
 
@@ -557,15 +972,34 @@ def parse_bvu_text_lines(lines, source, organization):
             position = " ".join(clean_text(part) for part in position_parts)
             people, next_index = consume_people(lines, next_index)
             for person, raw_name in people:
-                yield make_staff_row(source, index, organization, current_subdivision, position, person, raw_name)
+                yield make_staff_row(
+                    source,
+                    index,
+                    organization,
+                    current_subdivision,
+                    position,
+                    person,
+                    raw_name,
+                    current_parent,
+                )
             index = next_index
             continue
 
         index += 1
 
 
-def make_staff_row(source, row_number, organization, subdivision, position, person, raw_name):
-    return StaffRow(source, "Лист1", row_number, organization, subdivision, position, *person, raw_name)
+def make_staff_row(source, row_number, organization, subdivision, position, person, raw_name, parent_subdivision=None):
+    return StaffRow(
+        source,
+        "Лист1",
+        row_number,
+        organization,
+        subdivision,
+        position,
+        *person,
+        raw_name,
+        parent_subdivision,
+    )
 
 
 def consume_people(lines, start_index):
